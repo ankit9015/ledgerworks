@@ -89,3 +89,15 @@ For `balance` and `ingest` the run maxima are 64 to 401 ms and p99 is 22 to 102 
 ### O5. `credit_ledger (tenant_id, id)` is now a redundant index
 
 Migration 0003 added a unique constraint on `credit_ledger (tenant_id, id)` (required for the composite foreign key that keeps refunds inside one tenant). It makes the older non-unique index `credit_ledger_tenant_id_idx` on the same columns redundant: two indexes now cover the same lookups and both are maintained on every ledger insert. Not changed (no tuning in this task). A before/after write-cost measurement belongs in P1.10.
+
+### O6. `claim_jobs` sequentially scans and sorts every runnable job on every claim
+
+- **Where:** the pick step of `ledgerline_fn.claim_jobs` (migration 0004): `WHERE queue = ... AND ((status IN ('queued','failed') AND run_at <= now) OR (status = 'running' AND lease_expires_at <= now AND attempts < max_attempts)) ORDER BY run_at, id LIMIT n FOR UPDATE SKIP LOCKED`.
+- **Evidence:** `EXPLAIN (ANALYZE, BUFFERS)` against 10,000 queued synthetic jobs (Postgres 16.15, 2 CPU / 2 GiB container) shows `Seq Scan on jobs` + `Sort` over all 10,000 rows to return 1: Execution Time 5.670 ms, 182 buffer hits. Full plan in `docs/benchmarks/queue.md` and `docs/benchmarks/raw/queue-throughput.txt`.
+- **Measured impact:** 10,000 no-op jobs with 50 workers: median 77.1 jobs/s (72.1 to 85.6) over 3 runs. The full-size correctness test takes about 160 s.
+- **Why:** the existing partial index `(queue, run_at) WHERE status = 'queued'` cannot serve the `OR` that makes `failed` jobs and expired leases claimable.
+- **Status:** not fixed (no tuning in this task). Candidate directions for P1.10, to be measured and not assumed: an index that matches the real predicate, or a `UNION ALL` of index-friendly branches.
+
+### O7. Credit and queue functions are plpgsql round trips
+
+The per-debit cost measured in the 10,000-debit test (about 14 to 19 s for 10,000 debits with 50 workers, i.e. roughly 500 to 700 debits/s, with all debits of one tenant serialised on its balance row) was not profiled. Noted for P1.10; no conclusion drawn.

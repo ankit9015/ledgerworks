@@ -1,0 +1,65 @@
+
+> ledgerworks@ seed D:\github\ledgerworks
+> pnpm --filter @ledgerworks/ledgerline seed "--yes"
+
+
+> @ledgerworks/ledgerline@0.0.0 seed D:\github\ledgerworks\ledgerline
+> tsx src/seed/seed.ts "--yes"
+
+[    0.0s] seed value: 20251001
+[    0.1s] migrations: applied [], already applied [0001, 0002, 0003, 0004]
+[    0.1s] postgres 16.15 (Debian 16.15-1.pgdg13+2)
+[    0.4s] reset: all tables truncated
+[    0.7s] plan: 250 tenants, 10,000,000 events
+[    0.8s] tenants, users, memberships inserted
+[   18.1s]   usage_events 2025-10-01: 547,332 rows in 17.3s
+[   35.0s]   usage_events 2025-11-01: 557,174 rows in 16.9s
+[   64.5s]   usage_events 2025-12-01: 662,550 rows in 29.5s
+[   89.6s]   usage_events 2026-01-01: 706,864 rows in 25.1s
+[  113.2s]   usage_events 2026-02-01: 690,058 rows in 23.6s
+[  140.7s]   usage_events 2026-03-01: 816,525 rows in 27.5s
+[  170.6s]   usage_events 2026-04-01: 858,363 rows in 29.9s
+[  202.0s]   usage_events 2026-05-01: 910,208 rows in 31.4s
+[  232.5s]   usage_events 2026-06-01: 969,252 rows in 30.5s
+[  267.3s]   usage_events 2026-07-01: 1,065,841 rows in 34.8s
+[  297.4s]   usage_events 2026-08-01: 1,078,102 rows in 30.1s
+[  329.8s]   usage_events 2026-09-01: 1,137,731 rows in 32.4s
+[  342.9s] credit_ledger and credit_balances inserted
+[  343.0s] api keys: 250 created; 5 raw keys written to .seed/keys.json (not printed)
+[  345.8s] ANALYZE done
+
+=== row counts per table ===
+tenants                   250
+users                   1,543
+memberships             1,543
+api_keys                  250
+usage_events       10,000,000
+credit_ledger           6,053
+credit_balances           250
+jobs                        0
+job_attempts                0
+dead_letters                0
+
+=== usage_events distribution ===
+tenants with events: 250
+top 5 tenants: 5,177,302 events = 51.8% of all events
+largest tenant: 2,541,285 (25.4%)
+smallest tenant: 3,369 events
+median tenant: 7,666 events
+
+=== usage_events per partition ===
+48 partitions, 12 non-empty (usage_events_2025_10 .. usage_events_2026_09), 36 empty
+rows per non-empty partition: min 547,332, max 1,137,731
+
+=== credits consistency ===
+ledger-sum vs balance mismatches: 0
+negative balances: 0; tenants without a balance row: 0
+
+=== determinism fingerprint ===
+usage_events fingerprint: 16f7e4fd1c8a81e2cd4c99c40412d670
+credit_ledger fingerprint: 61c38936ebdfa326c253611c7e685d1e
+
+total database size: 2306 MB (usage_events incl. indexes: 2293 MB)
+seed value: 20251001
+total runtime: 356.9s
+EXIT 0

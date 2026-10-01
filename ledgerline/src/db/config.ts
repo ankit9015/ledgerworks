@@ -16,3 +16,15 @@ export function appUrlFrom(admin: string): string {
 export function appUrl(): string {
   return process.env.DATABASE_URL ?? appUrlFrom(adminUrl());
 }
+
+/** Same server and database, as the queue worker role (may only call claim_jobs). */
+export function workerUrlFrom(admin: string): string {
+  const url = new URL(admin);
+  url.username = 'ledgerline_worker';
+  url.password = process.env.LEDGERLINE_WORKER_PASSWORD ?? 'ledgerline_worker';
+  return url.toString();
+}
+
+export function workerUrl(): string {
+  return process.env.DATABASE_WORKER_URL ?? workerUrlFrom(adminUrl());
+}

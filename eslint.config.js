@@ -7,7 +7,7 @@ export default tseslint.config(
   ...tseslint.configs.recommended,
   {
     // Node scripts (not TypeScript)
-    files: ['ledgerline/k6/**/*.mjs'],
+    files: ['ledgerline/k6/**/*.mjs', 'scripts/**/*.mjs'],
     languageOptions: { globals: { process: 'readonly', console: 'readonly' } },
   },
   {

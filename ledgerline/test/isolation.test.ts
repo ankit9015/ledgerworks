@@ -599,8 +599,14 @@ describe('isolation: guards', () => {
 // SECURITY DEFINER functions
 // ---------------------------------------------------------------------------------------------
 // Functions in the ledgerline_fn schema, by kind. Adding a function means deciding which kind it is.
-const DEFINER_FUNCTIONS = ['authenticate_api_key', 'create_tenant'];
-const INVOKER_FUNCTIONS = ['debit_credits', 'refund_credits'];
+const DEFINER_FUNCTIONS = ['authenticate_api_key', 'claim_jobs', 'create_tenant'];
+const INVOKER_FUNCTIONS = [
+  'complete_job',
+  'debit_credits',
+  'enqueue_job',
+  'fail_job',
+  'refund_credits',
+];
 
 describe('isolation: SECURITY DEFINER functions', () => {
   it('authenticate_api_key returns the tenant for a valid hash and nothing otherwise', async () => {
@@ -649,21 +655,63 @@ describe('isolation: SECURITY DEFINER functions', () => {
     eq(k.rows, [{ key_hash: hash }], 'key hash stored');
   });
 
-  it('the definer role is narrow: no BYPASSRLS and no access to ledger, jobs or usage data', async () => {
+  it('the definer role is narrow: no BYPASSRLS and exactly the privileges its functions need', async () => {
     isolationTests++;
     const r = await admin.query(
       `SELECT rolsuper, rolbypassrls, rolcanlogin FROM pg_roles WHERE rolname = 'ledgerline_definer'`,
     );
     eq(r.rows[0], { rolsuper: false, rolbypassrls: false, rolcanlogin: false }, 'definer flags');
-    for (const table of ['credit_ledger', 'jobs', 'job_attempts', 'dead_letters', 'usage_events']) {
+    // Exactly these privileges, nothing else. credit_ledger and usage_events: none at all.
+    const allowed: Record<string, string[]> = {
+      tenants: ['SELECT', 'INSERT'],
+      users: ['SELECT', 'INSERT'],
+      memberships: ['INSERT'],
+      api_keys: ['SELECT', 'INSERT'],
+      credit_balances: ['INSERT'],
+      jobs: ['SELECT', 'UPDATE'],
+      job_attempts: ['SELECT', 'INSERT', 'UPDATE'],
+      dead_letters: ['INSERT'],
+    };
+    for (const spec of SPECS) {
       for (const priv of ['SELECT', 'INSERT', 'UPDATE', 'DELETE']) {
         const p = await admin.query(
           `SELECT has_table_privilege('ledgerline_definer', $1, $2) AS ok`,
-          [table, priv],
+          [spec.table, priv],
         );
-        eq(p.rows[0].ok, false, `definer ${priv} on ${table}`);
+        eq(
+          p.rows[0].ok,
+          (allowed[spec.table] ?? []).includes(priv),
+          `definer ${priv} on ${spec.table}`,
+        );
       }
     }
+  });
+
+  it('the worker role can log in, has no BYPASSRLS, no table privileges and may only call claim_jobs', async () => {
+    isolationTests++;
+    const r = await admin.query(
+      `SELECT rolsuper, rolbypassrls, rolcanlogin FROM pg_roles WHERE rolname = 'ledgerline_worker'`,
+    );
+    eq(r.rows[0], { rolsuper: false, rolbypassrls: false, rolcanlogin: true }, 'worker flags');
+    for (const spec of SPECS) {
+      for (const priv of ['SELECT', 'INSERT', 'UPDATE', 'DELETE']) {
+        const p = await admin.query(
+          `SELECT has_table_privilege('ledgerline_worker', $1, $2) AS ok`,
+          [spec.table, priv],
+        );
+        eq(p.rows[0].ok, false, `worker ${priv} on ${spec.table}`);
+      }
+    }
+    const fns = await admin.query(
+      `SELECT p.proname FROM pg_proc p JOIN pg_namespace n ON n.oid = p.pronamespace
+       WHERE n.nspname = 'ledgerline_fn' AND has_function_privilege('ledgerline_worker', p.oid, 'EXECUTE')
+       ORDER BY p.proname`,
+    );
+    eq(
+      fns.rows.map((x) => x.proname),
+      ['claim_jobs'],
+      'functions the worker role may execute',
+    );
   });
 
   it('SECURITY DEFINER functions pin search_path and belong to the definer role; invoker functions stay invokers; none is public', async () => {

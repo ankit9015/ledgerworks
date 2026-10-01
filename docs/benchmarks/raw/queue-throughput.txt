@@ -1,0 +1,28 @@
+
+> @ledgerworks/ledgerline@0.0.0 bench:queue D:\github\ledgerworks\ledgerline
+> tsx src/bench/queue-throughput.ts
+
+queue throughput: 10000 jobs, 50 workers, 3 runs, no-op handler
+started 2026-10-01T20:49:12.528Z
+--- EXPLAIN (ANALYZE, BUFFERS) of the claim pick, 10,000 queued jobs ---
+Limit  (cost=532.00..532.01 rows=1 width=30) (actual time=5.645..5.646 rows=1 loops=1)
+  Buffers: shared hit=183
+  ->  LockRows  (cost=532.00..657.00 rows=10000 width=30) (actual time=5.645..5.645 rows=1 loops=1)
+        Buffers: shared hit=183
+        ->  Sort  (cost=532.00..557.00 rows=10000 width=30) (actual time=5.630..5.631 rows=1 loops=1)
+              Sort Key: run_at, id
+              Sort Method: quicksort  Memory: 931kB
+              Buffers: shared hit=182
+              ->  Seq Scan on jobs j  (cost=0.00..482.00 rows=10000 width=30) (actual time=0.007..2.291 rows=10000 loops=1)
+                    Filter: ((queue = 'bench'::text) AND (((status = ANY ('{queued,failed}'::text[])) AND (run_at <= now())) OR ((status = 'running'::text) AND (lease_expires_at <= now()) AND (attempts < max_attempts))))
+                    Buffers: shared hit=182
+Planning:
+  Buffers: shared hit=67 read=1
+Planning Time: 0.200 ms
+Execution Time: 5.670 ms
+---
+run 1: 10000 jobs in 116.87 s = 85.6 jobs/s (all 10000 succeeded, max attempts 1)
+run 2: 10000 jobs in 138.61 s = 72.1 jobs/s (all 10000 succeeded, max attempts 1)
+run 3: 10000 jobs in 129.65 s = 77.1 jobs/s (all 10000 succeeded, max attempts 1)
+median 77.1 jobs/s, min 72.1, max 85.6
+EXIT 0

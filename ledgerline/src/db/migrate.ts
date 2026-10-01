@@ -7,6 +7,7 @@ import pg from 'pg';
 export const OWNER_ROLE = 'ledgerline_owner';
 export const APP_ROLE = 'ledgerline_app';
 export const DEFINER_ROLE = 'ledgerline_definer';
+export const WORKER_ROLE = 'ledgerline_worker';
 
 export const defaultMigrationsDir = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
@@ -16,6 +17,8 @@ export const defaultMigrationsDir = path.resolve(
 export interface BootstrapOptions {
   /** Password for the application role. Development default only. */
   appPassword?: string;
+  /** Password for the queue worker role. Development default only. */
+  workerPassword?: string;
 }
 
 /** Quote a value as an SQL string literal (used only for role passwords in DDL). */
@@ -49,13 +52,19 @@ export async function bootstrapRoles(
       IF NOT EXISTS (SELECT FROM pg_roles WHERE rolname = '${APP_ROLE}') THEN
         CREATE ROLE ${APP_ROLE} LOGIN NOSUPERUSER NOBYPASSRLS NOCREATEDB NOCREATEROLE;
       END IF;
+      IF NOT EXISTS (SELECT FROM pg_roles WHERE rolname = '${WORKER_ROLE}') THEN
+        CREATE ROLE ${WORKER_ROLE} LOGIN NOSUPERUSER NOBYPASSRLS NOCREATEDB NOCREATEROLE;
+      END IF;
     END $$`);
+  const workerPassword =
+    options.workerPassword ?? process.env.LEDGERLINE_WORKER_PASSWORD ?? 'ledgerline_worker';
   await client.query(`ALTER ROLE ${APP_ROLE} PASSWORD ${literal(appPassword)}`);
+  await client.query(`ALTER ROLE ${WORKER_ROLE} PASSWORD ${literal(workerPassword)}`);
   // The owner must be able to hand function ownership to the definer role.
   await client.query(`GRANT ${DEFINER_ROLE} TO ${OWNER_ROLE}`);
   const { rows } = await client.query<{ db: string }>('SELECT current_database() AS db');
   const db = `"${rows[0]!.db.replaceAll('"', '""')}"`;
-  await client.query(`GRANT CONNECT ON DATABASE ${db} TO ${APP_ROLE}`);
+  await client.query(`GRANT CONNECT ON DATABASE ${db} TO ${APP_ROLE}, ${WORKER_ROLE}`);
   await client.query(`GRANT CREATE ON SCHEMA public TO ${OWNER_ROLE}`);
   // Needed for CREATE SCHEMA (the ledgerline_fn schema in 0002).
   await client.query(`GRANT CREATE ON DATABASE ${db} TO ${OWNER_ROLE}`);

@@ -10,7 +10,8 @@
     "lint": "eslint . && prettier --check .",
     "format": "prettier --write .",
     "typecheck": "pnpm -r --if-present run typecheck",
-    "test": "vitest run",
+    "test": "vitest run --fileParallelism=false",
+    "test:concurrency": "node scripts/test-concurrency.mjs",
     "migrate": "pnpm --filter @ledgerworks/ledgerline migrate",
     "seed": "pnpm --filter @ledgerworks/ledgerline seed"
   },

@@ -83,7 +83,7 @@ Purpose: a realistic, data-heavy, multi-tenant backend that is fast, correct und
 ### Correctness under concurrency
 - [x] **P1.8** Race-free credit debit: a single function or transaction using row locking, a balance check before the run, an idempotency key, and a refund path on failure.
   - **Done when:** a test with 50 parallel workers performing 10,000 debits shows **no overdraft, no double-spend, and ledger sum equals balance**. Repeating the same idempotency key does not double-debit.
-- [ ] **P1.9** Job queue using `FOR UPDATE SKIP LOCKED`, with retries, exponential backoff, a max-attempts limit, dead-lettering and idempotency keys.
+- [x] **P1.9** Job queue using `FOR UPDATE SKIP LOCKED`, with retries, exponential backoff, a max-attempts limit, dead-lettering and idempotency keys.
   - **Done when:** a test with 50 workers processing 10,000 jobs shows **no job executed twice, none lost**, failed jobs reach `dead_letters` after the retry limit, and throughput (jobs/s) is recorded.
 
 ### Performance work
