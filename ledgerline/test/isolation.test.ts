@@ -598,6 +598,10 @@ describe('isolation: guards', () => {
 // ---------------------------------------------------------------------------------------------
 // SECURITY DEFINER functions
 // ---------------------------------------------------------------------------------------------
+// Functions in the ledgerline_fn schema, by kind. Adding a function means deciding which kind it is.
+const DEFINER_FUNCTIONS = ['authenticate_api_key', 'create_tenant'];
+const INVOKER_FUNCTIONS = ['debit_credits', 'refund_credits'];
+
 describe('isolation: SECURITY DEFINER functions', () => {
   it('authenticate_api_key returns the tenant for a valid hash and nothing otherwise', async () => {
     isolationTests++;
@@ -662,22 +666,35 @@ describe('isolation: SECURITY DEFINER functions', () => {
     }
   });
 
-  it('the functions pin search_path, are owned by the definer role, and are not public', async () => {
+  it('SECURITY DEFINER functions pin search_path and belong to the definer role; invoker functions stay invokers; none is public', async () => {
     isolationTests++;
     const f = await admin.query(
-      `SELECT p.proname, pg_get_userbyid(p.proowner) AS owner, p.prosecdef, p.proconfig
+      `SELECT p.oid, p.proname, pg_get_userbyid(p.proowner) AS owner, p.prosecdef, p.proconfig
        FROM pg_proc p JOIN pg_namespace n ON n.oid = p.pronamespace
        WHERE n.nspname = 'ledgerline_fn' ORDER BY p.proname`,
     );
+    const definers = f.rows.filter((r) => r.prosecdef);
+    const invokers = f.rows.filter((r) => !r.prosecdef);
     eq(
-      f.rows.map((r) => r.proname),
-      ['authenticate_api_key', 'create_tenant'],
-      'functions',
+      definers.map((r) => r.proname),
+      DEFINER_FUNCTIONS,
+      'SECURITY DEFINER functions',
     );
-    for (const r of f.rows) {
+    eq(
+      invokers.map((r) => r.proname),
+      INVOKER_FUNCTIONS,
+      'SECURITY INVOKER functions (run as the caller, so RLS applies)',
+    );
+    for (const r of definers) {
       eq(r.owner, 'ledgerline_definer', `${r.proname} owner`);
-      eq(r.prosecdef, true, `${r.proname} is SECURITY DEFINER`);
       eq(r.proconfig, ['search_path=pg_catalog, pg_temp'], `${r.proname} search_path`);
+    }
+    for (const r of f.rows) {
+      const p = await admin.query(
+        `SELECT has_function_privilege('ledgerline_test_noprivs', $1::oid, 'EXECUTE') AS ok`,
+        [r.oid],
+      );
+      eq(p.rows[0].ok, false, `${r.proname} is not executable by PUBLIC`);
     }
     const o = await run('noPrivileges', `SELECT * FROM ledgerline_fn.authenticate_api_key('x')`);
     truthy(!o.ok && o.code === '42501', 'a role without grants cannot call the function');

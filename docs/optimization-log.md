@@ -85,3 +85,7 @@ QUERY PLAN
 ### O4. Unexplained latency spikes on the cheap endpoints
 
 For `balance` and `ingest` the run maxima are 64 to 401 ms and p99 is 22 to 102 ms while p95 is 10 to 17 ms (every run). The k6 container, the API on the host and the 2-CPU Postgres container share one 4-core laptop, so scheduler noise is a plausible cause, but this was not diagnosed.
+
+### O5. `credit_ledger (tenant_id, id)` is now a redundant index
+
+Migration 0003 added a unique constraint on `credit_ledger (tenant_id, id)` (required for the composite foreign key that keeps refunds inside one tenant). It makes the older non-unique index `credit_ledger_tenant_id_idx` on the same columns redundant: two indexes now cover the same lookups and both are maintained on every ledger insert. Not changed (no tuning in this task). A before/after write-cost measurement belongs in P1.10.
