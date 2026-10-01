@@ -67,7 +67,7 @@ Purpose: a realistic, data-heavy, multi-tenant backend that is fast, correct und
   - **Done when:** `docker compose up -d` gives a database where `SELECT * FROM pg_stat_statements LIMIT 1` works.
 
 ### Schema and isolation
-- [ ] **P1.3** SQL migrations (plain SQL files with a simple runner, or a migration tool of your choice recorded in `DECISIONS.md`) for: `tenants`, `users`, `memberships` (roles: owner, admin, member), `api_keys` (store a hash only, show prefix), `usage_events` (partitioned by month), `credit_ledger` (append-only), `credit_balances`, `jobs`, `job_attempts`, `dead_letters`.
+- [x] **P1.3** SQL migrations (plain SQL files with a simple runner, or a migration tool of your choice recorded in `DECISIONS.md`) for: `tenants`, `users`, `memberships` (roles: owner, admin, member), `api_keys` (store a hash only, show prefix), `usage_events` (partitioned by month), `credit_ledger` (append-only), `credit_balances`, `jobs`, `job_attempts`, `dead_letters`.
   - **Done when:** migrations apply from empty and roll forward cleanly in CI.
 - [ ] **P1.4** Row-level security on every tenant-owned table. The tenant is set per transaction via a session setting. The app connects with a non-superuser role that does not bypass RLS.
   - **Done when:** an automated test matrix (roles x tables x operations) proves **zero cross-tenant reads and writes**, and the test count is printed in the test output.

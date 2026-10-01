@@ -10,7 +10,8 @@
     "lint": "eslint . && prettier --check .",
     "format": "prettier --write .",
     "typecheck": "pnpm -r --if-present run typecheck",
-    "test": "vitest run"
+    "test": "vitest run",
+    "migrate": "pnpm --filter @ledgerworks/ledgerline migrate"
   },
   "devDependencies": {
     "@eslint/js": "^9.0.0",
