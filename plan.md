@@ -61,7 +61,7 @@ Purpose: a realistic, data-heavy, multi-tenant backend that is fast, correct und
   - **Done when:** both files exist and `PRODUCT.md` states one persona, one problem, three non-goals and at least three measurable success metrics.
 
 ### Setup
-- [ ] **P1.1** pnpm workspace, TypeScript strict config, ESLint, Prettier, Vitest, GitHub Actions workflow (lint, typecheck, test).
+- [x] **P1.1** pnpm workspace, TypeScript strict config, ESLint, Prettier, Vitest, GitHub Actions workflow (lint, typecheck, test).
   - **Done when:** `pnpm lint && pnpm typecheck && pnpm test` passes locally and in CI on an empty skeleton.
 - [ ] **P1.2** `docker-compose.yml` with Postgres 16, `pg_stat_statements` enabled, CPU and memory limits pinned and documented.
   - **Done when:** `docker compose up -d` gives a database where `SELECT * FROM pg_stat_statements LIMIT 1` works.

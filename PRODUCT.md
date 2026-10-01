@@ -29,10 +29,10 @@ Dana needs per-customer usage metering, a credit balance that cannot be overdraw
 
 Targets are set before measuring. Results are filled in only from real runs and published in `docs/benchmarks/`.
 
-| # | Metric | Target | Result |
-|---|---|---|---|
-| 1 | Cross-tenant reads or writes found by the isolation test matrix (roles x tables x operations) | 0 | not yet measured |
-| 2 | Credit correctness under 50 parallel workers and 10,000 debits: overdrafts, double-spends, and ledger-sum vs balance mismatches | 0 of each | not yet measured |
-| 3 | Job queue with 50 workers and 10,000 jobs: jobs executed twice or lost | 0 of each | not yet measured |
-| 4 | p95 latency of usage read (tenant + date range) at 10M seeded events | target to be set after the P1.7 baseline | not yet measured |
-| 5 | Time for a fresh clone to reach a running demo using only documented commands | under 10 minutes | not yet measured |
+| #   | Metric                                                                                                                          | Target                                   | Result           |
+| --- | ------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------- | ---------------- |
+| 1   | Cross-tenant reads or writes found by the isolation test matrix (roles x tables x operations)                                   | 0                                        | not yet measured |
+| 2   | Credit correctness under 50 parallel workers and 10,000 debits: overdrafts, double-spends, and ledger-sum vs balance mismatches | 0 of each                                | not yet measured |
+| 3   | Job queue with 50 workers and 10,000 jobs: jobs executed twice or lost                                                          | 0 of each                                | not yet measured |
+| 4   | p95 latency of usage read (tenant + date range) at 10M seeded events                                                            | target to be set after the P1.7 baseline | not yet measured |
+| 5   | Time for a fresh clone to reach a running demo using only documented commands                                                   | under 10 minutes                         | not yet measured |

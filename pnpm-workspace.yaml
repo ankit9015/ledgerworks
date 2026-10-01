@@ -1,0 +1,7 @@
+packages:
+  - ledgerline
+  - core
+  - ledgerlens
+  - ledgerlatch
+  - ui
+  - evals
