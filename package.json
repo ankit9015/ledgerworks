@@ -11,7 +11,8 @@
     "format": "prettier --write .",
     "typecheck": "pnpm -r --if-present run typecheck",
     "test": "vitest run",
-    "migrate": "pnpm --filter @ledgerworks/ledgerline migrate"
+    "migrate": "pnpm --filter @ledgerworks/ledgerline migrate",
+    "seed": "pnpm --filter @ledgerworks/ledgerline seed"
   },
   "devDependencies": {
     "@eslint/js": "^9.0.0",

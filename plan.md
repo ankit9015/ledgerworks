@@ -75,7 +75,7 @@ Purpose: a realistic, data-heavy, multi-tenant backend that is fast, correct und
   - **Done when:** integration tests cover the happy path and auth failure for every endpoint.
 
 ### Data and baseline
-- [ ] **P1.6** Seed script generating **10 million** `usage_events` across at least 200 tenants using `generate_series`, with a realistic skew (a few very large tenants). Deterministic via a seed value.
+- [x] **P1.6** Seed script generating **10 million** `usage_events` across at least 200 tenants using `generate_series`, with a realistic skew (a few very large tenants). Deterministic via a seed value.
   - **Done when:** `pnpm seed` is repeatable, documents its runtime, and prints row counts per table.
 - [ ] **P1.7** k6 baseline: scripts for usage ingest, usage read (by tenant and date range) and balance read. Save raw output in `docs/benchmarks/`.
   - **Done when:** `docs/benchmarks/baseline.md` reports p50/p95/p99 per endpoint, request count, error rate, seed size and container limits.
