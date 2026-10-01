@@ -1,0 +1,6 @@
+9002 | 2275.8 | 0.253 | 10.4 | 9002 | INSERT INTO usage_events (tenant_id, occurred_at, event_type, quantity, metadata) VALUES ($1, COALESCE($2::timestamptz, now()), $3, $4, $5) RETURNING id, to_cha
+9002 | 1886.2 | 0.210 | 5.2 | 9002 | SELECT tenant_id, api_key_id FROM ledgerline_fn.authenticate_api_key($1)
+9002 | 558.5 | 0.062 | 1.0 | 9002 | SELECT k.tenant_id, k.id FROM public.api_keys k WHERE k.key_hash = p_key_hash AND k.revoked_at IS NULL
+9002 | 217.7 | 0.024 | 0.4 | 9002 | SELECT 1 FROM ONLY "public"."tenants" x WHERE "id" OPERATOR(pg_catalog.=) $1 FOR KEY SHARE OF x
+9002 | 200.8 | 0.022 | 1.1 | 9002 | SELECT CASE WHEN v ~* $1 THEN v::uuid END FROM (SELECT current_setting($2, $3) AS v) s
+9002 | 77.9 | 0.009 | 0.8 | 9002 | SELECT set_config($2, $1, $3)
