@@ -57,6 +57,8 @@ export async function bootstrapRoles(
   const db = `"${rows[0]!.db.replaceAll('"', '""')}"`;
   await client.query(`GRANT CONNECT ON DATABASE ${db} TO ${APP_ROLE}`);
   await client.query(`GRANT CREATE ON SCHEMA public TO ${OWNER_ROLE}`);
+  // Needed for CREATE SCHEMA (the ledgerline_fn schema in 0002).
+  await client.query(`GRANT CREATE ON DATABASE ${db} TO ${OWNER_ROLE}`);
 }
 
 export interface MigrationFile {
