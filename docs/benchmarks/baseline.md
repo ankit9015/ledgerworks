@@ -6,7 +6,7 @@ Measured on the code and schema as committed at the end of P1.5/P1.6, **with no 
 
 1. **Under the fixed profile, no endpoint errored, timed out or dropped iterations in any of the 18 runs**: 0 failed requests, 0 dropped iterations and 0 failed checks (6,001 measured requests per run for the cheap scenarios, about 363 per run for usage reads).
 2. **Tenant size matters a lot for `GET /v1/usage`.** At 2 iterations/s (about 6 requests/s) the very large tenant (rank 1, 2,541,285 events, about 25% of all events) has p95 **162.5 ms** against **22.0 ms** for a small tenant (rank 100, 10,118 events): about 7x. Medians are 97.7 ms against 13.2 ms. The balance and ingest endpoints do not depend on tenant size (p95 11 to 13 ms for both).
-3. **The huge-tenant usage read saturates early.** Separate single-run capacity probes (not part of the 3-run baseline; same script and profile except the rate; see the probe table below): at **5 iterations/s** (about 15 requests/s) the huge tenant already has p95 **14.4 s** and **62 dropped iterations**; at **10 iterations/s**, p95 **43.0 s** and **275 dropped iterations**. An earlier exploratory run at 20 iterations/s hit k6's 400-VU cap with **801 dropped iterations** and p95 58.4 s (that run's raw files were not kept; these figures come from its console output). Requests did not return errors, they queued. A small tenant at **20 iterations/s** (about 60 requests/s) is fine: p95 16 ms, 0 dropped. The 2 iterations/s rate of the main baseline was chosen after seeing this, so that the three-run comparison is between sustainable loads. The saturation point is reported here rather than hidden.
+3. **The huge-tenant usage read saturates early.** Separate single-run capacity probes (not part of the 3-run baseline; same script and profile except the rate; see the probe table below): at **5 iterations/s** (about 15 requests/s) the huge tenant already has p95 **14.4 s** and **62 dropped iterations**; at **10 iterations/s**, p95 **43.0 s** and **275 dropped iterations**. At **20 iterations/s** k6 hit its 400-VU cap with **801 dropped iterations**, and requests started timing out (see "Saturation" below, which re-ran all three probes and compares them with the first figures). Up to 10 iterations/s requests did not return errors, they queued; at 20 iterations/s they hit the 60 s request timeout. A small tenant at **20 iterations/s** (about 60 requests/s) is fine: p95 16 ms, 0 dropped. The 2 iterations/s rate of the main baseline was chosen after seeing this, so that the three-run comparison is between sustainable loads. The saturation point is reported here rather than hidden.
 4. **Root-cause candidate (diagnosed, not fixed):** the usage query sorts by an output alias, so it cannot use the `(tenant_id, occurred_at)` index order. The same query under matched conditions runs in 132.7 ms with the alias and 0.417 ms ordering by the column. Full plans in `../optimization-log.md`, observation O1.
 5. The cheap endpoints have occasional spikes (run maxima 64 to 401 ms, p99 up to 102 ms) that were not diagnosed (observation O4).
 
@@ -92,6 +92,27 @@ Same scripts and profile, only the rate differs. Raw files are in `raw/` (names 
 | usage-read / huge  | 5 it/s  | 9.2 s  | 14.4 s | 14.9 s | 15.8 s | 696               | 62                 | 0.00%  |
 | usage-read / huge  | 10 it/s | 40.3 s | 43.0 s | 43.6 s | 44.0 s | 341               | 275                | 0.00%  |
 | usage-read / small | 20 it/s | 10 ms  | 16 ms  | 28 ms  | 95 ms  | 3,603             | 0                  | 0.00%  |
+
+## Saturation (re-run on unmodified code, raw files kept)
+
+The huge-tenant `usage-read` probes were re-run at 5, 10 and 20 iterations/s on the same unmodified code, with the same 30 s warmup + 60 s measure profile, the same preflight (exactly 10,000,000 rows, no autovacuum running) and the same environment as the baseline (API on the host under `tsx`, k6 in Docker). Single run per rate, measured phase only. Raw files in `raw/`: `usage-read_huge_runsat5.*`, `usage-read_huge_runsat10.*`, `usage-read_huge_runsat20.*` (`.summary.json`, `.txt`, `.pgss.txt`), the loop's console log `saturation-run.log`, and the API's own log during these runs `api-sat.log`.
+
+| Rate    | Run                                                        | p50     | p95     | p99     | max     | Measured requests | Dropped iterations | Failed requests |
+| ------- | ---------------------------------------------------------- | ------- | ------- | ------- | ------- | ----------------- | ------------------ | --------------- |
+| 5 it/s  | first probe (`_runcap5`)                                   | 9.18 s  | 14.37 s | 14.90 s | 15.80 s | 696               | 62                 | 0.00%           |
+| 5 it/s  | re-run (`_runsat5`)                                        | 12.48 s | 16.74 s | 17.19 s | 18.04 s | 606               | 81                 | 0.00%           |
+| 10 it/s | first probe (`_runcap10`)                                  | 40.29 s | 43.01 s | 43.56 s | 43.97 s | 341               | 275                | 0.00%           |
+| 10 it/s | re-run (`_runsat10`)                                       | 32.65 s | 36.39 s | 37.25 s | 37.85 s | 429               | 275                | 0.00%           |
+| 20 it/s | first probe (console figures only, raw files were deleted) | n/a     | 58.42 s | 58.81 s | 59.01 s | 356               | 801                | 0.00%           |
+| 20 it/s | re-run (`_runsat20`)                                       | 54.35 s | 59.99 s | 59.99 s | 60.00 s | 325               | 801                | **36.62%**      |
+
+Differences from the earlier figures:
+
+- **The picture is the same** (the endpoint cannot keep up from 5 iterations/s upward, latency is seconds to a minute, and dropped iterations are large), but the exact numbers move by roughly 15-25% between runs of the same code: p95 at 5 it/s was 14.4 s then 16.7 s, at 10 it/s 43.0 s then 36.4 s. These are saturated, queue-dominated runs, so they are noisy; they show that the saturation exists, not a precise capacity figure.
+- **Dropped iterations differ at 5 it/s** (62 vs 81) and are identical at 10 and 20 it/s (275 and 801), where k6 is capped by its 400-VU limit.
+- **The 20 it/s re-run is different in kind from the first probe.** The first probe's slowest request finished at 59.01 s, just under k6's default 60 s request timeout, so it reported 0.00% errors. In the re-run requests did hit the 60 s timeout: **36.62% of measured requests failed** (119 `request timeout` warnings are visible in the console file, `usage-read_huge_runsat20.txt`). So the earlier statement that nothing errored at 20 it/s was only true of that single lucky run; at this rate the endpoint does produce timeouts.
+- The 5 and 10 it/s runs show 0.00% failed requests in both rounds.
+- Cause: the usage query cannot use the index order (optimization-log O1), so each page of a huge tenant reads and sorts tens of thousands of rows; at these rates the 2-CPU Postgres container is the bottleneck.
 
 ## How to reproduce
 

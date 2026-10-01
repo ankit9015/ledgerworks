@@ -1,0 +1,58 @@
+
+
+  █ THRESHOLDS 
+
+    dropped_iterations{scenario:measure}
+    ✗ 'count==0' count=275
+
+    http_req_duration{phase:measure,page:1}
+    ✗ 'p(95)<500' p(95)=35.72s
+
+    http_req_duration{phase:measure,page:2}
+    ✗ 'p(95)<500' p(95)=36.16s
+
+    http_req_duration{phase:measure,page:3}
+    ✗ 'p(95)<500' p(95)=37.2s
+
+    http_req_duration{phase:measure}
+    ✗ 'p(95)<500' p(95)=36.38s
+
+    http_req_failed{phase:measure}
+    ✓ 'rate<0.01' rate=0.00%
+
+
+  █ TOTAL RESULTS 
+
+    checks_total.......: 887     7.09475/s
+    checks_succeeded...: 100.00% 887 out of 887
+    checks_failed......: 0.00%   0 out of 887
+
+    ✓ status is 200
+
+    HTTP
+    http_req_duration..............: avg=20.56s min=44.75ms  med=18.69s p(90)=34.01s p(95)=35.23s p(99)=36.92s max=37.85s count=887
+      { expected_response:true }...: avg=20.56s min=44.75ms  med=18.69s p(90)=34.01s p(95)=35.23s p(99)=36.92s max=37.85s count=887
+      { phase:measure,page:1 }.....: avg=30.14s min=17.55s   med=32.16s p(90)=34.59s p(95)=35.72s p(99)=37.25s max=37.85s count=289
+      { phase:measure,page:2 }.....: avg=33.24s min=29.78s   med=33.13s p(90)=35s    p(95)=36.16s p(99)=36.79s max=36.87s count=126
+      { phase:measure,page:3 }.....: avg=35.93s min=33.99s   med=36.24s p(90)=37.04s p(95)=37.2s  p(99)=37.35s max=37.39s count=14 
+      { phase:measure }............: avg=31.24s min=17.55s   med=32.65s p(90)=35.25s p(95)=36.38s p(99)=37.25s max=37.85s count=429
+    http_req_failed................: 0.00%  0 out of 887
+      { phase:measure }............: 0.00%  0 out of 429
+    http_reqs......................: 887    7.09475/s
+
+    EXECUTION
+    dropped_iterations.............: 375    2.999472/s
+      { scenario:measure }.........: 275    2.199613/s
+    iteration_duration.............: avg=30.75s min=194.54ms med=28.36s p(90)=1m21s  p(95)=1m26s  p(99)=1m27s  max=1m28s  count=114
+    iterations.....................: 114    0.911839/s
+    vus............................: 311    min=3        max=325
+    vus_max........................: 475    min=100      max=475
+
+    NETWORK
+    data_received..................: 7.5 MB 60 kB/s
+    data_sent......................: 433 kB 3.5 kB/s
+
+
+
+time="2026-10-01T20:23:53Z" level=error msg="thresholds on metrics 'dropped_iterations{scenario:measure}, http_req_duration{phase:measure,page:1}, http_req_duration{phase:measure,page:2}, http_req_duration{phase:measure,page:3}, http_req_duration{phase:measure}' have been crossed"
+k6 exit code: 99
