@@ -1,0 +1,55 @@
+# Local Postgres for Ledgerworks. DEVELOPMENT ONLY: the password below is not a secret.
+#
+# Pinned resource limits (also recorded in DECISIONS.md, D10). Quote these in every benchmark:
+#   CPU:    2.0 cores   (cpus)
+#   Memory: 2 GiB       (mem_limit; memswap_limit equals it, so no swap)
+# Postgres settings are sized to those limits:
+#   shared_buffers=512MB, effective_cache_size=1536MB, work_mem=16MB,
+#   maintenance_work_mem=128MB, max_connections=100
+#
+# pg_stat_statements is preloaded via shared_preload_libraries and created on first init by
+# docker/initdb/01-extensions.sql. If the volume already exists, run
+#   CREATE EXTENSION IF NOT EXISTS pg_stat_statements;
+# once, or recreate it with `docker compose down -v`.
+services:
+  postgres:
+    image: postgres:16
+    container_name: ledgerworks-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ledgerworks
+      POSTGRES_PASSWORD: ledgerworks
+      POSTGRES_DB: ledgerworks
+    ports:
+      - '5432:5432'
+    cpus: '2.0'
+    mem_limit: 2g
+    memswap_limit: 2g
+    shm_size: 256mb
+    command:
+      - postgres
+      - -c
+      - shared_preload_libraries=pg_stat_statements
+      - -c
+      - pg_stat_statements.track=all
+      - -c
+      - shared_buffers=512MB
+      - -c
+      - effective_cache_size=1536MB
+      - -c
+      - work_mem=16MB
+      - -c
+      - maintenance_work_mem=128MB
+      - -c
+      - max_connections=100
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./docker/initdb:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U ledgerworks -d ledgerworks']
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+volumes:
+  pgdata:
