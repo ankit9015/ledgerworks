@@ -71,7 +71,7 @@ Purpose: a realistic, data-heavy, multi-tenant backend that is fast, correct und
   - **Done when:** migrations apply from empty and roll forward cleanly in CI.
 - [x] **P1.4** Row-level security on every tenant-owned table. The tenant is set per transaction via a session setting. The app connects with a non-superuser role that does not bypass RLS.
   - **Done when:** an automated test matrix (roles x tables x operations) proves **zero cross-tenant reads and writes**, and the test count is printed in the test output.
-- [ ] **P1.5** Fastify API: auth by API key, create tenant, ingest usage event, read usage, read balance. Request validation with a schema library; consistent error format.
+- [x] **P1.5** Fastify API: auth by API key, create tenant, ingest usage event, read usage, read balance. Request validation with a schema library; consistent error format.
   - **Done when:** integration tests cover the happy path and auth failure for every endpoint.
 
 ### Data and baseline
