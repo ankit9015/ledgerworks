@@ -1,0 +1,11 @@
+API up
+##### saturation satg: usage-read huge at 100 it/s 14:34:47
+== preflight: usage-read_huge_runsatg100x1
+usage_events rows: 10000000
+k6 exit code: 0 (99 = a threshold failed; thresholds are informational, not gating)
+##### saturation satg: usage-read huge at 200 it/s 14:36:26
+== preflight: usage-read_huge_runsatg200x2
+usage_events rows: 10000000
+k6 exit code: 99 (99 = a threshold failed; thresholds are informational, not gating)
+API stopped
+##### all done 14:38:11

@@ -1,0 +1,176 @@
+API up
+##### round 1 final: usage-read huge (rate 2) 11:10:26
+== preflight: usage-read_huge_runfinal1
+usage_events rows: 10000000
+k6 exit code: 0 (99 = a threshold failed; thresholds are informational, not gating)
+##### round 1 final: usage-read small (rate 2) 11:12:05
+== preflight: usage-read_small_runfinal1
+usage_events rows: 10000000
+k6 exit code: 0 (99 = a threshold failed; thresholds are informational, not gating)
+##### round 1 final: balance huge (rate 100) 11:13:44
+== preflight: balance_huge_runfinal1
+usage_events rows: 10000000
+k6 exit code: 0 (99 = a threshold failed; thresholds are informational, not gating)
+##### round 1 final: balance small (rate 100) 11:15:23
+== preflight: balance_small_runfinal1
+usage_events rows: 10000000
+k6 exit code: 0 (99 = a threshold failed; thresholds are informational, not gating)
+##### round 1 final: ingest huge (rate 100) 11:17:02
+== preflight: ingest_huge_runfinal1
+usage_events rows: 10000000
+k6 exit code: 0 (99 = a threshold failed; thresholds are informational, not gating)
+ingested rows this run: 9002
+after cleanup usage_events rows: 10000000
+##### round 1 final: ingest small (rate 100) 11:18:44
+== preflight: ingest_small_runfinal1
+usage_events rows: 10000000
+k6 exit code: 0 (99 = a threshold failed; thresholds are informational, not gating)
+ingested rows this run: 9002
+after cleanup usage_events rows: 10000000
+baseline API up
+##### round 1 basetoday: usage-read huge (rate 2) 11:20:25
+== preflight: usage-read_huge_runbasetoday1
+usage_events rows: 10000000
+k6 exit code: 0 (99 = a threshold failed; thresholds are informational, not gating)
+##### round 1 basetoday: usage-read small (rate 2) 11:22:05
+== preflight: usage-read_small_runbasetoday1
+usage_events rows: 10000000
+k6 exit code: 0 (99 = a threshold failed; thresholds are informational, not gating)
+##### round 1 basetoday: balance huge (rate 100) 11:23:44
+== preflight: balance_huge_runbasetoday1
+usage_events rows: 10000000
+k6 exit code: 0 (99 = a threshold failed; thresholds are informational, not gating)
+##### round 1 basetoday: balance small (rate 100) 11:25:23
+== preflight: balance_small_runbasetoday1
+usage_events rows: 10000000
+k6 exit code: 0 (99 = a threshold failed; thresholds are informational, not gating)
+##### round 1 basetoday: ingest huge (rate 100) 11:27:02
+== preflight: ingest_huge_runbasetoday1
+usage_events rows: 10000000
+k6 exit code: 0 (99 = a threshold failed; thresholds are informational, not gating)
+ingested rows this run: 9002
+after cleanup usage_events rows: 10000000
+##### round 1 basetoday: ingest small (rate 100) 11:28:43
+== preflight: ingest_small_runbasetoday1
+usage_events rows: 10000000
+k6 exit code: 0 (99 = a threshold failed; thresholds are informational, not gating)
+ingested rows this run: 9002
+after cleanup usage_events rows: 10000000
+API up
+##### round 2 final: usage-read huge (rate 2) 11:30:25
+== preflight: usage-read_huge_runfinal2
+usage_events rows: 10000000
+k6 exit code: 0 (99 = a threshold failed; thresholds are informational, not gating)
+##### round 2 final: usage-read small (rate 2) 11:32:05
+== preflight: usage-read_small_runfinal2
+usage_events rows: 10000000
+k6 exit code: 0 (99 = a threshold failed; thresholds are informational, not gating)
+##### round 2 final: balance huge (rate 100) 11:33:45
+== preflight: balance_huge_runfinal2
+usage_events rows: 10000000
+k6 exit code: 0 (99 = a threshold failed; thresholds are informational, not gating)
+##### round 2 final: balance small (rate 100) 11:35:24
+== preflight: balance_small_runfinal2
+usage_events rows: 10000000
+k6 exit code: 0 (99 = a threshold failed; thresholds are informational, not gating)
+##### round 2 final: ingest huge (rate 100) 11:37:03
+== preflight: ingest_huge_runfinal2
+usage_events rows: 10000000
+k6 exit code: 0 (99 = a threshold failed; thresholds are informational, not gating)
+ingested rows this run: 9002
+after cleanup usage_events rows: 10000000
+##### round 2 final: ingest small (rate 100) 11:38:45
+== preflight: ingest_small_runfinal2
+usage_events rows: 10000000
+k6 exit code: 0 (99 = a threshold failed; thresholds are informational, not gating)
+ingested rows this run: 8970
+after cleanup usage_events rows: 10000000
+baseline API up
+##### round 2 basetoday: usage-read huge (rate 2) 11:40:26
+== preflight: usage-read_huge_runbasetoday2
+usage_events rows: 10000000
+k6 exit code: 0 (99 = a threshold failed; thresholds are informational, not gating)
+##### round 2 basetoday: usage-read small (rate 2) 11:42:05
+== preflight: usage-read_small_runbasetoday2
+usage_events rows: 10000000
+k6 exit code: 0 (99 = a threshold failed; thresholds are informational, not gating)
+##### round 2 basetoday: balance huge (rate 100) 11:43:44
+== preflight: balance_huge_runbasetoday2
+usage_events rows: 10000000
+k6 exit code: 0 (99 = a threshold failed; thresholds are informational, not gating)
+##### round 2 basetoday: balance small (rate 100) 11:45:23
+== preflight: balance_small_runbasetoday2
+usage_events rows: 10000000
+k6 exit code: 0 (99 = a threshold failed; thresholds are informational, not gating)
+##### round 2 basetoday: ingest huge (rate 100) 11:47:02
+== preflight: ingest_huge_runbasetoday2
+usage_events rows: 10000000
+k6 exit code: 99 (99 = a threshold failed; thresholds are informational, not gating)
+ingested rows this run: 8983
+after cleanup usage_events rows: 10000000
+##### round 2 basetoday: ingest small (rate 100) 11:48:42
+== preflight: ingest_small_runbasetoday2
+usage_events rows: 10000000
+k6 exit code: 0 (99 = a threshold failed; thresholds are informational, not gating)
+ingested rows this run: 9000
+after cleanup usage_events rows: 10000000
+API up
+##### round 3 final: usage-read huge (rate 2) 11:50:23
+== preflight: usage-read_huge_runfinal3
+usage_events rows: 10000000
+k6 exit code: 0 (99 = a threshold failed; thresholds are informational, not gating)
+##### round 3 final: usage-read small (rate 2) 11:52:02
+== preflight: usage-read_small_runfinal3
+usage_events rows: 10000000
+k6 exit code: 0 (99 = a threshold failed; thresholds are informational, not gating)
+##### round 3 final: balance huge (rate 100) 11:53:40
+== preflight: balance_huge_runfinal3
+usage_events rows: 10000000
+k6 exit code: 0 (99 = a threshold failed; thresholds are informational, not gating)
+##### round 3 final: balance small (rate 100) 11:55:19
+== preflight: balance_small_runfinal3
+usage_events rows: 10000000
+k6 exit code: 0 (99 = a threshold failed; thresholds are informational, not gating)
+##### round 3 final: ingest huge (rate 100) 11:56:58
+== preflight: ingest_huge_runfinal3
+usage_events rows: 10000000
+k6 exit code: 0 (99 = a threshold failed; thresholds are informational, not gating)
+ingested rows this run: 9002
+after cleanup usage_events rows: 10000000
+##### round 3 final: ingest small (rate 100) 11:58:38
+== preflight: ingest_small_runfinal3
+usage_events rows: 10000000
+k6 exit code: 0 (99 = a threshold failed; thresholds are informational, not gating)
+ingested rows this run: 9002
+after cleanup usage_events rows: 10000000
+baseline API up
+##### round 3 basetoday: usage-read huge (rate 2) 12:00:19
+== preflight: usage-read_huge_runbasetoday3
+usage_events rows: 10000000
+k6 exit code: 0 (99 = a threshold failed; thresholds are informational, not gating)
+##### round 3 basetoday: usage-read small (rate 2) 12:01:58
+== preflight: usage-read_small_runbasetoday3
+usage_events rows: 10000000
+k6 exit code: 0 (99 = a threshold failed; thresholds are informational, not gating)
+##### round 3 basetoday: balance huge (rate 100) 12:03:37
+== preflight: balance_huge_runbasetoday3
+usage_events rows: 10000000
+k6 exit code: 0 (99 = a threshold failed; thresholds are informational, not gating)
+##### round 3 basetoday: balance small (rate 100) 12:05:16
+== preflight: balance_small_runbasetoday3
+usage_events rows: 10000000
+k6 exit code: 0 (99 = a threshold failed; thresholds are informational, not gating)
+##### round 3 basetoday: ingest huge (rate 100) 12:06:56
+== preflight: ingest_huge_runbasetoday3
+usage_events rows: 10000000
+k6 exit code: 0 (99 = a threshold failed; thresholds are informational, not gating)
+ingested rows this run: 9002
+after cleanup usage_events rows: 10000000
+##### round 3 basetoday: ingest small (rate 100) 12:08:36
+== preflight: ingest_small_runbasetoday3
+usage_events rows: 10000000
+k6 exit code: 0 (99 = a threshold failed; thresholds are informational, not gating)
+ingested rows this run: 9002
+after cleanup usage_events rows: 10000000
+API stopped
+##### all done 12:10:20

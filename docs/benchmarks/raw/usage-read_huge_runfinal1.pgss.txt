@@ -1,0 +1,6 @@
+182 | 872.3 | 4.793 | 14.9 | 9282 | SELECT id, event_type, quantity, to_char(occurred_at AT TIME ZONE $5, $6) AS occurred_at, metadata FROM usage_events WHERE tenant_id = $1 AND occurred_at >= $2:
+364 | 205.9 | 0.566 | 2.2 | 18564 | SELECT id, event_type, quantity, to_char(occurred_at AT TIME ZONE $7, $8) AS occurred_at, metadata FROM usage_events WHERE tenant_id = $1 AND occurred_at >= $2:
+546 | 98.0 | 0.179 | 4.6 | 546 | SELECT tenant_id, api_key_id FROM ledgerline_fn.authenticate_api_key($1)
+546 | 29.0 | 0.053 | 0.8 | 546 | SELECT k.tenant_id, k.id FROM public.api_keys k WHERE k.key_hash = p_key_hash AND k.revoked_at IS NULL
+546 | 9.0 | 0.017 | 0.1 | 546 | SELECT CASE WHEN v ~* $1 THEN v::uuid END FROM (SELECT current_setting($2, $3) AS v) s
+546 | 3.8 | 0.007 | 0.1 | 546 | SELECT set_config($2, $1, $3)

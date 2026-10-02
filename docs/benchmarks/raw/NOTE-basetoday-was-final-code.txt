@@ -1,0 +1,8 @@
+The files named *_runbasetoday{1,2,3}.* and api-compare-basetoday-r*.txt (first attempt of
+ledgerline/k6/compare.sh, 2026-10-02 11:10 - 12:15 UTC) are NOT the baseline code. The baseline API
+(git worktree at aa0aa89) failed to start with EADDRINUSE because api.sh did not wait for the previous
+server to exit, and the old FINAL-code server kept answering the health check, so k6 measured the final
+code under that label. They are kept as raw output and are valid only as a second sample of the final
+code (see the "files named *_runfinal*" for the first sample). api.sh now waits for the port to be
+free, requires "Server listening" in the new process's own log, and checks which checkout the
+listening process runs from. The re-run is tagged final2 / base2 (compare.sh).

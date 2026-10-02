@@ -1,0 +1,27 @@
+API up
+##### saturation satf: usage-read huge at 5 it/s 14:24:06
+== preflight: usage-read_huge_runsatf5x1
+usage_events rows: 10000000
+k6 exit code: 0 (99 = a threshold failed; thresholds are informational, not gating)
+##### saturation satf: usage-read huge at 10 it/s 14:25:45
+== preflight: usage-read_huge_runsatf10x2
+usage_events rows: 10000000
+k6 exit code: 0 (99 = a threshold failed; thresholds are informational, not gating)
+##### saturation satf: usage-read huge at 10 it/s 14:27:23
+== preflight: usage-read_huge_runsatf10x3
+usage_events rows: 10000000
+k6 exit code: 0 (99 = a threshold failed; thresholds are informational, not gating)
+##### saturation satf: usage-read huge at 10 it/s 14:29:02
+== preflight: usage-read_huge_runsatf10x4
+usage_events rows: 10000000
+k6 exit code: 0 (99 = a threshold failed; thresholds are informational, not gating)
+##### saturation satf: usage-read huge at 20 it/s 14:30:40
+== preflight: usage-read_huge_runsatf20x5
+usage_events rows: 10000000
+k6 exit code: 0 (99 = a threshold failed; thresholds are informational, not gating)
+##### saturation satf: usage-read huge at 40 it/s 14:32:18
+== preflight: usage-read_huge_runsatf40x6
+usage_events rows: 10000000
+k6 exit code: 0 (99 = a threshold failed; thresholds are informational, not gating)
+API stopped
+##### all done 14:34:00

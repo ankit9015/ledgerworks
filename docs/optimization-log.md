@@ -9,6 +9,19 @@ One entry per performance win. Every entry must contain all of the following, wi
 5. **Measured latency before and after**: with the number of runs and how they were taken.
 6. **Seed size**: rows per relevant table, plus the Postgres version and container CPU/memory limits (see `docker-compose.yml`). Label synthetic data as synthetic.
 
+## Summary of P1.10 (honest tally)
+
+| Entry | Change                                                                                | Verdict                                 | Headline (median of 3 runs, range)                                                                                                                           |
+| ----- | ------------------------------------------------------------------------------------- | --------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| E1    | `ORDER BY` named the output alias; qualify the column (**application bug, no index**) | **Real win**                            | huge-tenant `usage-read` p95 145.5 ms (139.2 – 151.1) to 24.3 ms (22.1 – 28.7); saturation moved from below 5 it/s to between 100 and 200 it/s               |
+| E2    | Usage-read access pattern: indexes already right, keyset pagination already used      | No change needed (negative result)      | every query shape under 3 ms inside Postgres                                                                                                                 |
+| E3    | Two partial indexes on `jobs` and a provable claim predicate (O6)                     | **Real win**                            | queue throughput 64.5 jobs/s (64.0 – 67.0) to 253.1 jobs/s (250.1 – 257.7), 3.9x                                                                             |
+| E4    | Drop the redundant ledger index (O5)                                                  | Small, real, **not a latency win**      | bulk insert faster in 5 of 5 pairs (about 10 to 34%, ranges overlap); single debit: not measurable; 4.1 MB saved per 100k rows                               |
+| E5    | Merge `BEGIN` + `set_config` (O3)                                                     | **Negative at API level, reverted**     | 0.35 ms saved in the DB path (3 of 3 rounds), not distinguishable end to end                                                                                 |
+| E6    | Automatic partition creation; partitioning measured                                   | Operations win, **no read-latency win** | partitioned reads 12 to 24% slower per query than flat (0.03 to 0.06 ms); dropping a month 65 to 210x faster than DELETE; 900/900 boundary inserts succeeded |
+
+**Two entries (E1, E3) are real, attributable improvements in latency or throughput. Two more (E4, E6) are real but are cost, storage or operations improvements, not latency, and E5 is a measured null result. So the target of three real improvements is met only if E4 and E6 are counted, and I do not count E4 as a performance win.** The final comparison against the baseline is in `benchmarks/after.md`.
+
 ## Environment (applies to every entry)
 
 - **Data (synthetic):** the 10,000,000-row `usage_events` seed (seed value 20251001, 250 tenants, Zipf-skewed; huge = rank 1 with 2,541,285 events, small = rank 100 with 10,118 events), re-seeded after Step 0 with identical fingerprints (`raw/seed-run4-after-0005.txt`). Details: `benchmarks/seed.md`.

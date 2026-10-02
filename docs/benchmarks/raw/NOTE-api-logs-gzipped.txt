@@ -1,0 +1,1 @@
+API server logs of the benchmark runs (pino, one line per request) are gzip-compressed (*.txt.gz) because uncompressed they exceeded GitHub's 100 MB file limit. Content unchanged.

@@ -1,0 +1,1 @@
+Aborted on purpose: a labelling bug in saturation.sh would have overwritten repeated runs, and the runs were killed part-way. Not valid results; kept as raw output. Valid saturation runs are tagged satf (usage-read_huge_runsatf*).

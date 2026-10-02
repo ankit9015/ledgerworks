@@ -5,13 +5,13 @@
 import { readdirSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 
-const tag = process.argv[2];
+const tag = process.argv[2] === '-' ? '' : process.argv[2]; // '-' = the original baseline files (run1..3)
 const dir =
   process.argv[3] && !process.argv[3].startsWith('--') ? process.argv[3] : 'docs/benchmarks/raw';
 const asJson = process.argv.includes('--json');
-if (!tag) throw new Error('usage: stats.mjs <tag> [dir]');
+if (process.argv[2] === undefined) throw new Error('usage: stats.mjs <tag|-> [dir]');
 
-const re = new RegExp(`^(.+?)_(\\w+?)_run${tag}(\\d+)\\.summary\\.json$`);
+const re = new RegExp(`^(.+?)_(\\w+?)_run${tag}(\\d)\\.summary\\.json$`);
 const groups = new Map();
 for (const f of readdirSync(dir)) {
   const m = re.exec(f);

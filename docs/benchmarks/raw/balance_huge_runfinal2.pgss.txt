@@ -1,0 +1,6 @@
+9001 | 1301.4 | 0.145 | 2.5 | 9001 | SELECT tenant_id, api_key_id FROM ledgerline_fn.authenticate_api_key($1)
+9001 | 749.5 | 0.083 | 0.5 | 9001 | SELECT balance, updated_at FROM credit_balances WHERE tenant_id = $1
+9001 | 387.0 | 0.043 | 0.2 | 9001 | SELECT k.tenant_id, k.id FROM public.api_keys k WHERE k.key_hash = p_key_hash AND k.revoked_at IS NULL
+9001 | 149.5 | 0.017 | 0.2 | 9001 | SELECT CASE WHEN v ~* $1 THEN v::uuid END FROM (SELECT current_setting($2, $3) AS v) s
+9001 | 55.6 | 0.006 | 0.1 | 9001 | SELECT set_config($2, $1, $3)
+9001 | 8.8 | 0.001 | 0.0 | 0 | COMMIT

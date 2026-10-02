@@ -1,0 +1,23 @@
+date (UTC): 2026-10-02T14:40:13Z
+git commit: 7de746d
+postgres: PostgreSQL 16.15 (Debian 16.15-1.pgdg13+2) on x86_64-pc-linux-gnu, compiled by gcc (Debian 14.2.0-19) 14.2.0, 64-bit
+container limits: NanoCpus=2000000000 Memory=2147483648 MemorySwap=2147483648
+postgres settings: autovacuum=on, effective_cache_size=196608 8kB, jit=on, maintenance_work_mem=131072 kB, max_connections=100, random_page_cost=4, shared_buffers=65536 8kB, shared_preload_libraries=pg_stat_statements, synchronous_commit=on, work_mem=16384 kB
+k6 image: k6 v2.3.0 (commit/e088784614, go1.27.1, linux/amd64)
+node: v22.13.1
+api: host process (tsx src/server.ts), HOST=0.0.0.0, default pool size 10, LOG_LEVEL=info (default), no changes from the committed code
+k6 -> api: host.docker.internal:3000
+seed value: 20251001
+row counts:
+  tenants: 250
+  users: 1543
+  memberships: 1543
+  api_keys: 250
+  usage_events: 10000000
+  credit_ledger: 6053
+  credit_balances: 250
+  jobs: 0
+  job_attempts: 0
+  dead_letters: 0
+database size: 2306 MB
+indexes on usage_events (parent): usage_events_pkey; usage_events_tenant_time_idx

@@ -1,0 +1,60 @@
+time="2026-10-02T14:36:47Z" level=warning msg="Insufficient VUs, reached 400 active VUs and cannot initialize more" executor=constant-arrival-rate scenario=warmup
+time="2026-10-02T14:37:32Z" level=warning msg="Insufficient VUs, reached 400 active VUs and cannot initialize more" executor=constant-arrival-rate scenario=measure
+
+
+  █ THRESHOLDS 
+
+    dropped_iterations{scenario:measure}
+    ✗ 'count==0' count=1135
+
+    http_req_duration{phase:measure,page:1}
+    ✗ 'p(95)<500' p(95)=795.07ms
+
+    http_req_duration{phase:measure,page:2}
+    ✗ 'p(95)<500' p(95)=796.15ms
+
+    http_req_duration{phase:measure,page:3}
+    ✗ 'p(95)<500' p(95)=794.92ms
+
+    http_req_duration{phase:measure}
+    ✗ 'p(95)<500' p(95)=795.29ms
+
+    http_req_failed{phase:measure}
+    ✓ 'rate<0.01' rate=0.00%
+
+
+  █ TOTAL RESULTS 
+
+    checks_total.......: 48636   504.725444/s
+    checks_succeeded...: 100.00% 48636 out of 48636
+    checks_failed......: 0.00%   0 out of 48636
+
+    ✓ status is 200
+
+    HTTP
+    http_req_duration..............: avg=572.34ms min=6.2ms   med=700.4ms  p(90)=779.16ms p(95)=796.48ms p(99)=854.35ms max=893.82ms count=48636
+      { expected_response:true }...: avg=572.34ms min=6.2ms   med=700.4ms  p(90)=779.16ms p(95)=796.48ms p(99)=854.35ms max=893.82ms count=48636
+      { phase:measure,page:1 }.....: avg=581.07ms min=6.2ms   med=714.41ms p(90)=779.58ms p(95)=795.07ms p(99)=844.4ms  max=887.22ms count=10865
+      { phase:measure,page:2 }.....: avg=584.08ms min=7.18ms  med=714.17ms p(90)=780.2ms  p(95)=796.15ms p(99)=857.38ms max=886.83ms count=10865
+      { phase:measure,page:3 }.....: avg=583.54ms min=9.15ms  med=714ms    p(90)=779.68ms p(95)=794.92ms p(99)=842.2ms  max=890.1ms  count=10865
+      { phase:measure }............: avg=582.9ms  min=6.2ms   med=714.21ms p(90)=779.81ms p(95)=795.29ms p(99)=853.68ms max=890.1ms  count=32595
+    http_req_failed................: 0.00%  0 out of 48636
+      { phase:measure }............: 0.00%  0 out of 32595
+    http_reqs......................: 48636  504.725444/s
+
+    EXECUTION
+    dropped_iterations.............: 1790   18.575922/s
+      { scenario:measure }.........: 1135   11.778587/s
+    iteration_duration.............: avg=1.71s    min=27.12ms med=2.09s    p(90)=2.31s    p(95)=2.33s    p(99)=2.37s    max=2.42s    count=16212
+    iterations.....................: 16212  168.241815/s
+    vus............................: 188    min=0          max=400
+    vus_max........................: 800    min=109        max=800
+
+    NETWORK
+    data_received..................: 410 MB 4.3 MB/s
+    data_sent......................: 17 MB  172 kB/s
+
+
+
+time="2026-10-02T14:38:05Z" level=error msg="thresholds on metrics 'dropped_iterations{scenario:measure}, http_req_duration{phase:measure,page:1}, http_req_duration{phase:measure,page:2}, http_req_duration{phase:measure,page:3}, http_req_duration{phase:measure}' have been crossed"
+k6 exit code: 99

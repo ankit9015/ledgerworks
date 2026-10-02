@@ -1,0 +1,30 @@
+API up
+##### saturation satfinal: usage-read huge at 5 it/s 14:17:04
+== preflight: usage-read_huge_runsatfinal5
+usage_events rows: 10000000
+k6 exit code: 137 (99 = a threshold failed; thresholds are informational, not gating)
+##### saturation satfinal: usage-read huge at 10 it/s 14:17:21
+== preflight: usage-read_huge_runsatfinal10
+usage_events rows: 10000000
+k6 exit code: 99 (99 = a threshold failed; thresholds are informational, not gating)
+##### saturation satfinal: usage-read huge at 10 it/s 14:19:00
+== preflight: usage-read_huge_runsatfinal10
+usage_events rows: 10000000
+ABORT: API not healthy on :3000
+RUN FAILED: 10
+##### saturation satfinal: usage-read huge at 10 it/s 14:19:03
+== preflight: usage-read_huge_runsatfinal10
+usage_events rows: 10000000
+ABORT: API not healthy on :3000
+RUN FAILED: 10
+##### saturation satfinal: usage-read huge at 20 it/s 14:19:07
+== preflight: usage-read_huge_runsatfinal20
+usage_events rows: 10000000
+ABORT: API not healthy on :3000
+RUN FAILED: 20
+##### saturation satfinal: usage-read huge at 40 it/s 14:19:10
+== preflight: usage-read_huge_runsatfinal40
+usage_events rows: 10000000
+ABORT: API not healthy on :3000
+RUN FAILED: 40
+ledgerline/k6/saturation.sh: line 16: unexpected EOF while looking for matching `"'
