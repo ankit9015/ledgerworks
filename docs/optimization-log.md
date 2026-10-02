@@ -103,6 +103,60 @@ Execution Time: 0.631 ms
 - **Seed and environment:** see "Environment" above.
 - **What was learned:** the original "huge tenants are slow" finding was not an indexing problem at all. A one-word application bug made the existing index unusable. Only `EXPLAIN` could show that; adding an index would have changed nothing.
 
+### E2. Usage-read access pattern: checked, **no index change needed** (negative result)
+
+- **Observation:** new (candidate 2 of P1.10: "do the existing indexes serve tenant + date range, ordered by time, paginated?").
+- **Question and method:** after E1, is anything left in the database for this query? `EXPLAIN (ANALYZE, BUFFERS)` of the four shapes the API produces, as `ledgerline_app` with RLS, huge tenant (the worst case), warm cache, three executions each (SQL in `docs/benchmarks/sql/usage-read-*.sql`, raw in `raw/explain-item2-*.txt`):
+
+  | Shape                                                                                       | Execution time (3 runs) | Buffers                                       | Plan                                                                                                                                  |
+  | ------------------------------------------------------------------------------------------- | ----------------------- | --------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
+  | page 1, 7 days inside one partition (E1 "after")                                            | 1.4, 0.7, 0.6 ms        | 70                                            | Index Scan Backward on `(tenant_id, occurred_at)` + Incremental Sort                                                                  |
+  | page 3, keyset cursor, same window                                                          | 0.51, 0.50, 0.49 ms     | 73                                            | same; the planner derives `occurred_at <= cursor` as an extra index condition, the row comparison stays as a `Filter` (1 row removed) |
+  | page 1, window across a month boundary (2 partitions)                                       | 0.45, 0.47, 0.46 ms     | 71 (page 3), see raw                          | ordered `Append` of two backward index scans; the older partition is "never executed"                                                 |
+  | page 3 (cursor), across a month boundary                                                    | 0.53, 0.59, 0.54 ms     | 71                                            | same                                                                                                                                  |
+  | page 1 with the unindexed `eventType` filter (rarest type, 5% of the tenant, 30-day window) | 1.8, 1.7, 2.9 ms        | 433 (last run; 1,256 on the first, cold, run) | same index; the filter is applied to heap rows (1,172 removed) until 51 match                                                         |
+
+  Page 3 of the cross-partition window, the most complex shape (full plan of the last run):
+
+```
+Limit  (cost=5.13..211.43 rows=51 width=101) (actual time=0.396..0.460 rows=51 loops=1)
+  Buffers: shared hit=71
+  InitPlan 1 (returns $0)
+    ->  Result  (cost=0.00..0.26 rows=1 width=16) (actual time=0.180..0.180 rows=1 loops=1)
+          Buffers: shared hit=6
+  ->  Incremental Sort  (cost=4.87..141828.87 rows=35060 width=101) (actual time=0.395..0.456 rows=51 loops=1)
+        Sort Key: usage_events.occurred_at DESC, usage_events.id DESC
+        Presorted Key: usage_events.occurred_at
+        Full-sort Groups: 2  Sort Method: quicksort  Average Memory: 29kB  Peak Memory: 29kB
+        Buffers: shared hit=71
+        ->  Append  (cost=0.85..140251.17 rows=35060 width=101) (actual time=0.277..0.408 rows=52 loops=1)
+              Buffers: shared hit=62
+              ->  Result  (cost=0.43..71747.76 rows=3765 width=101) (actual time=0.276..0.403 rows=52 loops=1)
+                    One-Time Filter: ($0 = '8641a01e-babb-4e44-d36d-f68e5233c7fb'::uuid)
+                    Buffers: shared hit=62
+                    ->  Index Scan Backward using usage_events_2026_09_tenant_id_occurred_at_idx on usage_events_2026_09 usage_events_2  (cost=0.43..71728.93 rows=3765 width=69) (actual time=0.028..0.113 rows=52 loops=1)
+                          Index Cond: ((tenant_id = '8641a01e-babb-4e44-d36d-f68e5233c7fb'::uuid) AND (occurred_at >= '2026-08-28 00:00:00+00'::timestamp with time zone) AND (occurred_at < '2026-09-04 00:00:00+00'::timestamp with time zone) AND (occurred_at <= '2026-09-03 23:33:20.284944+00'::timestamp with time zone))
+                          Filter: (ROW(occurred_at, id) < ROW('2026-09-03 23:33:20.284944+00'::timestamp with time zone, '64ed2919-bf67-ddf6-e216-2f6182e5a0a5'::uuid))
+                          Rows Removed by Filter: 1
+                          Buffers: shared hit=56
+              ->  Result  (cost=0.43..68328.11 rows=31295 width=101) (never executed)
+                    One-Time Filter: ($0 = '8641a01e-babb-4e44-d36d-f68e5233c7fb'::uuid)
+                    ->  Index Scan Backward using usage_events_2026_08_tenant_id_occurred_at_idx on usage_events_2026_08 usage_events_1  (cost=0.43..68171.64 rows=31295 width=69) (never executed)
+                          Index Cond: ((tenant_id = '8641a01e-babb-4e44-d36d-f68e5233c7fb'::uuid) AND (occurred_at >= '2026-08-28 00:00:00+00'::timestamp with time zone) AND (occurred_at < '2026-09-04 00:00:00+00'::timestamp with time zone) AND (occurred_at <= '2026-09-03 23:33:20.284944+00'::timestamp with time zone))
+                          Filter: (ROW(occurred_at, id) < ROW('2026-09-03 23:33:20.284944+00'::timestamp with time zone, '64ed2919-bf67-ddf6-e216-2f6182e5a0a5'::uuid))
+Planning:
+  Buffers: shared hit=486
+Planning Time: 1.622 ms
+Execution Time: 0.539 ms
+```
+
+- **Findings:**
+  1. The API already uses **keyset pagination** (`(occurred_at, id) < (cursor)`), not OFFSET (D16). Later pages cost the same as the first (73 against 70 buffers), which is the property OFFSET lacks. There was nothing to replace.
+  2. Partition pruning and ordered Append work for windows that span two months: the older partition is not even touched when the newer one already supplies the 51 rows.
+  3. Every shape is under 3 ms inside Postgres. After E1 the API's p50 for this endpoint is about 15 ms, so what remains is not the query but the fixed per-request cost (see O3 and E5).
+- **Decision:** **no index added, nothing changed.** A covering or `(tenant_id, occurred_at DESC, id DESC)` index would remove the 51-row incremental sort, which costs microseconds, at the price of a second index on every partition (more write cost and storage for no measurable gain). Not built, so there is no ingest or size cost to report.
+- **What was learned:** the index decided in D13 (`(tenant_id, occurred_at)` per partition) is the right one for this pattern; the earlier slowness was entirely E1. The `eventType` filter is not indexed on purpose (D13) and is fast enough here only because the filter is applied while walking the time order; a very rare type in a very large window could scan far more rows, and was not measured at that extreme.
+
 <!-- ENTRIES -->
 
 ## Observations (not yet acted on)

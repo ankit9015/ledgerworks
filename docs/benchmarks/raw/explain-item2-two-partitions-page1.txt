@@ -1,0 +1,106 @@
+# item 2 (two-partitions-page1): 3 warm-ish executions as ledgerline_app, huge tenant, plan of each
+              set_config              
+--------------------------------------
+ 8641a01e-babb-4e44-d36d-f68e5233c7fb
+(1 row)
+
+                                                                                                                    QUERY PLAN                                                                                                                     
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ Limit  (cost=3.31..116.83 rows=51 width=101) (actual time=0.352..0.397 rows=51 loops=1)
+   Buffers: shared hit=72
+   InitPlan 1 (returns $0)
+     ->  Result  (cost=0.00..0.26 rows=1 width=16) (actual time=0.148..0.149 rows=1 loops=1)
+           Buffers: shared hit=6
+   ->  Incremental Sort  (cost=3.05..143105.97 rows=64286 width=101) (actual time=0.351..0.393 rows=51 loops=1)
+         Sort Key: usage_events.occurred_at DESC, usage_events.id DESC
+         Presorted Key: usage_events.occurred_at
+         Full-sort Groups: 2  Sort Method: quicksort  Average Memory: 29kB  Peak Memory: 29kB
+         Buffers: shared hit=72
+         ->  Append  (cost=0.85..140213.10 rows=64286 width=101) (actual time=0.218..0.345 rows=52 loops=1)
+               Buffers: shared hit=63
+               ->  Result  (cost=0.43..71798.28 rows=32988 width=101) (actual time=0.218..0.339 rows=52 loops=1)
+                     One-Time Filter: ($0 = '8641a01e-babb-4e44-d36d-f68e5233c7fb'::uuid)
+                     Buffers: shared hit=63
+                     ->  Index Scan Backward using usage_events_2026_09_tenant_id_occurred_at_idx on usage_events_2026_09 usage_events_2  (cost=0.43..71633.34 rows=32988 width=69) (actual time=0.017..0.098 rows=52 loops=1)
+                           Index Cond: ((tenant_id = '8641a01e-babb-4e44-d36d-f68e5233c7fb'::uuid) AND (occurred_at >= '2026-08-28 00:00:00+00'::timestamp with time zone) AND (occurred_at < '2026-09-04 00:00:00+00'::timestamp with time zone))
+                           Buffers: shared hit=57
+               ->  Result  (cost=0.43..68093.39 rows=31298 width=101) (never executed)
+                     One-Time Filter: ($0 = '8641a01e-babb-4e44-d36d-f68e5233c7fb'::uuid)
+                     ->  Index Scan Backward using usage_events_2026_08_tenant_id_occurred_at_idx on usage_events_2026_08 usage_events_1  (cost=0.43..67936.90 rows=31298 width=69) (never executed)
+                           Index Cond: ((tenant_id = '8641a01e-babb-4e44-d36d-f68e5233c7fb'::uuid) AND (occurred_at >= '2026-08-28 00:00:00+00'::timestamp with time zone) AND (occurred_at < '2026-09-04 00:00:00+00'::timestamp with time zone))
+ Planning:
+   Buffers: shared hit=495
+ Planning Time: 1.156 ms
+ Execution Time: 0.452 ms
+(26 rows)
+
+              set_config              
+--------------------------------------
+ 8641a01e-babb-4e44-d36d-f68e5233c7fb
+(1 row)
+
+                                                                                                                    QUERY PLAN                                                                                                                     
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ Limit  (cost=3.31..116.83 rows=51 width=101) (actual time=0.366..0.410 rows=51 loops=1)
+   Buffers: shared hit=72
+   InitPlan 1 (returns $0)
+     ->  Result  (cost=0.00..0.26 rows=1 width=16) (actual time=0.163..0.163 rows=1 loops=1)
+           Buffers: shared hit=6
+   ->  Incremental Sort  (cost=3.05..143105.97 rows=64286 width=101) (actual time=0.364..0.405 rows=51 loops=1)
+         Sort Key: usage_events.occurred_at DESC, usage_events.id DESC
+         Presorted Key: usage_events.occurred_at
+         Full-sort Groups: 2  Sort Method: quicksort  Average Memory: 29kB  Peak Memory: 29kB
+         Buffers: shared hit=72
+         ->  Append  (cost=0.85..140213.10 rows=64286 width=101) (actual time=0.234..0.358 rows=52 loops=1)
+               Buffers: shared hit=63
+               ->  Result  (cost=0.43..71798.28 rows=32988 width=101) (actual time=0.234..0.352 rows=52 loops=1)
+                     One-Time Filter: ($0 = '8641a01e-babb-4e44-d36d-f68e5233c7fb'::uuid)
+                     Buffers: shared hit=63
+                     ->  Index Scan Backward using usage_events_2026_09_tenant_id_occurred_at_idx on usage_events_2026_09 usage_events_2  (cost=0.43..71633.34 rows=32988 width=69) (actual time=0.017..0.095 rows=52 loops=1)
+                           Index Cond: ((tenant_id = '8641a01e-babb-4e44-d36d-f68e5233c7fb'::uuid) AND (occurred_at >= '2026-08-28 00:00:00+00'::timestamp with time zone) AND (occurred_at < '2026-09-04 00:00:00+00'::timestamp with time zone))
+                           Buffers: shared hit=57
+               ->  Result  (cost=0.43..68093.39 rows=31298 width=101) (never executed)
+                     One-Time Filter: ($0 = '8641a01e-babb-4e44-d36d-f68e5233c7fb'::uuid)
+                     ->  Index Scan Backward using usage_events_2026_08_tenant_id_occurred_at_idx on usage_events_2026_08 usage_events_1  (cost=0.43..67936.90 rows=31298 width=69) (never executed)
+                           Index Cond: ((tenant_id = '8641a01e-babb-4e44-d36d-f68e5233c7fb'::uuid) AND (occurred_at >= '2026-08-28 00:00:00+00'::timestamp with time zone) AND (occurred_at < '2026-09-04 00:00:00+00'::timestamp with time zone))
+ Planning:
+   Buffers: shared hit=495
+ Planning Time: 1.451 ms
+ Execution Time: 0.469 ms
+(26 rows)
+
+              set_config              
+--------------------------------------
+ 8641a01e-babb-4e44-d36d-f68e5233c7fb
+(1 row)
+
+                                                                                                                    QUERY PLAN                                                                                                                     
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ Limit  (cost=3.31..116.83 rows=51 width=101) (actual time=0.352..0.399 rows=51 loops=1)
+   Buffers: shared hit=72
+   InitPlan 1 (returns $0)
+     ->  Result  (cost=0.00..0.26 rows=1 width=16) (actual time=0.161..0.161 rows=1 loops=1)
+           Buffers: shared hit=6
+   ->  Incremental Sort  (cost=3.05..143105.97 rows=64286 width=101) (actual time=0.351..0.394 rows=51 loops=1)
+         Sort Key: usage_events.occurred_at DESC, usage_events.id DESC
+         Presorted Key: usage_events.occurred_at
+         Full-sort Groups: 2  Sort Method: quicksort  Average Memory: 29kB  Peak Memory: 29kB
+         Buffers: shared hit=72
+         ->  Append  (cost=0.85..140213.10 rows=64286 width=101) (actual time=0.232..0.347 rows=52 loops=1)
+               Buffers: shared hit=63
+               ->  Result  (cost=0.43..71798.28 rows=32988 width=101) (actual time=0.231..0.342 rows=52 loops=1)
+                     One-Time Filter: ($0 = '8641a01e-babb-4e44-d36d-f68e5233c7fb'::uuid)
+                     Buffers: shared hit=63
+                     ->  Index Scan Backward using usage_events_2026_09_tenant_id_occurred_at_idx on usage_events_2026_09 usage_events_2  (cost=0.43..71633.34 rows=32988 width=69) (actual time=0.017..0.091 rows=52 loops=1)
+                           Index Cond: ((tenant_id = '8641a01e-babb-4e44-d36d-f68e5233c7fb'::uuid) AND (occurred_at >= '2026-08-28 00:00:00+00'::timestamp with time zone) AND (occurred_at < '2026-09-04 00:00:00+00'::timestamp with time zone))
+                           Buffers: shared hit=57
+               ->  Result  (cost=0.43..68093.39 rows=31298 width=101) (never executed)
+                     One-Time Filter: ($0 = '8641a01e-babb-4e44-d36d-f68e5233c7fb'::uuid)
+                     ->  Index Scan Backward using usage_events_2026_08_tenant_id_occurred_at_idx on usage_events_2026_08 usage_events_1  (cost=0.43..67936.90 rows=31298 width=69) (never executed)
+                           Index Cond: ((tenant_id = '8641a01e-babb-4e44-d36d-f68e5233c7fb'::uuid) AND (occurred_at >= '2026-08-28 00:00:00+00'::timestamp with time zone) AND (occurred_at < '2026-09-04 00:00:00+00'::timestamp with time zone))
+ Planning:
+   Buffers: shared hit=495
+ Planning Time: 1.193 ms
+ Execution Time: 0.458 ms
+(26 rows)
+
