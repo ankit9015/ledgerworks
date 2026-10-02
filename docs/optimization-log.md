@@ -467,6 +467,15 @@ Execution Time: 0.570 ms
 - **Verdict:** **no rewrite adopted.** The best behaviour-preserving variant saves about 0.014 ms per statement, which is smaller than the noise of the measurement and about 0.3% of a 5 ms request; the one with a visible gain changes the failure mode. The isolation tests were not re-run for a policy change because there was none; they were run for every other change in this phase (181 isolation tests).
 - **What was learned:** RLS is not expensive here: about 0.06 ms per statement server-side, once per statement and never per row. Most of that appears to be the call of the `app_tenant_id()` helper (a catalog lookup, a regular-expression match and a cast; variant C, which skips the helper, recovers about half of the overhead), not the row filtering.
 
+### E8. Drop the unused `jobs_runnable_idx` (cleanup, **no latency claim**)
+
+- **Observation:** E3 noted that `(queue, run_at) WHERE status = 'queued'` from 0001 was no longer used by any query.
+- **Check (not an assumption):** `ledgerline/src/bench/job-index-usage.ts` runs a mixed queue workload on a scratch database (3,000 jobs over 5 tenants: successes, jobs that fail once, jobs that always fail and dead-letter, simulated crashes with lease expiry, repeated idempotent enqueues; 20 workers) and prints `pg_stat_user_indexes` and `EXPLAIN` of every statement the job functions run against `jobs`. Result (`raw/job-index-usage-b.txt`): `jobs_runnable_idx` **idx_scan = 0** (112 kB), while `jobs_claim_idx` had 3,271 scans, `jobs_lease_idx` 3,271, the primary key 6,467. The claim pick, the lease check, `complete_job`, `fail_job` and the idempotency lookup all use other indexes. The only statement whose plan used it was a hypothetical per-tenant listing of queued jobs that no code issues (it filters by tenant on an index that has no tenant column).
+- **Change:** migration `0010_drop_unused_jobs_index.sql`: `DROP INDEX jobs_runnable_idx;`. After it the same workload gives the same final states (60 dead, 2,940 succeeded; `raw/job-index-usage-b-after-drop.txt`).
+- **Verification:** all 11 queue tests, the isolation and schema tests and the full-size 50-worker, 10,000-job test pass.
+- **Cost and benefit:** one fewer index maintained on every enqueue and state change, 712 kB less per 110,000 queued jobs (measured earlier, `raw/o6-index-write-cost.txt`). **No latency or throughput claim**: it was not measured above the noise and none is made.
+- **EXPLAIN before/after:** unchanged plans for the statements above (they never used it).
+
 <!-- ENTRIES -->
 
 ## Observations (not yet acted on)

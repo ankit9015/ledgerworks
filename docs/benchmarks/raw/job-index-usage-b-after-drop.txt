@@ -1,0 +1,10 @@
+processed 3370 + 0 job runs
+final states: [{"status":"dead","n":60},{"status":"succeeded","n":2940}]
+--- pg_stat_user_indexes for jobs
+{"indexrelname":"jobs_claim_idx","idx_scan":3335,"idx_tup_read":106633,"size":"184 kB"}
+{"indexrelname":"jobs_idempotency_key","idx_scan":1287,"idx_tup_read":858,"size":"48 kB"}
+{"indexrelname":"jobs_lease_idx","idx_scan":6572,"idx_tup_read":68579,"size":"16 kB"}
+{"indexrelname":"jobs_pkey","idx_scan":3315,"idx_tup_read":3470,"size":"168 kB"}
+{"indexrelname":"jobs_tenant_id_id_key","idx_scan":3755,"idx_tup_read":7620,"size":"240 kB"}
+--- EXPLAIN of the statements the job functions run against jobs (rolled back)
+## claim pick

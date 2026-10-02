@@ -1,0 +1,53 @@
+processed 3364 + 0 job runs
+final states: [{"status":"dead","n":60},{"status":"succeeded","n":2940}]
+--- pg_stat_user_indexes for jobs
+{"indexrelname":"jobs_claim_idx","idx_scan":3271,"idx_tup_read":111382,"size":"184 kB"}
+{"indexrelname":"jobs_idempotency_key","idx_scan":1287,"idx_tup_read":858,"size":"48 kB"}
+{"indexrelname":"jobs_lease_idx","idx_scan":3271,"idx_tup_read":2853,"size":"16 kB"}
+{"indexrelname":"jobs_pkey","idx_scan":6467,"idx_tup_read":9643,"size":"152 kB"}
+{"indexrelname":"jobs_runnable_idx","idx_scan":0,"idx_tup_read":0,"size":"112 kB"}
+{"indexrelname":"jobs_tenant_id_id_key","idx_scan":3690,"idx_tup_read":6937,"size":"248 kB"}
+--- EXPLAIN of the statements the job functions run against jobs (rolled back)
+## claim pick
+  Limit  (cost=0.25..6.05 rows=1 width=30)
+    ->  LockRows  (cost=0.25..6.05 rows=1 width=30)
+          ->  Index Scan using jobs_claim_idx on jobs j  (cost=0.25..6.04 rows=1 width=30)
+                Index Cond: ((queue = 'idx'::text) AND (run_at <= now()))
+                Filter: ((status = ANY ('{queued,failed,running}'::text[])) AND ((status <> 'running'::text) OR ((lease_expires_at <= now()) AND (attempts < max_attempts))))
+## claim exhausted-lease check
+  LockRows  (cost=0.13..5.91 rows=1 width=22)
+    ->  Index Scan using jobs_lease_idx on jobs j  (cost=0.13..5.90 rows=1 width=22)
+          Index Cond: ((queue = 'idx'::text) AND (lease_expires_at <= now()))
+          Filter: ((attempts >= max_attempts) AND (status = 'running'::text))
+## claim update by id
+  Update on jobs  (cost=35.01..66.00 rows=0 width=0)
+    InitPlan 1 (returns $0)
+      ->  Limit  (cost=0.00..0.14 rows=3 width=16)
+            ->  Seq Scan on jobs jobs_1  (cost=0.00..135.00 rows=3000 width=16)
+    ->  Bitmap Heap Scan on jobs  (cost=34.88..65.87 rows=10 width=14)
+          Recheck Cond: (id = ANY ($0))
+          ->  Bitmap Index Scan on jobs_pkey  (cost=0.00..34.88 rows=10 width=0)
+                Index Cond: (id = ANY ($0))
+## complete_job update
+  Update on jobs  (cost=0.17..5.95 rows=0 width=0)
+    InitPlan 1 (returns $0)
+      ->  Limit  (cost=0.00..0.04 rows=1 width=16)
+            ->  Seq Scan on jobs jobs_1  (cost=0.00..135.00 rows=3000 width=16)
+    ->  Index Scan using jobs_lease_idx on jobs  (cost=0.12..5.90 rows=1 width=38)
+          Filter: ((id = $0) AND (tenant_id = '04be9e5e-26f1-4c2c-a1e7-0c08b940d940'::uuid) AND (status = 'running'::text) AND (locked_by = 'w'::text) AND (attempts = 1))
+## fail_job select
+  LockRows  (cost=0.17..5.96 rows=1 width=186)
+    InitPlan 1 (returns $0)
+      ->  Limit  (cost=0.00..0.04 rows=1 width=16)
+            ->  Seq Scan on jobs  (cost=0.00..135.00 rows=3000 width=16)
+    ->  Index Scan using jobs_lease_idx on jobs j  (cost=0.12..5.90 rows=1 width=186)
+          Filter: ((id = $0) AND (tenant_id = '04be9e5e-26f1-4c2c-a1e7-0c08b940d940'::uuid) AND (status = 'running'::text) AND (locked_by = 'w'::text) AND (attempts = 1))
+## enqueue idempotency lookup
+  Index Scan using jobs_idempotency_key on jobs j  (cost=0.27..8.29 rows=1 width=16)
+    Index Cond: ((tenant_id = '04be9e5e-26f1-4c2c-a1e7-0c08b940d940'::uuid) AND (idempotency_key = 'k0'::text))
+## per-tenant job listing
+  Limit  (cost=6.03..6.03 rows=1 width=180)
+    ->  Sort  (cost=6.03..6.03 rows=1 width=180)
+          Sort Key: run_at
+          ->  Index Scan using jobs_runnable_idx on jobs  (cost=0.25..6.02 rows=1 width=180)
+                Filter: (tenant_id = '04be9e5e-26f1-4c2c-a1e7-0c08b940d940'::uuid)
