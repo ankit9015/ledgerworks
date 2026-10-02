@@ -1,0 +1,6 @@
+4343 | 1766.0 | 0.407 | 40.3 | 861 | SELECT * FROM ledgerline_fn.claim_jobs($1, $2, $3, $4, $5)
+4500 | 1365.2 | 0.303 | 21.6 | 4500 | INSERT INTO usage_events (tenant_id, occurred_at, event_type, quantity, metadata) VALUES ($1, COALESCE($2::timestamptz, now()), $3, $4, $5) RETURNING id, to_cha
+4500 | 1153.5 | 0.256 | 27.5 | 4500 | SELECT tenant_id, api_key_id FROM ledgerline_fn.authenticate_api_key($1)
+636 | 625.5 | 0.984 | 5.1 | 636 | SELECT ledgerline_fn.complete_job($1, $2, $3, $4) AS ok
+681 | 397.6 | 0.584 | 4.6 | 681 | SELECT * FROM ledgerline_fn.enqueue_job($1, $2::jsonb, $3, $4, $5, $6, $7)
+636 | 353.3 | 0.556 | 2.7 | 636 | UPDATE public.jobs j SET status = 'succeeded', completed_at = p_now, updated_at = p_now, locked_by = NULL, lease_expires_at = NULL, last_error = NULL WHERE j.id

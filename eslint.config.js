@@ -7,8 +7,8 @@ export default tseslint.config(
   ...tseslint.configs.recommended,
   {
     // Node scripts (not TypeScript)
-    files: ['ledgerline/k6/**/*.mjs', 'scripts/**/*.mjs'],
-    languageOptions: { globals: { process: 'readonly', console: 'readonly' } },
+    files: ['ledgerline/k6/**/*.mjs', 'ledgerline/observability/**/*.mjs', 'scripts/**/*.mjs'],
+    languageOptions: { globals: { process: 'readonly', console: 'readonly', URL: 'readonly' } },
   },
   {
     // k6 scripts run in k6's own runtime, which provides these globals.

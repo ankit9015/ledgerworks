@@ -1,0 +1,26 @@
+== http://localhost:9464/metrics: 192 series
+     96 ledgerline_http_request_duration_seconds
+     27 ledgerline_process_nodejs_gc_duration_seconds
+     11 ledgerline_process_nodejs_heap_space_size_used_bytes
+     11 ledgerline_process_nodejs_heap_space_size_total_bytes
+     11 ledgerline_process_nodejs_heap_space_size_available_bytes
+      5 ledgerline_queue_jobs
+      4 ledgerline_process_nodejs_active_resources
+      2 ledgerline_process_nodejs_active_handles
+      1 ledgerline_queue_retried_attempts
+      1 ledgerline_queue_oldest_runnable_job_age_seconds
+      1 ledgerline_process_process_start_time_seconds
+      1 ledgerline_process_process_resident_memory_bytes
+== http://localhost:9465/metrics: 103 series
+     27 ledgerline_process_nodejs_gc_duration_seconds
+     11 ledgerline_process_nodejs_heap_space_size_used_bytes
+     11 ledgerline_process_nodejs_heap_space_size_total_bytes
+     11 ledgerline_process_nodejs_heap_space_size_available_bytes
+      5 ledgerline_queue_jobs
+      4 ledgerline_worker_job_events_total
+      4 ledgerline_process_nodejs_active_resources
+      4 ledgerline_credit_debits_total
+      2 ledgerline_process_nodejs_active_handles
+      1 ledgerline_queue_retried_attempts
+      1 ledgerline_queue_oldest_runnable_job_age_seconds
+      1 ledgerline_process_process_start_time_seconds

@@ -9,6 +9,7 @@ export const APP_ROLE = 'ledgerline_app';
 export const DEFINER_ROLE = 'ledgerline_definer';
 export const WORKER_ROLE = 'ledgerline_worker';
 export const LEDGER_ROLE = 'ledgerline_ledger';
+export const METRICS_ROLE = 'ledgerline_metrics';
 
 export const defaultMigrationsDir = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
@@ -20,6 +21,8 @@ export interface BootstrapOptions {
   appPassword?: string;
   /** Password for the queue worker role. Development default only. */
   workerPassword?: string;
+  /** Password for the read-only metrics role. Development default only. */
+  metricsPassword?: string;
 }
 
 /** Quote a value as an SQL string literal (used only for role passwords in DDL). */
@@ -34,6 +37,7 @@ function literal(value: string): string {
  * - ledgerline_owner:   owns all tables and runs migrations. NOLOGIN: only reachable by SET ROLE.
  * - ledgerline_app:     the only role the API connects as. No BYPASSRLS, no ownership.
  * - ledgerline_definer: owns the few SECURITY DEFINER functions. NOLOGIN, no BYPASSRLS.
+ * - ledgerline_metrics: read-only observability login: pg_read_all_stats and EXECUTE on queue_stats().
  * - ledgerline_ledger:  owns debit_credits/refund_credits, the only writers of the ledger and
  *                       balances. NOLOGIN, no BYPASSRLS.
  */
@@ -55,6 +59,9 @@ export async function bootstrapRoles(
       IF NOT EXISTS (SELECT FROM pg_roles WHERE rolname = '${LEDGER_ROLE}') THEN
         CREATE ROLE ${LEDGER_ROLE} NOLOGIN NOSUPERUSER NOBYPASSRLS NOCREATEDB NOCREATEROLE;
       END IF;
+      IF NOT EXISTS (SELECT FROM pg_roles WHERE rolname = '${METRICS_ROLE}') THEN
+        CREATE ROLE ${METRICS_ROLE} LOGIN NOSUPERUSER NOBYPASSRLS NOCREATEDB NOCREATEROLE;
+      END IF;
       IF NOT EXISTS (SELECT FROM pg_roles WHERE rolname = '${APP_ROLE}') THEN
         CREATE ROLE ${APP_ROLE} LOGIN NOSUPERUSER NOBYPASSRLS NOCREATEDB NOCREATEROLE;
       END IF;
@@ -66,12 +73,19 @@ export async function bootstrapRoles(
     options.workerPassword ?? process.env.LEDGERLINE_WORKER_PASSWORD ?? 'ledgerline_worker';
   await client.query(`ALTER ROLE ${APP_ROLE} PASSWORD ${literal(appPassword)}`);
   await client.query(`ALTER ROLE ${WORKER_ROLE} PASSWORD ${literal(workerPassword)}`);
+  const metricsPassword =
+    options.metricsPassword ?? process.env.LEDGERLINE_METRICS_PASSWORD ?? 'ledgerline_metrics';
+  await client.query(`ALTER ROLE ${METRICS_ROLE} PASSWORD ${literal(metricsPassword)}`);
+  // Read-only: may read pg_stat_statements and other statistics, nothing else (no table privileges).
+  await client.query(`GRANT pg_read_all_stats TO ${METRICS_ROLE}`);
   // The owner must be able to hand function ownership to the definer role.
   await client.query(`GRANT ${DEFINER_ROLE} TO ${OWNER_ROLE}`);
   await client.query(`GRANT ${LEDGER_ROLE} TO ${OWNER_ROLE}`);
   const { rows } = await client.query<{ db: string }>('SELECT current_database() AS db');
   const db = `"${rows[0]!.db.replaceAll('"', '""')}"`;
-  await client.query(`GRANT CONNECT ON DATABASE ${db} TO ${APP_ROLE}, ${WORKER_ROLE}`);
+  await client.query(
+    `GRANT CONNECT ON DATABASE ${db} TO ${APP_ROLE}, ${WORKER_ROLE}, ${METRICS_ROLE}`,
+  );
   await client.query(`GRANT CREATE ON SCHEMA public TO ${OWNER_ROLE}`);
   // Needed for CREATE SCHEMA (the ledgerline_fn schema in 0002).
   await client.query(`GRANT CREATE ON DATABASE ${db} TO ${OWNER_ROLE}`);

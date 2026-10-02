@@ -2,6 +2,8 @@ import type pg from 'pg';
 import { withTenant, type Db } from '../db/tenant.js';
 import { defaultBackoff, retryDelayMs, type BackoffPolicy } from './backoff.js';
 import type { Clock } from './clock.js';
+import { workerEvents } from '../observability/metrics.js';
+import { withSpan } from '../observability/tracing.js';
 import { claimJobs, completeJob, failJob, type ClaimedJob } from './queue.js';
 
 export interface JobContext {
@@ -49,22 +51,46 @@ export class Worker {
 
   /** Claims and processes at most one job. Returns false when nothing was claimable. */
   async runOnce(): Promise<boolean> {
-    const [job] = await claimJobs(this.o.claimDb, this.o.clock, this.o.id, {
-      queue: this.o.queue,
-      limit: 1,
-      leaseMs: this.o.leaseMs,
-    });
+    const queue = this.o.queue ?? 'default';
+    // One span each for claim, handler and acknowledgement. Attributes: queue, worker, job id,
+    // type and attempt number. Never the payload, the tenant id or any key.
+    const [job] = await withSpan(
+      'queue.claim',
+      { 'queue.name': queue, 'worker.id': this.o.id },
+      async (span) => {
+        const jobs = await claimJobs(this.o.claimDb, this.o.clock, this.o.id, {
+          queue: this.o.queue,
+          limit: 1,
+          leaseMs: this.o.leaseMs,
+        });
+        span.setAttribute('queue.claimed', jobs.length);
+        if (jobs[0]) {
+          span.setAttributes({ 'job.id': jobs[0].id, 'job.attempt': jobs[0].attemptNo });
+        }
+        return jobs;
+      },
+    );
     if (!job) return false;
+    workerEvents.inc({ event: 'claimed' });
     this.o.onEvent?.({ kind: 'claimed', workerId: this.o.id, job, at: this.o.clock.now() });
+    const jobAttrs = {
+      'queue.name': queue,
+      'job.id': job.id,
+      'job.type': job.type,
+      'job.attempt': job.attemptNo,
+    };
 
     const handler = this.o.handlers[job.type];
     try {
-      if (!handler) throw new Error(`no handler registered for job type "${job.type}"`);
-      await handler(job, {
-        withTenant: (fn) => withTenant(this.o.appDb, job.tenantId, fn),
+      await withSpan('queue.handler', jobAttrs, async () => {
+        if (!handler) throw new Error(`no handler registered for job type "${job.type}"`);
+        await handler(job, {
+          withTenant: (fn) => withTenant(this.o.appDb, job.tenantId, fn),
+        });
       });
     } catch (err) {
       if (err instanceof AbandonJob) {
+        workerEvents.inc({ event: 'abandoned' });
         this.o.onEvent?.({ kind: 'abandoned', workerId: this.o.id, job });
         return true;
       }
@@ -74,11 +100,31 @@ export class Worker {
         this.o.backoff ?? defaultBackoff,
         this.o.random ?? Math.random,
       );
-      const outcome = await failJob(this.o.appDb, this.o.clock, job, this.o.id, message, delay);
+      const outcome = await withSpan(
+        'queue.ack',
+        { ...jobAttrs, 'job.result': 'failed' },
+        async (span) => {
+          const o = await failJob(this.o.appDb, this.o.clock, job, this.o.id, message, delay);
+          span.setAttribute('job.ack.outcome', o);
+          return o;
+        },
+      );
+      workerEvents.inc({
+        event: outcome === 'retry_scheduled' ? 'retried' : outcome === 'dead' ? 'dead' : 'stale',
+      });
       this.o.onEvent?.({ kind: 'failed', workerId: this.o.id, job, outcome, error: message });
       return true;
     }
-    const accepted = await completeJob(this.o.appDb, this.o.clock, job, this.o.id);
+    const accepted = await withSpan(
+      'queue.ack',
+      { ...jobAttrs, 'job.result': 'succeeded' },
+      async (span) => {
+        const ok = await completeJob(this.o.appDb, this.o.clock, job, this.o.id);
+        span.setAttribute('job.ack.accepted', ok);
+        return ok;
+      },
+    );
+    workerEvents.inc({ event: accepted ? 'completed' : 'stale' });
     this.o.onEvent?.({ kind: 'completed', workerId: this.o.id, job, accepted });
     return true;
   }

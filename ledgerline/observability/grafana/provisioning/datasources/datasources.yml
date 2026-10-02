@@ -1,0 +1,27 @@
+apiVersion: 1
+datasources:
+  - name: Prometheus
+    uid: ledgerline-prometheus
+    type: prometheus
+    access: proxy
+    url: http://prometheus:9090
+    isDefault: true
+  - name: Jaeger
+    uid: ledgerline-jaeger
+    type: jaeger
+    access: proxy
+    url: http://jaeger:16686
+  # Read-only database login (ledgerline_metrics: pg_read_all_stats and nothing else) used only for
+  # the pg_stat_statements panel. No table privileges, so it cannot read any tenant data.
+  - name: Postgres (read-only)
+    uid: ledgerline-postgres
+    type: grafana-postgresql-datasource
+    access: proxy
+    url: postgres:5432
+    user: ledgerline_metrics
+    jsonData:
+      database: ledgerworks
+      sslmode: disable
+      postgresVersion: 1600
+    secureJsonData:
+      password: ${LEDGERLINE_METRICS_PASSWORD}

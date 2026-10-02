@@ -1,5 +1,6 @@
 import type pg from 'pg';
 import { withTenant, type Db } from './db/tenant.js';
+import { debitOutcomes } from './observability/metrics.js';
 
 export type DebitOutcome = 'debited' | 'insufficient_credits' | 'idempotency_conflict';
 export type RefundOutcome =
@@ -47,7 +48,17 @@ export async function debitIn(
     idempotencyKey,
     reference ?? null,
   ]);
-  return toResult(r.rows[0]!);
+  const result = toResult<DebitOutcome>(r.rows[0]!);
+  debitOutcomes.inc({
+    outcome: result.replayed
+      ? 'replayed'
+      : result.outcome === 'debited'
+        ? 'accepted'
+        : result.outcome === 'insufficient_credits'
+          ? 'rejected'
+          : 'conflict',
+  });
+  return result;
 }
 
 /** Refund inside an existing tenant transaction. */

@@ -613,6 +613,7 @@ const DEFINER_FUNCTIONS = [
   'debit_credits',
   'ensure_usage_events_partitions',
   'ensure_usage_events_partitions_at',
+  'queue_stats',
   'refund_credits',
 ];
 const PARTITION_FUNCTIONS = ['ensure_usage_events_partitions', 'ensure_usage_events_partitions_at'];
@@ -758,6 +759,33 @@ describe('isolation: SECURITY DEFINER functions', () => {
       fns.rows.map((x) => x.proname),
       ['claim_jobs'],
       'functions the worker role may execute',
+    );
+  });
+
+  it('the metrics role is read-only: no BYPASSRLS, no table privileges, may only call queue_stats', async () => {
+    isolationTests++;
+    const r = await admin.query(
+      `SELECT rolsuper, rolbypassrls, rolcanlogin FROM pg_roles WHERE rolname = 'ledgerline_metrics'`,
+    );
+    eq(r.rows[0], { rolsuper: false, rolbypassrls: false, rolcanlogin: true }, 'metrics flags');
+    for (const spec of SPECS) {
+      for (const priv of ['SELECT', 'INSERT', 'UPDATE', 'DELETE']) {
+        const p = await admin.query(
+          `SELECT has_table_privilege('ledgerline_metrics', $1, $2) AS ok`,
+          [spec.table, priv],
+        );
+        eq(p.rows[0].ok, false, `metrics ${priv} on ${spec.table}`);
+      }
+    }
+    const fns = await admin.query(
+      `SELECT p.proname FROM pg_proc p JOIN pg_namespace n ON n.oid = p.pronamespace
+       WHERE n.nspname = 'ledgerline_fn' AND has_function_privilege('ledgerline_metrics', p.oid, 'EXECUTE')
+       ORDER BY p.proname`,
+    );
+    eq(
+      fns.rows.map((x) => x.proname),
+      ['queue_stats'],
+      'functions the metrics role may execute',
     );
   });
 

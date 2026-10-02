@@ -7,6 +7,8 @@ import { healthRoutes } from './routes/health.js';
 import { tenantRoutes } from './routes/tenants.js';
 import { usageRoutes } from './routes/usage.js';
 import { creditRoutes } from './routes/credits.js';
+import { registerHttpMetrics } from './observability/metrics.js';
+import { registerHttpTracing } from './observability/tracing.js';
 
 export interface AppOptions {
   /** Pool connected as the application role (never the owner or a superuser). */
@@ -37,6 +39,9 @@ export function buildApp(options: AppOptions): FastifyInstance {
     bodyLimit: 100 * 1024,
     ajv: { customOptions: { removeAdditional: false, coerceTypes: false, allErrors: false } },
   });
+
+  registerHttpTracing(app);
+  registerHttpMetrics(app);
 
   // Every response carries the request id, which also appears in every log line for the request.
   app.addHook('onRequest', async (req, reply) => {

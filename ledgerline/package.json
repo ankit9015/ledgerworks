@@ -7,6 +7,7 @@
     "typecheck": "tsc -p tsconfig.json",
     "migrate": "tsx src/db/migrate-cli.ts",
     "seed": "tsx src/seed/seed.ts",
+    "demo:queue": "tsx src/queue/demo-worker.ts",
     "partitions:ensure": "tsx src/partitions-cli.ts",
     "bench:queue": "tsx src/bench/queue-throughput.ts",
     "bench:ledger": "tsx src/bench/ledger-write-cost.ts",
@@ -15,8 +16,15 @@
     "dev": "tsx src/server.ts"
   },
   "dependencies": {
+    "@opentelemetry/api": "^1.9.1",
+    "@opentelemetry/context-async-hooks": "^2.11.0",
+    "@opentelemetry/exporter-trace-otlp-http": "^0.222.0",
+    "@opentelemetry/resources": "^2.11.0",
+    "@opentelemetry/sdk-trace-base": "^2.11.0",
+    "@opentelemetry/sdk-trace-node": "^2.11.0",
     "fastify": "^5.12.5",
-    "pg": "^8.23.1"
+    "pg": "^8.23.1",
+    "prom-client": "^15.1.3"
   },
   "devDependencies": {
     "@types/node": "^24.19.0",

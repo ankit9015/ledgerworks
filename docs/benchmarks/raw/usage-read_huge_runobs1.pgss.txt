@@ -1,0 +1,6 @@
+8945 | 4030.9 | 0.451 | 16.5 | 2334 | SELECT * FROM ledgerline_fn.claim_jobs($1, $2, $3, $4, $5)
+1802 | 1890.3 | 1.049 | 14.6 | 1802 | SELECT ledgerline_fn.complete_job($1, $2, $3, $4) AS ok
+1888 | 1111.6 | 0.589 | 2.5 | 1888 | SELECT * FROM ledgerline_fn.enqueue_job($1, $2::jsonb, $3, $4, $5, $6, $7)
+1802 | 1079.1 | 0.599 | 4.2 | 1802 | UPDATE public.jobs j SET status = 'succeeded', completed_at = p_now, updated_at = p_now, locked_by = NULL, lease_expires_at = NULL, last_error = NULL WHERE j.id
+451 | 704.6 | 1.562 | 7.1 | 23001 | SELECT id, event_type, quantity, to_char(occurred_at AT TIME ZONE $5, $6) AS occurred_at, metadata FROM usage_events WHERE tenant_id = $1 AND occurred_at >= $2:
+902 | 703.7 | 0.780 | 7.9 | 46002 | SELECT id, event_type, quantity, to_char(occurred_at AT TIME ZONE $7, $8) AS occurred_at, metadata FROM usage_events WHERE tenant_id = $1 AND occurred_at >= $2:

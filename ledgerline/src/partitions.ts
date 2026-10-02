@@ -1,4 +1,5 @@
 import type pg from 'pg';
+import { partitionRuns, partitionsCreated } from './observability/metrics.js';
 
 export interface PartitionResult {
   name: string;
@@ -19,7 +20,11 @@ export async function ensurePartitions(
     'SELECT partition_name, created FROM ledgerline_fn.ensure_usage_events_partitions($1)',
     [monthsAhead],
   );
-  return r.rows.map((row) => ({ name: row.partition_name, created: row.created }));
+  const results = r.rows.map((row) => ({ name: row.partition_name, created: row.created }));
+  const created = results.filter((p) => p.created).length;
+  if (created > 0) partitionsCreated.inc(created);
+  partitionRuns.inc({ result: 'ok' });
+  return results;
 }
 
 /**
@@ -42,6 +47,7 @@ export function schedulePartitionMaintenance(
         .map((p) => p.name);
       if (created.length > 0) options.onCreated(created);
     } catch (err) {
+      partitionRuns.inc({ result: 'error' });
       options.onError(err);
     }
   };

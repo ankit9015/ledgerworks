@@ -1,13 +1,22 @@
 import pg from 'pg';
 import { buildApp } from './app.js';
 import { loadConfig } from './config.js';
+import { metricsUrl } from './db/config.js';
+import { buildMetricsServer } from './observability/metrics-server.js';
+import { poolQueueStats, setQueueStatsProvider } from './observability/metrics.js';
+import { initTracing, instrumentDb } from './observability/tracing.js';
 import { schedulePartitionMaintenance } from './partitions.js';
 
 const config = loadConfig();
+const tracing = initTracing({
+  serviceName: 'ledgerline-api',
+  endpoint: config.otelTracesEndpoint,
+});
 const pool = new pg.Pool({ connectionString: config.databaseUrl, max: 10 });
+const db = instrumentDb(pool);
 
 const app = buildApp({
-  db: pool,
+  db,
   logger: { level: config.logLevel, redact: ['req.headers.authorization'] },
   tenantCreationToken: config.tenantCreationToken,
 });
@@ -27,8 +36,16 @@ const stopPartitions = schedulePartitionMaintenance(pool, {
 for (const signal of ['SIGINT', 'SIGTERM'] as const) {
   process.on(signal, () => {
     stopPartitions();
-    void app.close().then(() => pool.end());
+    void Promise.all([app.close(), metricsServer.close(), tracing.shutdown()]).then(() =>
+      Promise.all([pool.end(), metricsDb.end()]),
+    );
   });
 }
+
+// /metrics: separate port and bind address (default 127.0.0.1:9464), read-only database role.
+const metricsDb = new pg.Pool({ connectionString: metricsUrl(), max: 2 });
+setQueueStatsProvider(poolQueueStats(metricsDb));
+const metricsServer = buildMetricsServer({ token: config.metricsToken });
+await metricsServer.listen({ port: config.metricsPort, host: config.metricsHost });
 
 await app.listen({ port: config.port, host: config.host });

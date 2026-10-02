@@ -1,0 +1,6 @@
+5717 | 2058.2 | 0.360 | 11.7 | 1224 | SELECT * FROM ledgerline_fn.claim_jobs($1, $2, $3, $4, $5)
+8870 | 1981.4 | 0.223 | 2.8 | 8870 | SELECT tenant_id, api_key_id FROM ledgerline_fn.authenticate_api_key($1)
+8869 | 1150.4 | 0.130 | 1.6 | 8869 | SELECT balance, updated_at FROM credit_balances WHERE tenant_id = $1
+928 | 875.4 | 0.943 | 11.7 | 928 | SELECT ledgerline_fn.complete_job($1, $2, $3, $4) AS ok
+135 | 857.9 | 6.355 | 20.0 | 448 | SELECT * FROM ledgerline_fn.queue_stats()
+135 | 807.3 | 5.980 | 19.3 | 448 | SELECT j.queue, j.status, count(*), min(j.run_at) FILTER (WHERE j.status IN ($1, $2)), COALESCE(sum(GREATEST(j.attempts - $3, $4)), $5)::bigint FROM public.jobs

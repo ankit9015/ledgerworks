@@ -1,0 +1,11 @@
+== preflight: balance_huge_runobs1
+usage_events rows: 10000000
+k6 exit code: 0 (99 = a threshold failed; thresholds are informational, not gating)
+== preflight: usage-read_huge_runobs1
+usage_events rows: 10000000
+k6 exit code: 0 (99 = a threshold failed; thresholds are informational, not gating)
+== preflight: ingest_small_runobs1
+usage_events rows: 10000000
+k6 exit code: 0 (99 = a threshold failed; thresholds are informational, not gating)
+ingested rows this run: 4500
+after cleanup usage_events rows: 10000000

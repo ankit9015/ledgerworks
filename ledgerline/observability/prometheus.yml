@@ -1,0 +1,14 @@
+# Prometheus for the "obs" compose profile (development only). It scrapes the API and the demo
+# worker through host.docker.internal; those processes must bind their metrics port to an address
+# the container can reach (METRICS_HOST=0.0.0.0, development machines only, see .env.example).
+global:
+  scrape_interval: 5s
+  evaluation_interval: 15s
+
+scrape_configs:
+  - job_name: ledgerline-api
+    static_configs:
+      - targets: ['host.docker.internal:9464']
+  - job_name: ledgerline-worker
+    static_configs:
+      - targets: ['host.docker.internal:9465']
