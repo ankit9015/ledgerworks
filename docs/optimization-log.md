@@ -100,7 +100,7 @@ Execution Time: 0.631 ms
   The huge-tenant p95 fell by about 83% (145.5 to 24.3 ms), far outside the run-to-run spread (the ranges do not overlap). The small tenant did not change (18.1 to 17.1 ms is inside the spread, so no claim). `pg_stat_statements` for the usage query, run 1 of each set, includes warmup: mean 80.1 ms (page-1 shape) and 137.3 ms (cursor shape) before, 1.6 ms and 5.7 ms after. After the fix the huge and small tenants cost the same through the API (about 14 to 15 ms p50, most of it the fixed per-request cost, see O3).
 
 - **Write and storage cost:** none (no schema change).
-- **Seed and environment:** see "Environment" above.
+
 - **What was learned:** the original "huge tenants are slow" finding was not an indexing problem at all. A one-word application bug made the existing index unusable. Only `EXPLAIN` could show that; adding an index would have changed nothing.
 
 ### E2. Usage-read access pattern: checked, **no index change needed** (negative result)
@@ -363,6 +363,52 @@ Execution Time: 0.328 ms
 - **Write and storage cost:** none (no schema change).
 - **Verdict:** **not an improvement at the level that matters, so the code change was reverted** (`withTenant` is unchanged). It would add string-built SQL to the most security-sensitive helper in the code base for a gain of less than the measurement noise. The micro-benchmarks (`bench:roundtrip`, `bench:flow`) and the raw results are kept.
 - **What was learned:** (1) the fixed per-request cost that O3 pointed at is small here: five round trips are about 2 ms; the rest of the 4 to 6 ms p50 of the cheap endpoints (and the time between the k6 container and the host) is not the database. (2) A cleanly measured 15% in a component can be invisible in the end-to-end number, which is why both were measured. (3) Observation worth keeping: the "before" p50 of `balance / small` in this session is **3.7 ms against 7 to 8 ms in the 2026-10-01 baseline**, on identical code for this endpoint; the machine was in a faster state. Absolute numbers from different sessions on this laptop are not comparable; only same-session before/after pairs are used for attribution (see `benchmarks/after.md`).
+
+### E6. Partitioning: automatic partition creation, pruning, and an honest "no latency win"
+
+- **Observation:** new (candidate 6 of P1.10). Partitions 2024-01 to 2027-12 exist from P1.3 (migration 0001) and there is no default partition, so an event dated after 2027-12 is rejected with 422 and **nothing created the partitions ahead of time**. The question asked of partitioning was two-fold: does it make reads faster, and does it make operations easier.
+- **Change (this is a correctness and operations change, not a latency change):** migration `0008_partition_automation.sql`, `ledgerline/src/partitions.ts`, started by the API at startup and every 6 hours (`PARTITION_MONTHS_AHEAD`, default 6), and `pnpm --filter @ledgerworks/ledgerline partitions:ensure`:
+  - `ledgerline_fn.ensure_usage_events_partitions(p_months_ahead)` makes the current UTC month and the next N exist. **Idempotent** (a month that has its partition is skipped), **serialised** (an advisory lock, so concurrent callers queue and the later ones find the work done), and **does not block inserts**: the partition is built as a standalone table (same defaults, constraints and indexes) and then `ATTACH`ed, which takes only `SHARE UPDATE EXCLUSIVE` on the parent (`CREATE TABLE ... PARTITION OF` takes `ACCESS EXCLUSIVE`). Bounds are computed in UTC, independent of the session time zone (the older `create_usage_events_partition(date)` of 0001 formats bounds in the session zone, which only worked because the server runs in UTC; it is left in place).
+  - It is `SECURITY DEFINER`, owned by the table owner (creating a partition needs ownership), capped at 24 months, and the app role may call only the variant that uses the real clock; the variant that takes an arbitrary `now` (for tests) is not granted to it (D24).
+- **Tests** (`ledgerline/test/partitions.test.ts`, in a scratch database that really lacks the partitions after 2026-10): the missing-partition failure is shown first (422 `occurred_at_out_of_range`); exact UTC bounds; a second call creates nothing; unaffected by the session time zone (Pacific/Auckland); a new partition has the same indexes (attached to the parent), constraints and owner as an old one and no app-role privileges; RLS and the lack of direct access hold in a new partition; bad arguments and the app role's limits; **30 simultaneous callers create each missing partition exactly once with no error**; and the boundary test: **900 events by 30 workers through the real API across the 2026-10/2026-11 boundary, while the maintenance job ran concurrently with a clock stepping over midnight: 900 accepted, 0 failed (450 in each partition, every row in the partition of its month)**.
+- **Partition pruning** (`docs/benchmarks/sql/partition-pruning.sql`, as `ledgerline_app` with RLS, huge tenant, a 7-day window; raw `raw/explain-e6-pruning.txt`; three runs 38.0 (cold), 25.1 and 27.6 ms for the aggregate over 64,435 rows). Only **1 of 48 partitions** appears in the plan:
+
+```
+Aggregate  (cost=21572.92..21572.93 rows=1 width=40) (actual time=27.496..27.499 rows=1 loops=1)
+  Buffers: shared hit=4940
+  InitPlan 1 (returns $0)
+    ->  Result  (cost=0.00..0.26 rows=1 width=16) (actual time=0.131..0.132 rows=1 loops=1)
+          Buffers: shared hit=6
+  ->  Result  (cost=2469.30..21257.02 rows=63127 width=8) (actual time=4.676..23.753 rows=64435 loops=1)
+        One-Time Filter: ($0 = '8641a01e-babb-4e44-d36d-f68e5233c7fb'::uuid)
+        Buffers: shared hit=4940
+        ->  Bitmap Heap Scan on usage_events_2026_08 usage_events  (cost=2469.30..21257.02 rows=63127 width=8) (actual time=4.543..19.575 rows=64435 loops=1)
+              Recheck Cond: ((tenant_id = '8641a01e-babb-4e44-d36d-f68e5233c7fb'::uuid) AND (occurred_at >= '2026-08-24 00:00:00+00'::timestamp with time zone) AND (occurred_at < '2026-08-31 00:00:00+00'::timestamp with time zone))
+              Heap Blocks: exact=4494
+              Buffers: shared hit=4934
+              ->  Bitmap Index Scan on usage_events_2026_08_tenant_id_occurred_at_idx  (cost=0.00..2453.51 rows=63127 width=0) (actual time=4.066..4.067 rows=64435 loops=1)
+                    Index Cond: ((tenant_id = '8641a01e-babb-4e44-d36d-f68e5233c7fb'::uuid) AND (occurred_at >= '2026-08-24 00:00:00+00'::timestamp with time zone) AND (occurred_at < '2026-08-31 00:00:00+00'::timestamp with time zone))
+                    Buffers: shared hit=440
+Planning:
+  Buffers: shared hit=434
+Planning Time: 0.909 ms
+Execution Time: 27.600 ms
+```
+
+The control (no date range) plan visits **all 48 partitions** (`Append` of 48 scans; same file).
+
+- **Latency: no win, a small cost** (`raw/pgbench-e6-partitioned-vs-flat.txt`). Page 1 of a random 7-day window for the huge and the small tenant on the partitioned table against an **unpartitioned copy of the same 10,000,000 rows** with one `(tenant_id, occurred_at)` index, `pgbench -M simple` (constants in the SQL, so both see the same plan inputs), superuser (no RLS on either, so it isolates the table layout), 1 client, 15 s per run, 3 alternating rounds, mean latency per query. This is a query-level measurement inside Postgres, not through the API:
+
+  | Tenant | partitioned (48 monthly) | unpartitioned copy       |                              |
+  | ------ | ------------------------ | ------------------------ | ---------------------------- |
+  | huge   | 0.336 ms (0.335 – 0.366) | 0.301 ms (0.279 – 0.307) | partitioned about 12% slower |
+  | small  | 0.315 ms (0.302 – 0.335) | 0.254 ms (0.252 – 0.258) | partitioned about 24% slower |
+
+  **Partitioning does not make this read faster; it costs about 0.03 to 0.06 ms per query**, plausibly planning over the partition list (not isolated further). In absolute terms it is negligible next to a 4 to 15 ms request, but it is not a win, and the claim "partitioning speeds up reads" is **not supported** by these measurements. The one-index-per-partition layout already gave the planner a small index to walk. (An earlier attempt with `pgbench -M extended` showed the partitioned query 19 to 170 times slower than the flat one; that was an artefact of the harness: bound parameters inside a stable expression defeat plan-time pruning. The API sends typed timestamp parameters, and the same query with constants ran in 0.4 ms, so the benchmark was changed, not the code. Noted because it is a way to lose pruning by accident.)
+
+- **Operations: where partitioning does pay** (`docs/benchmarks/sql/retention-e6.sql`, `raw/retention-e6.txt`; one month = 547,332 rows, superuser, scratch objects): removing one month of data costs a `DELETE` of **5.34, 3.61 and 2.07 s** on the unpartitioned copy (the spread is cache state; it also leaves 547k dead rows to vacuum) against `DETACH PARTITION` **1.1, 1.7, 3.4 ms** + `DROP TABLE` **25.3, 23.5, 28.2 ms** on a partitioned table, about 25 to 30 ms in total and no dead tuples: **roughly 65 to 210 times faster, and no vacuum debt.** Together with the automatic creation above, this is the actual value of partitioning here: **easier retention and maintenance, not faster reads.**
+- **Write and storage cost:** a partition created by the function has the same two indexes as the ones from 0001 (primary key and `(tenant_id, occurred_at)`); no extra index. Ingest was not slowed measurably: the boundary test's 900 concurrent inserts all succeeded while partitions were being attached, and creating partitions took 39.7 ms for six months on an empty scratch database (about 7 ms each; a call that finds everything present takes 0.4 ms; `raw/partition-create-time-e6.txt`); it was not benchmarked under k6 (partitions already existed during all k6 runs, so the k6 numbers do not include any creation).
+- **What was learned:** (1) the automatic creation closes a real production cliff (ingest hard-failing on the first event after the last partition), which a benchmark would never show. (2) Partitioning is a maintenance feature; the read speed-up people expect did not exist here, and the measured cost is small but real. (3) `CREATE TABLE ... PARTITION OF` would have blocked all reads and writes for the duration; the standalone-then-`ATTACH` route does not.
 
 <!-- ENTRIES -->
 

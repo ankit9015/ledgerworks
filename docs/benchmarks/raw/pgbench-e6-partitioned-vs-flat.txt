@@ -1,0 +1,51 @@
+# E6: partitioned usage_events vs an unpartitioned copy (scratch_flat, same 10M rows, one (tenant_id, occurred_at) index), page 1 of a random 7-day window
+# pgbench -M simple (literals, so both plans see constants), 1 client, 15 s per run, superuser (no RLS on either), 3 alternating rounds; 2 CPU / 2 GiB container
+# scripts: docs/benchmarks/sql/pgbench-usage-page1-{usage_events,scratch_flat}.sql
+## round 1 tenant=huge table=usage_events
+number of transactions actually processed: 44808
+latency average = 0.335 ms
+tps = 2987.553726 (without initial connection time)
+## round 1 tenant=huge table=scratch_flat
+number of transactions actually processed: 49853
+latency average = 0.301 ms
+tps = 3324.016645 (without initial connection time)
+## round 1 tenant=small table=usage_events
+number of transactions actually processed: 49667
+latency average = 0.302 ms
+tps = 3311.497819 (without initial connection time)
+## round 1 tenant=small table=scratch_flat
+number of transactions actually processed: 59531
+latency average = 0.252 ms
+tps = 3969.291151 (without initial connection time)
+## round 2 tenant=huge table=usage_events
+number of transactions actually processed: 44675
+latency average = 0.336 ms
+tps = 2978.740031 (without initial connection time)
+## round 2 tenant=huge table=scratch_flat
+number of transactions actually processed: 53729
+latency average = 0.279 ms
+tps = 3582.353663 (without initial connection time)
+## round 2 tenant=small table=usage_events
+number of transactions actually processed: 47659
+latency average = 0.315 ms
+tps = 3177.910088 (without initial connection time)
+## round 2 tenant=small table=scratch_flat
+number of transactions actually processed: 59080
+latency average = 0.254 ms
+tps = 3939.082896 (without initial connection time)
+## round 3 tenant=huge table=usage_events
+number of transactions actually processed: 41016
+latency average = 0.366 ms
+tps = 2734.787975 (without initial connection time)
+## round 3 tenant=huge table=scratch_flat
+number of transactions actually processed: 48791
+latency average = 0.307 ms
+tps = 3253.092475 (without initial connection time)
+## round 3 tenant=small table=usage_events
+number of transactions actually processed: 44748
+latency average = 0.335 ms
+tps = 2983.760549 (without initial connection time)
+## round 3 tenant=small table=scratch_flat
+number of transactions actually processed: 58121
+latency average = 0.258 ms
+tps = 3875.260369 (without initial connection time)

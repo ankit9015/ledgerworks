@@ -7,6 +7,8 @@ export interface Config {
   logLevel: string;
   /** When set, POST /v1/tenants requires this value in the x-admin-token header. */
   tenantCreationToken: string | undefined;
+  /** usage_events partitions kept ahead of the current month (migration 0008). */
+  partitionMonthsAhead: number;
 }
 
 export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
@@ -16,5 +18,6 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
     databaseUrl: env.DATABASE_URL ?? appUrl(),
     logLevel: env.LOG_LEVEL ?? 'info',
     tenantCreationToken: env.TENANT_CREATION_TOKEN || undefined,
+    partitionMonthsAhead: Number(env.PARTITION_MONTHS_AHEAD ?? 6),
   };
 }

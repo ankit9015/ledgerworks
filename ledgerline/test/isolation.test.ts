@@ -611,8 +611,11 @@ const DEFINER_FUNCTIONS = [
   'claim_jobs',
   'create_tenant',
   'debit_credits',
+  'ensure_usage_events_partitions',
+  'ensure_usage_events_partitions_at',
   'refund_credits',
 ];
+const PARTITION_FUNCTIONS = ['ensure_usage_events_partitions', 'ensure_usage_events_partitions_at'];
 const LEDGER_FUNCTIONS = ['debit_credits', 'refund_credits'];
 const INVOKER_FUNCTIONS = ['complete_job', 'enqueue_job', 'fail_job'];
 
@@ -778,11 +781,13 @@ describe('isolation: SECURITY DEFINER functions', () => {
       'SECURITY INVOKER functions (run as the caller, so RLS applies)',
     );
     for (const r of definers) {
-      eq(
-        r.owner,
-        LEDGER_FUNCTIONS.includes(r.proname) ? 'ledgerline_ledger' : 'ledgerline_definer',
-        `${r.proname} owner`,
-      );
+      // The partition functions need table ownership (CREATE TABLE ... ATTACH PARTITION).
+      const expectedOwner = LEDGER_FUNCTIONS.includes(r.proname)
+        ? 'ledgerline_ledger'
+        : PARTITION_FUNCTIONS.includes(r.proname)
+          ? 'ledgerline_owner'
+          : 'ledgerline_definer';
+      eq(r.owner, expectedOwner, `${r.proname} owner`);
       eq(r.proconfig, ['search_path=pg_catalog, pg_temp'], `${r.proname} search_path`);
     }
     for (const r of f.rows) {
@@ -792,6 +797,22 @@ describe('isolation: SECURITY DEFINER functions', () => {
       );
       eq(p.rows[0].ok, false, `${r.proname} is not executable by PUBLIC`);
     }
+    // The app role may call the partition function that uses the real clock, not the one that takes
+    // an arbitrary "now" (which would let it create partitions for any month it names).
+    const exec = await admin.query(
+      `SELECT p.proname, has_function_privilege('ledgerline_app', p.oid, 'EXECUTE') AS ok
+       FROM pg_proc p JOIN pg_namespace n ON n.oid = p.pronamespace
+       WHERE n.nspname = 'ledgerline_fn' AND p.proname LIKE 'ensure_usage_events_partitions%'
+       ORDER BY p.proname`,
+    );
+    eq(
+      exec.rows,
+      [
+        { proname: 'ensure_usage_events_partitions', ok: true },
+        { proname: 'ensure_usage_events_partitions_at', ok: false },
+      ],
+      'app role execute rights on the partition functions',
+    );
     const o = await run('noPrivileges', `SELECT * FROM ledgerline_fn.authenticate_api_key('x')`);
     truthy(!o.ok && o.code === '42501', 'a role without grants cannot call the function');
   });

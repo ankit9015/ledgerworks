@@ -1,0 +1,52 @@
+Timing is on.
+--- flat table: DELETE one month
+DELETE 547332
+Time: 5341.662 ms (00:05.342)
+Time: 13.383 ms
+INSERT 0 547332
+Time: 3292.272 ms (00:03.292)
+--- flat table: DELETE one month (2)
+DELETE 547332
+Time: 3608.731 ms (00:03.609)
+INSERT 0 547332
+Time: 1779.420 ms (00:01.779)
+--- flat table: DELETE one month (3)
+DELETE 547332
+Time: 2070.028 ms (00:02.070)
+NOTICE:  table "scratch_parent" does not exist, skipping
+DROP TABLE
+Time: 4.492 ms
+CREATE TABLE
+Time: 15.491 ms
+ALTER TABLE
+Time: 1.428 ms
+CREATE INDEX
+Time: 1.778 ms
+Timing is off.
+DO
+--- partition: DETACH + DROP one month (3 repetitions, each on a freshly loaded partition)
+CREATE TABLE
+INSERT 0 547332
+Timing is on.
+ALTER TABLE
+Time: 1.097 ms
+DROP TABLE
+Time: 25.266 ms
+Timing is off.
+CREATE TABLE
+INSERT 0 547332
+Timing is on.
+ALTER TABLE
+Time: 1.671 ms
+DROP TABLE
+Time: 23.519 ms
+Timing is off.
+CREATE TABLE
+INSERT 0 547332
+Timing is on.
+ALTER TABLE
+Time: 3.422 ms
+DROP TABLE
+Time: 28.200 ms
+Timing is off.
+DROP TABLE
