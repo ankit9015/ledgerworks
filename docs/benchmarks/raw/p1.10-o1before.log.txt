@@ -1,0 +1,24 @@
+##### o1before round 1: usage-read huge (rate 2) 08:58:16
+== preflight: usage-read_huge_runo1before1
+usage_events rows: 10000000
+k6 exit code: 0 (99 = a threshold failed; thresholds are informational, not gating)
+##### o1before round 1: usage-read small (rate 2) 08:59:55
+== preflight: usage-read_small_runo1before1
+usage_events rows: 10000000
+k6 exit code: 0 (99 = a threshold failed; thresholds are informational, not gating)
+##### o1before round 2: usage-read huge (rate 2) 09:01:35
+== preflight: usage-read_huge_runo1before2
+usage_events rows: 10000000
+k6 exit code: 0 (99 = a threshold failed; thresholds are informational, not gating)
+##### o1before round 2: usage-read small (rate 2) 09:03:16
+== preflight: usage-read_small_runo1before2
+usage_events rows: 10000000
+k6 exit code: 0 (99 = a threshold failed; thresholds are informational, not gating)
+##### o1before round 3: usage-read huge (rate 2) 09:04:55
+== preflight: usage-read_huge_runo1before3
+usage_events rows: 10000000
+k6 exit code: 0 (99 = a threshold failed; thresholds are informational, not gating)
+##### o1before round 3: usage-read small (rate 2) 09:06:35
+== preflight: usage-read_small_runo1before3
+usage_events rows: 10000000
+k6 exit code: 0 (99 = a threshold failed; thresholds are informational, not gating)

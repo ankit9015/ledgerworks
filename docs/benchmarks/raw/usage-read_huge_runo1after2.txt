@@ -1,0 +1,63 @@
+time="2026-10-02T09:15:52Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:3000/v1/usage?from=2026-09-20T00:00:00.000Z&to=2026-09-27T00:00:00.000Z&limit=50\": dial: i/o timeout"
+time="2026-10-02T09:15:56Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:3000/v1/usage?from=2025-10-27T00:00:00.000Z&to=2025-11-03T00:00:00.000Z&limit=50\": dial: i/o timeout"
+time="2026-10-02T09:15:56Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:3000/v1/usage?from=2025-10-12T00:00:00.000Z&to=2025-10-19T00:00:00.000Z&limit=50\": dial: i/o timeout"
+time="2026-10-02T09:15:57Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:3000/v1/usage?from=2026-08-19T00:00:00.000Z&to=2026-08-26T00:00:00.000Z&limit=50\": dial: i/o timeout"
+time="2026-10-02T09:15:58Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:3000/v1/usage?from=2025-12-10T00:00:00.000Z&to=2025-12-17T00:00:00.000Z&limit=50\": dial: i/o timeout"
+
+
+  █ THRESHOLDS 
+
+    dropped_iterations{scenario:measure}
+    ✓ 'count==0' count=0
+
+    http_req_duration{phase:measure,page:1}
+    ✓ 'p(95)<500' p(95)=28.84ms
+
+    http_req_duration{phase:measure,page:2}
+    ✓ 'p(95)<500' p(95)=18.53ms
+
+    http_req_duration{phase:measure,page:3}
+    ✓ 'p(95)<500' p(95)=15.73ms
+
+    http_req_duration{phase:measure}
+    ✓ 'p(95)<500' p(95)=24.27ms
+
+    http_req_failed{phase:measure}
+    ✓ 'rate<0.01' rate=0.00%
+
+
+  █ TOTAL RESULTS 
+
+    checks_total.......: 533    5.610997/s
+    checks_succeeded...: 99.06% 528 out of 533
+    checks_failed......: 0.93%  5 out of 533
+
+    ✗ status is 200
+      ↳  99% — ✓ 528 / ✗ 5
+
+    HTTP
+    http_req_duration..............: avg=13.31ms  min=0s     med=13.75ms p(90)=18.25ms p(95)=22.69ms p(99)=29.24ms max=30.99ms count=533
+      { expected_response:true }...: avg=13.44ms  min=5.63ms med=13.78ms p(90)=18.28ms p(95)=23.3ms  p(99)=29.24ms max=30.99ms count=528
+      { phase:measure,page:1 }.....: avg=16.85ms  min=6.43ms med=16.18ms p(90)=28.13ms p(95)=28.84ms p(99)=29.5ms  max=29.67ms count=120
+      { phase:measure,page:2 }.....: avg=13.64ms  min=5.78ms med=14.9ms  p(90)=17.36ms p(95)=18.53ms p(99)=21.58ms max=21.71ms count=120
+      { phase:measure,page:3 }.....: avg=11.58ms  min=5.63ms med=12.4ms  p(90)=14.82ms p(95)=15.73ms p(99)=16.43ms max=27.77ms count=120
+      { phase:measure }............: avg=14.02ms  min=5.63ms med=14.51ms p(90)=18.49ms p(95)=24.27ms p(99)=29.23ms max=29.67ms count=360
+    http_req_failed................: 0.93%  5 out of 533
+      { phase:measure }............: 0.00%  0 out of 360
+    http_reqs......................: 533    5.610997/s
+
+    EXECUTION
+    dropped_iterations.............: 0      0/s
+      { scenario:measure }.........: 0      0/s
+    iteration_duration.............: avg=871.88ms min=20.2ms med=46.8ms  p(90)=62.61ms p(95)=65.23ms p(99)=30s     max=30s     count=181
+    iterations.....................: 181    1.905423/s
+    vus............................: 0      min=0        max=5  
+    vus_max........................: 100    min=100      max=100
+
+    NETWORK
+    data_received..................: 4.5 MB 47 kB/s
+    data_sent......................: 180 kB 1.9 kB/s
+
+
+
+k6 exit code: 0

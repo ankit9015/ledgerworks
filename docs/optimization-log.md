@@ -9,9 +9,101 @@ One entry per performance win. Every entry must contain all of the following, wi
 5. **Measured latency before and after**: with the number of runs and how they were taken.
 6. **Seed size**: rows per relevant table, plus the Postgres version and container CPU/memory limits (see `docker-compose.yml`). Label synthetic data as synthetic.
 
+## Environment (applies to every entry)
+
+- **Data (synthetic):** the 10,000,000-row `usage_events` seed (seed value 20251001, 250 tenants, Zipf-skewed; huge = rank 1 with 2,541,285 events, small = rank 100 with 10,118 events), re-seeded after Step 0 with identical fingerprints (`raw/seed-run4-after-0005.txt`). Details: `benchmarks/seed.md`.
+- **Postgres 16.15** in Docker Desktop, container limited to **2 CPUs / 2 GiB**, `shared_buffers` 512 MB, `work_mem` 16 MB, `random_page_cost` 4, default autovacuum (see `docker-compose.yml`, `raw/environment-p1.10.txt`).
+- **Machine:** Intel Core i5-1135G7 laptop (4 cores / 8 threads), Windows 11; k6 (v2.3.0, Docker), the API (host `tsx`, pool size 10) and Postgres share it, so run-to-run noise is real: **15 to 25 percent** on this machine. A change is only called an improvement here when it is clearly larger than the spread of the runs.
+- **Method for "before" and "after" through the API:** the unchanged k6 scripts and profile of `benchmarks/baseline.md` (30 s warmup, 60 s measured, constant arrival rate; `usage-read` 2 iterations/s, `balance` and `ingest` 100 req/s), the same preflight (exactly 10,000,000 rows, no autovacuum running, `pg_stat_statements` reset), **3 runs per set**, medians with min – max, via `ledgerline/k6/bench3.sh` and `ledgerline/k6/stats.mjs`. The API process is restarted for each set. A "before" is the state of the code and schema immediately before the change in this log (the "after" of the previous entry, re-measured when the scenario was not covered).
+- **EXPLAIN method:** `docs/benchmarks/sql/explain.sh` runs a `.sql` file as `ledgerline_app` with the tenant set (so RLS applies exactly as in the API), inside a rolled-back transaction, warm cache.
+
 ## Entries
 
-_None yet. Entries are added in P1.10._
+### E1. `GET /v1/usage`: ORDER BY resolved to the output alias (application bug, not an indexing win)
+
+- **Observation:** O1 (below).
+- **Kind of change:** **a bug fix in the application query.** No index was added, changed or dropped; the existing `(tenant_id, occurred_at)` indexes were already enough. The query said `ORDER BY occurred_at DESC, id DESC` while also selecting `to_char(occurred_at ...) AS occurred_at`; in Postgres a bare name in `ORDER BY` matches an output column before an input column ("alias shadowing"), so it sorted by the formatted text and the planner could not walk the index backwards and stop after 51 rows.
+- **Slow query** (`ledgerline/src/routes/usage.ts`, `GET /v1/usage`; huge tenant = rank 1, 2,541,285 events; a 7-day window, page 1, limit 50 + 1; SQL in `docs/benchmarks/sql/usage-read-p1-alias.sql`):
+
+  ```sql
+  SELECT id, event_type, quantity,
+         to_char(occurred_at AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.US"Z"') AS occurred_at, metadata
+  FROM usage_events
+  WHERE tenant_id = :TENANT AND occurred_at >= '2026-08-24T00:00:00Z' AND occurred_at < '2026-08-31T00:00:00Z'
+  ORDER BY occurred_at DESC, id DESC
+  LIMIT 51
+  ```
+
+- **`EXPLAIN (ANALYZE, BUFFERS)` before** (as `ledgerline_app` with the tenant set, so RLS applies; three warm executions took 112.4, 93.4 and 123.8 ms, plan of the last one; raw: `raw/explain-o1-before.txt`). It reads and sorts 64,435 rows (4,946 buffers) to return 51:
+
+```
+Limit  (cost=23678.97..23679.10 rows=51 width=93) (actual time=123.697..123.705 rows=51 loops=1)
+  Buffers: shared hit=4946
+  InitPlan 1 (returns $0)
+    ->  Result  (cost=0.00..0.26 rows=1 width=16) (actual time=0.220..0.221 rows=1 loops=1)
+          Buffers: shared hit=6
+  ->  Sort  (cost=23678.71..23836.53 rows=63127 width=93) (actual time=123.695..123.699 rows=51 loops=1)
+        Sort Key: (to_char((usage_events.occurred_at AT TIME ZONE 'UTC'::text), 'YYYY-MM-DD"T"HH24:MI:SS.US"Z"'::text)) DESC, usage_events.id DESC
+        Sort Method: top-N heapsort  Memory: 36kB
+        Buffers: shared hit=4946
+        ->  Result  (cost=2469.30..21572.66 rows=63127 width=93) (actual time=6.517..91.961 rows=64435 loops=1)
+              One-Time Filter: ($0 = '8641a01e-babb-4e44-d36d-f68e5233c7fb'::uuid)
+              Buffers: shared hit=4940
+              ->  Bitmap Heap Scan on usage_events_2026_08 usage_events  (cost=2469.30..21257.02 rows=63127 width=69) (actual time=6.200..38.696 rows=64435 loops=1)
+                    Recheck Cond: ((tenant_id = '8641a01e-babb-4e44-d36d-f68e5233c7fb'::uuid) AND (occurred_at >= '2026-08-24 00:00:00+00'::timestamp with time zone) AND (occurred_at < '2026-08-31 00:00:00+00'::timestamp with time zone))
+                    Heap Blocks: exact=4494
+                    Buffers: shared hit=4934
+                    ->  Bitmap Index Scan on usage_events_2026_08_tenant_id_occurred_at_idx  (cost=0.00..2453.51 rows=63127 width=0) (actual time=5.560..5.561 rows=64435 loops=1)
+                          Index Cond: ((tenant_id = '8641a01e-babb-4e44-d36d-f68e5233c7fb'::uuid) AND (occurred_at >= '2026-08-24 00:00:00+00'::timestamp with time zone) AND (occurred_at < '2026-08-31 00:00:00+00'::timestamp with time zone))
+                          Buffers: shared hit=440
+Planning:
+  Buffers: shared hit=435
+Planning Time: 1.463 ms
+Execution Time: 123.822 ms
+```
+
+- **Change:** `ORDER BY usage_events.occurred_at DESC, usage_events.id DESC` (table-qualified, so the input column is used). Nothing else.
+- **`EXPLAIN (ANALYZE, BUFFERS)` after** (three warm executions: 1.4, 0.7 and 0.6 ms; raw: `raw/explain-o1-after.txt`). An index scan backward feeds an incremental sort, and 52 rows are read (70 buffers):
+
+```
+Limit  (cost=1.87..64.05 rows=51 width=101) (actual time=0.502..0.572 rows=51 loops=1)
+  Buffers: shared hit=70
+  InitPlan 1 (returns $0)
+    ->  Result  (cost=0.00..0.26 rows=1 width=16) (actual time=0.220..0.220 rows=1 loops=1)
+          Buffers: shared hit=6
+  ->  Incremental Sort  (cost=1.61..76960.73 rows=63127 width=101) (actual time=0.500..0.565 rows=51 loops=1)
+        Sort Key: usage_events.occurred_at DESC, usage_events.id DESC
+        Presorted Key: usage_events.occurred_at
+        Full-sort Groups: 2  Sort Method: quicksort  Average Memory: 29kB  Peak Memory: 29kB
+        Buffers: shared hit=70
+        ->  Result  (cost=0.43..74120.01 rows=63127 width=101) (actual time=0.346..0.494 rows=52 loops=1)
+              One-Time Filter: ($0 = '8641a01e-babb-4e44-d36d-f68e5233c7fb'::uuid)
+              Buffers: shared hit=61
+              ->  Index Scan Backward using usage_events_2026_08_tenant_id_occurred_at_idx on usage_events_2026_08 usage_events  (cost=0.43..73804.38 rows=63127 width=69) (actual time=0.038..0.128 rows=52 loops=1)
+                    Index Cond: ((tenant_id = '8641a01e-babb-4e44-d36d-f68e5233c7fb'::uuid) AND (occurred_at >= '2026-08-24 00:00:00+00'::timestamp with time zone) AND (occurred_at < '2026-08-31 00:00:00+00'::timestamp with time zone))
+                    Buffers: shared hit=55
+Planning:
+  Buffers: shared hit=425
+Planning Time: 1.381 ms
+Execution Time: 0.631 ms
+```
+
+- **Measured through the API** (k6 `usage-read`, 2 iterations/s, 30 s warmup + 60 s measured, huge and small tenant, **3 runs each, run order interleaved**, same preflight and profile as the baseline; API restarted between the two sets; median with min – max over the 3 runs; raw: `raw/usage-read_*_runo1before{1,2,3}.*` and `..._runo1after{1,2,3}.*`):
+
+  | Scenario           |           | p50                       | p95                       | p99                       |
+  | ------------------ | --------- | ------------------------- | ------------------------- | ------------------------- |
+  | usage-read / huge  | before    | 91.6 ms (90.9 – 96.3)     | 145.5 ms (139.2 – 151.1)  | 164.9 ms (155.0 – 175.6)  |
+  | usage-read / huge  | **after** | **14.9 ms (14.5 – 15.0)** | **24.3 ms (22.1 – 28.7)** | **30.5 ms (29.2 – 32.9)** |
+  | usage-read / small | before    | 14.1 ms (13.9 – 14.9)     | 18.1 ms (17.7 – 19.2)     | 21.9 ms (19.5 – 26.8)     |
+  | usage-read / small | after     | 14.3 ms (14.1 – 14.5)     | 17.1 ms (17.0 – 17.5)     | 19.3 ms (18.2 – 20.1)     |
+
+  The huge-tenant p95 fell by about 83% (145.5 to 24.3 ms), far outside the run-to-run spread (the ranges do not overlap). The small tenant did not change (18.1 to 17.1 ms is inside the spread, so no claim). `pg_stat_statements` for the usage query, run 1 of each set, includes warmup: mean 80.1 ms (page-1 shape) and 137.3 ms (cursor shape) before, 1.6 ms and 5.7 ms after. After the fix the huge and small tenants cost the same through the API (about 14 to 15 ms p50, most of it the fixed per-request cost, see O3).
+
+- **Write and storage cost:** none (no schema change).
+- **Seed and environment:** see "Environment" above.
+- **What was learned:** the original "huge tenants are slow" finding was not an indexing problem at all. A one-word application bug made the existing index unusable. Only `EXPLAIN` could show that; adding an index would have changed nothing.
+
+<!-- ENTRIES -->
 
 ## Observations (not yet acted on)
 
@@ -72,7 +164,7 @@ QUERY PLAN
 ```
 
 - **Measured impact in the baseline:** `usage-read / huge` p95 is 162.5 ms against 22.0 ms for the small tenant (medians of 3 runs at 2 iterations/s), and higher rates saturate (see baseline.md, "Findings"). These are baseline numbers; no after-measurement exists yet.
-- **Status:** not fixed. Planned for P1.10 with a measured before/after through the API.
+- **Status:** FIXED in E1 (application bug, alias shadowing; huge-tenant usage-read p95 145.5 ms to 24.3 ms through the API, no index change).
 
 ### O2. Autovacuum ran on the partitions on its own after the seed
 

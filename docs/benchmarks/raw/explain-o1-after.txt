@@ -1,0 +1,88 @@
+# O1 after: ORDER BY names the table column. 3 runs on warm cache, then the plan:
+              set_config              
+--------------------------------------
+ 8641a01e-babb-4e44-d36d-f68e5233c7fb
+(1 row)
+
+                                                                                                                 QUERY PLAN                                                                                                                  
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ Limit  (cost=1.87..64.05 rows=51 width=101) (actual time=1.083..1.314 rows=51 loops=1)
+   Buffers: shared hit=23 read=47
+   InitPlan 1 (returns $0)
+     ->  Result  (cost=0.00..0.26 rows=1 width=16) (actual time=0.343..0.343 rows=1 loops=1)
+           Buffers: shared hit=6
+   ->  Incremental Sort  (cost=1.61..76960.73 rows=63127 width=101) (actual time=1.081..1.306 rows=51 loops=1)
+         Sort Key: usage_events.occurred_at DESC, usage_events.id DESC
+         Presorted Key: usage_events.occurred_at
+         Full-sort Groups: 2  Sort Method: quicksort  Average Memory: 29kB  Peak Memory: 29kB
+         Buffers: shared hit=23 read=47
+         ->  Result  (cost=0.43..74120.01 rows=63127 width=101) (actual time=0.583..1.145 rows=52 loops=1)
+               One-Time Filter: ($0 = '8641a01e-babb-4e44-d36d-f68e5233c7fb'::uuid)
+               Buffers: shared hit=14 read=47
+               ->  Index Scan Backward using usage_events_2026_08_tenant_id_occurred_at_idx on usage_events_2026_08 usage_events  (cost=0.43..73804.38 rows=63127 width=69) (actual time=0.058..0.533 rows=52 loops=1)
+                     Index Cond: ((tenant_id = '8641a01e-babb-4e44-d36d-f68e5233c7fb'::uuid) AND (occurred_at >= '2026-08-24 00:00:00+00'::timestamp with time zone) AND (occurred_at < '2026-08-31 00:00:00+00'::timestamp with time zone))
+                     Buffers: shared hit=8 read=47
+ Planning:
+   Buffers: shared hit=400 read=25
+ Planning Time: 2.630 ms
+ Execution Time: 1.435 ms
+(20 rows)
+
+              set_config              
+--------------------------------------
+ 8641a01e-babb-4e44-d36d-f68e5233c7fb
+(1 row)
+
+                                                                                                                 QUERY PLAN                                                                                                                  
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ Limit  (cost=1.87..64.05 rows=51 width=101) (actual time=0.544..0.618 rows=51 loops=1)
+   Buffers: shared hit=70
+   InitPlan 1 (returns $0)
+     ->  Result  (cost=0.00..0.26 rows=1 width=16) (actual time=0.246..0.246 rows=1 loops=1)
+           Buffers: shared hit=6
+   ->  Incremental Sort  (cost=1.61..76960.73 rows=63127 width=101) (actual time=0.543..0.611 rows=51 loops=1)
+         Sort Key: usage_events.occurred_at DESC, usage_events.id DESC
+         Presorted Key: usage_events.occurred_at
+         Full-sort Groups: 2  Sort Method: quicksort  Average Memory: 29kB  Peak Memory: 29kB
+         Buffers: shared hit=70
+         ->  Result  (cost=0.43..74120.01 rows=63127 width=101) (actual time=0.388..0.534 rows=52 loops=1)
+               One-Time Filter: ($0 = '8641a01e-babb-4e44-d36d-f68e5233c7fb'::uuid)
+               Buffers: shared hit=61
+               ->  Index Scan Backward using usage_events_2026_08_tenant_id_occurred_at_idx on usage_events_2026_08 usage_events  (cost=0.43..73804.38 rows=63127 width=69) (actual time=0.039..0.126 rows=52 loops=1)
+                     Index Cond: ((tenant_id = '8641a01e-babb-4e44-d36d-f68e5233c7fb'::uuid) AND (occurred_at >= '2026-08-24 00:00:00+00'::timestamp with time zone) AND (occurred_at < '2026-08-31 00:00:00+00'::timestamp with time zone))
+                     Buffers: shared hit=55
+ Planning:
+   Buffers: shared hit=425
+ Planning Time: 2.532 ms
+ Execution Time: 0.685 ms
+(20 rows)
+
+              set_config              
+--------------------------------------
+ 8641a01e-babb-4e44-d36d-f68e5233c7fb
+(1 row)
+
+                                                                                                                 QUERY PLAN                                                                                                                  
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ Limit  (cost=1.87..64.05 rows=51 width=101) (actual time=0.502..0.572 rows=51 loops=1)
+   Buffers: shared hit=70
+   InitPlan 1 (returns $0)
+     ->  Result  (cost=0.00..0.26 rows=1 width=16) (actual time=0.220..0.220 rows=1 loops=1)
+           Buffers: shared hit=6
+   ->  Incremental Sort  (cost=1.61..76960.73 rows=63127 width=101) (actual time=0.500..0.565 rows=51 loops=1)
+         Sort Key: usage_events.occurred_at DESC, usage_events.id DESC
+         Presorted Key: usage_events.occurred_at
+         Full-sort Groups: 2  Sort Method: quicksort  Average Memory: 29kB  Peak Memory: 29kB
+         Buffers: shared hit=70
+         ->  Result  (cost=0.43..74120.01 rows=63127 width=101) (actual time=0.346..0.494 rows=52 loops=1)
+               One-Time Filter: ($0 = '8641a01e-babb-4e44-d36d-f68e5233c7fb'::uuid)
+               Buffers: shared hit=61
+               ->  Index Scan Backward using usage_events_2026_08_tenant_id_occurred_at_idx on usage_events_2026_08 usage_events  (cost=0.43..73804.38 rows=63127 width=69) (actual time=0.038..0.128 rows=52 loops=1)
+                     Index Cond: ((tenant_id = '8641a01e-babb-4e44-d36d-f68e5233c7fb'::uuid) AND (occurred_at >= '2026-08-24 00:00:00+00'::timestamp with time zone) AND (occurred_at < '2026-08-31 00:00:00+00'::timestamp with time zone))
+                     Buffers: shared hit=55
+ Planning:
+   Buffers: shared hit=425
+ Planning Time: 1.381 ms
+ Execution Time: 0.631 ms
+(20 rows)
+

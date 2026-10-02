@@ -3,7 +3,7 @@
 set -euo pipefail
 cd "$(dirname "$0")/../.."
 PSQL="docker exec ledgerworks-postgres psql -U ledgerworks -d ledgerworks -At"
-OUT=docs/benchmarks/raw/environment.txt
+OUT=${1:-docs/benchmarks/raw/environment.txt}
 {
   echo "date (UTC): $(date -u +%Y-%m-%dT%H:%M:%SZ)"
   echo "git commit: $(git rev-parse --short HEAD)"

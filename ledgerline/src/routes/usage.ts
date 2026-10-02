@@ -134,6 +134,8 @@ export const usageRoutes: FastifyPluginAsync<{ db: Db }> = async (app, { db }) =
         );
       }
       params.push(limit + 1);
+      // ORDER BY must name the table column: a bare `occurred_at` would match the output alias of
+      // the same name (the formatted text) and the planner could not use the index order (O1).
 
       const rows = await withTenant(db, tenantId, async (client) => {
         const r = await client.query<{
@@ -146,7 +148,7 @@ export const usageRoutes: FastifyPluginAsync<{ db: Db }> = async (app, { db }) =
           `SELECT id, event_type, quantity, ${TS} AS occurred_at, metadata
            FROM usage_events
            WHERE ${where.join(' AND ')}
-           ORDER BY occurred_at DESC, id DESC
+           ORDER BY usage_events.occurred_at DESC, usage_events.id DESC
            LIMIT $${params.length}`,
           params,
         );

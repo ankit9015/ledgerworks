@@ -1,0 +1,97 @@
+# O1 before: ORDER BY resolves to the output alias. 3 runs on warm cache, then the plan:
+              set_config              
+--------------------------------------
+ 8641a01e-babb-4e44-d36d-f68e5233c7fb
+(1 row)
+
+                                                                                                                    QUERY PLAN                                                                                                                     
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ Limit  (cost=23678.97..23679.10 rows=51 width=93) (actual time=112.242..112.251 rows=51 loops=1)
+   Buffers: shared hit=4946
+   InitPlan 1 (returns $0)
+     ->  Result  (cost=0.00..0.26 rows=1 width=16) (actual time=0.240..0.241 rows=1 loops=1)
+           Buffers: shared hit=6
+   ->  Sort  (cost=23678.71..23836.53 rows=63127 width=93) (actual time=112.240..112.244 rows=51 loops=1)
+         Sort Key: (to_char((usage_events.occurred_at AT TIME ZONE 'UTC'::text), 'YYYY-MM-DD"T"HH24:MI:SS.US"Z"'::text)) DESC, usage_events.id DESC
+         Sort Method: top-N heapsort  Memory: 36kB
+         Buffers: shared hit=4946
+         ->  Result  (cost=2469.30..21572.66 rows=63127 width=93) (actual time=6.436..80.593 rows=64435 loops=1)
+               One-Time Filter: ($0 = '8641a01e-babb-4e44-d36d-f68e5233c7fb'::uuid)
+               Buffers: shared hit=4940
+               ->  Bitmap Heap Scan on usage_events_2026_08 usage_events  (cost=2469.30..21257.02 rows=63127 width=69) (actual time=6.113..28.616 rows=64435 loops=1)
+                     Recheck Cond: ((tenant_id = '8641a01e-babb-4e44-d36d-f68e5233c7fb'::uuid) AND (occurred_at >= '2026-08-24 00:00:00+00'::timestamp with time zone) AND (occurred_at < '2026-08-31 00:00:00+00'::timestamp with time zone))
+                     Heap Blocks: exact=4494
+                     Buffers: shared hit=4934
+                     ->  Bitmap Index Scan on usage_events_2026_08_tenant_id_occurred_at_idx  (cost=0.00..2453.51 rows=63127 width=0) (actual time=5.329..5.330 rows=64435 loops=1)
+                           Index Cond: ((tenant_id = '8641a01e-babb-4e44-d36d-f68e5233c7fb'::uuid) AND (occurred_at >= '2026-08-24 00:00:00+00'::timestamp with time zone) AND (occurred_at < '2026-08-31 00:00:00+00'::timestamp with time zone))
+                           Buffers: shared hit=440
+ Planning:
+   Buffers: shared hit=435
+ Planning Time: 1.309 ms
+ Execution Time: 112.382 ms
+(23 rows)
+
+              set_config              
+--------------------------------------
+ 8641a01e-babb-4e44-d36d-f68e5233c7fb
+(1 row)
+
+                                                                                                                    QUERY PLAN                                                                                                                     
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ Limit  (cost=23678.97..23679.10 rows=51 width=93) (actual time=93.267..93.275 rows=51 loops=1)
+   Buffers: shared hit=4946
+   InitPlan 1 (returns $0)
+     ->  Result  (cost=0.00..0.26 rows=1 width=16) (actual time=0.175..0.175 rows=1 loops=1)
+           Buffers: shared hit=6
+   ->  Sort  (cost=23678.71..23836.53 rows=63127 width=93) (actual time=93.264..93.268 rows=51 loops=1)
+         Sort Key: (to_char((usage_events.occurred_at AT TIME ZONE 'UTC'::text), 'YYYY-MM-DD"T"HH24:MI:SS.US"Z"'::text)) DESC, usage_events.id DESC
+         Sort Method: top-N heapsort  Memory: 36kB
+         Buffers: shared hit=4946
+         ->  Result  (cost=2469.30..21572.66 rows=63127 width=93) (actual time=5.831..66.504 rows=64435 loops=1)
+               One-Time Filter: ($0 = '8641a01e-babb-4e44-d36d-f68e5233c7fb'::uuid)
+               Buffers: shared hit=4940
+               ->  Bitmap Heap Scan on usage_events_2026_08 usage_events  (cost=2469.30..21257.02 rows=63127 width=69) (actual time=5.465..24.224 rows=64435 loops=1)
+                     Recheck Cond: ((tenant_id = '8641a01e-babb-4e44-d36d-f68e5233c7fb'::uuid) AND (occurred_at >= '2026-08-24 00:00:00+00'::timestamp with time zone) AND (occurred_at < '2026-08-31 00:00:00+00'::timestamp with time zone))
+                     Heap Blocks: exact=4494
+                     Buffers: shared hit=4934
+                     ->  Bitmap Index Scan on usage_events_2026_08_tenant_id_occurred_at_idx  (cost=0.00..2453.51 rows=63127 width=0) (actual time=4.869..4.869 rows=64435 loops=1)
+                           Index Cond: ((tenant_id = '8641a01e-babb-4e44-d36d-f68e5233c7fb'::uuid) AND (occurred_at >= '2026-08-24 00:00:00+00'::timestamp with time zone) AND (occurred_at < '2026-08-31 00:00:00+00'::timestamp with time zone))
+                           Buffers: shared hit=440
+ Planning:
+   Buffers: shared hit=435
+ Planning Time: 1.425 ms
+ Execution Time: 93.399 ms
+(23 rows)
+
+              set_config              
+--------------------------------------
+ 8641a01e-babb-4e44-d36d-f68e5233c7fb
+(1 row)
+
+                                                                                                                    QUERY PLAN                                                                                                                     
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ Limit  (cost=23678.97..23679.10 rows=51 width=93) (actual time=123.697..123.705 rows=51 loops=1)
+   Buffers: shared hit=4946
+   InitPlan 1 (returns $0)
+     ->  Result  (cost=0.00..0.26 rows=1 width=16) (actual time=0.220..0.221 rows=1 loops=1)
+           Buffers: shared hit=6
+   ->  Sort  (cost=23678.71..23836.53 rows=63127 width=93) (actual time=123.695..123.699 rows=51 loops=1)
+         Sort Key: (to_char((usage_events.occurred_at AT TIME ZONE 'UTC'::text), 'YYYY-MM-DD"T"HH24:MI:SS.US"Z"'::text)) DESC, usage_events.id DESC
+         Sort Method: top-N heapsort  Memory: 36kB
+         Buffers: shared hit=4946
+         ->  Result  (cost=2469.30..21572.66 rows=63127 width=93) (actual time=6.517..91.961 rows=64435 loops=1)
+               One-Time Filter: ($0 = '8641a01e-babb-4e44-d36d-f68e5233c7fb'::uuid)
+               Buffers: shared hit=4940
+               ->  Bitmap Heap Scan on usage_events_2026_08 usage_events  (cost=2469.30..21257.02 rows=63127 width=69) (actual time=6.200..38.696 rows=64435 loops=1)
+                     Recheck Cond: ((tenant_id = '8641a01e-babb-4e44-d36d-f68e5233c7fb'::uuid) AND (occurred_at >= '2026-08-24 00:00:00+00'::timestamp with time zone) AND (occurred_at < '2026-08-31 00:00:00+00'::timestamp with time zone))
+                     Heap Blocks: exact=4494
+                     Buffers: shared hit=4934
+                     ->  Bitmap Index Scan on usage_events_2026_08_tenant_id_occurred_at_idx  (cost=0.00..2453.51 rows=63127 width=0) (actual time=5.560..5.561 rows=64435 loops=1)
+                           Index Cond: ((tenant_id = '8641a01e-babb-4e44-d36d-f68e5233c7fb'::uuid) AND (occurred_at >= '2026-08-24 00:00:00+00'::timestamp with time zone) AND (occurred_at < '2026-08-31 00:00:00+00'::timestamp with time zone))
+                           Buffers: shared hit=440
+ Planning:
+   Buffers: shared hit=435
+ Planning Time: 1.463 ms
+ Execution Time: 123.822 ms
+(23 rows)
+
