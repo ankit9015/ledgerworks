@@ -102,7 +102,8 @@ const SPECS: Spec[] = [
     table: 'credit_ledger',
     keyCol: 'tenant_id',
     keyOf: (s) => s.tenantId,
-    privileges: { SELECT: true, INSERT: true, UPDATE: false, DELETE: false },
+    // Money moves only through debit_credits/refund_credits (SECURITY DEFINER), never directly.
+    privileges: { SELECT: true, INSERT: false, UPDATE: false, DELETE: false },
     insert: (t) => ({
       sql: `INSERT INTO credit_ledger (tenant_id, amount, kind) VALUES ($1, 5, 'grant')`,
       params: [t.tenantId],
@@ -114,7 +115,7 @@ const SPECS: Spec[] = [
     table: 'credit_balances',
     keyCol: 'tenant_id',
     keyOf: (s) => s.tenantId,
-    privileges: { SELECT: true, INSERT: true, UPDATE: true, DELETE: false },
+    privileges: { SELECT: true, INSERT: false, UPDATE: false, DELETE: false },
     insert: (t) => ({
       sql: `INSERT INTO credit_balances (tenant_id, balance) VALUES ($1, 1)`,
       params: [t.tenantId],
@@ -515,7 +516,13 @@ describe('isolation: guards', () => {
       `SELECT current_user AS u, rolsuper, rolbypassrls FROM pg_roles WHERE rolname = current_user`,
     );
     eq(r.rows[0], { u: 'ledgerline_app', rolsuper: false, rolbypassrls: false }, 'app role flags');
-    for (const role of ['ledgerline_owner', 'ledgerline_definer', 'postgres', 'ledgerworks']) {
+    for (const role of [
+      'ledgerline_owner',
+      'ledgerline_definer',
+      'ledgerline_ledger',
+      'postgres',
+      'ledgerworks',
+    ]) {
       const o = await run('noTenant', `SET ROLE ${role}`);
       truthy(!o.ok, `app cannot SET ROLE ${role}`);
     }
@@ -599,14 +606,15 @@ describe('isolation: guards', () => {
 // SECURITY DEFINER functions
 // ---------------------------------------------------------------------------------------------
 // Functions in the ledgerline_fn schema, by kind. Adding a function means deciding which kind it is.
-const DEFINER_FUNCTIONS = ['authenticate_api_key', 'claim_jobs', 'create_tenant'];
-const INVOKER_FUNCTIONS = [
-  'complete_job',
+const DEFINER_FUNCTIONS = [
+  'authenticate_api_key',
+  'claim_jobs',
+  'create_tenant',
   'debit_credits',
-  'enqueue_job',
-  'fail_job',
   'refund_credits',
 ];
+const LEDGER_FUNCTIONS = ['debit_credits', 'refund_credits'];
+const INVOKER_FUNCTIONS = ['complete_job', 'enqueue_job', 'fail_job'];
 
 describe('isolation: SECURITY DEFINER functions', () => {
   it('authenticate_api_key returns the tenant for a valid hash and nothing otherwise', async () => {
@@ -687,6 +695,42 @@ describe('isolation: SECURITY DEFINER functions', () => {
     }
   });
 
+  it('the ledger role is narrow: no BYPASSRLS, only SELECT+INSERT on the ledger and SELECT+UPDATE on balances', async () => {
+    isolationTests++;
+    const r = await admin.query(
+      `SELECT rolsuper, rolbypassrls, rolcanlogin FROM pg_roles WHERE rolname = 'ledgerline_ledger'`,
+    );
+    eq(r.rows[0], { rolsuper: false, rolbypassrls: false, rolcanlogin: false }, 'ledger flags');
+    const allowed: Record<string, string[]> = {
+      credit_ledger: ['SELECT', 'INSERT'],
+      credit_balances: ['SELECT', 'UPDATE'],
+    };
+    for (const spec of SPECS) {
+      for (const priv of ['SELECT', 'INSERT', 'UPDATE', 'DELETE']) {
+        const p = await admin.query(
+          `SELECT has_table_privilege('ledgerline_ledger', $1, $2) AS ok`,
+          [spec.table, priv],
+        );
+        eq(
+          p.rows[0].ok,
+          (allowed[spec.table] ?? []).includes(priv),
+          `ledger role ${priv} on ${spec.table}`,
+        );
+      }
+    }
+    // Its policies are tenant-scoped, never "true": no permissive escape hatch.
+    const pol = await admin.query(
+      `SELECT tablename, policyname, qual, with_check FROM pg_policies
+       WHERE 'ledgerline_ledger' = ANY (roles) ORDER BY tablename, policyname`,
+    );
+    eq(pol.rowCount, 3, 'ledger role policy count');
+    for (const p of pol.rows) {
+      const text = `${p.qual ?? ''} ${p.with_check ?? ''}`;
+      truthy(/app_tenant_id/.test(text), `${p.policyname} is tenant-scoped`);
+      truthy(!/(^|[^a-z_])true([^a-z_]|$)/.test(text), `${p.policyname} is not permissive`);
+    }
+  });
+
   it('the worker role can log in, has no BYPASSRLS, no table privileges and may only call claim_jobs', async () => {
     isolationTests++;
     const r = await admin.query(
@@ -734,7 +778,11 @@ describe('isolation: SECURITY DEFINER functions', () => {
       'SECURITY INVOKER functions (run as the caller, so RLS applies)',
     );
     for (const r of definers) {
-      eq(r.owner, 'ledgerline_definer', `${r.proname} owner`);
+      eq(
+        r.owner,
+        LEDGER_FUNCTIONS.includes(r.proname) ? 'ledgerline_ledger' : 'ledgerline_definer',
+        `${r.proname} owner`,
+      );
       eq(r.proconfig, ['search_path=pg_catalog, pg_temp'], `${r.proname} search_path`);
     }
     for (const r of f.rows) {

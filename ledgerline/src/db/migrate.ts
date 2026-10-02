@@ -8,6 +8,7 @@ export const OWNER_ROLE = 'ledgerline_owner';
 export const APP_ROLE = 'ledgerline_app';
 export const DEFINER_ROLE = 'ledgerline_definer';
 export const WORKER_ROLE = 'ledgerline_worker';
+export const LEDGER_ROLE = 'ledgerline_ledger';
 
 export const defaultMigrationsDir = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
@@ -27,12 +28,14 @@ function literal(value: string): string {
 }
 
 /**
- * Creates the three roles and the database-level grants they need. Must run as a superuser (or a
+ * Creates the roles and the database-level grants they need. Must run as a superuser (or a
  * role with CREATEROLE). Safe to re-run; it also resets the app role password.
  *
  * - ledgerline_owner:   owns all tables and runs migrations. NOLOGIN: only reachable by SET ROLE.
  * - ledgerline_app:     the only role the API connects as. No BYPASSRLS, no ownership.
  * - ledgerline_definer: owns the few SECURITY DEFINER functions. NOLOGIN, no BYPASSRLS.
+ * - ledgerline_ledger:  owns debit_credits/refund_credits, the only writers of the ledger and
+ *                       balances. NOLOGIN, no BYPASSRLS.
  */
 export async function bootstrapRoles(
   client: pg.Client,
@@ -49,6 +52,9 @@ export async function bootstrapRoles(
       IF NOT EXISTS (SELECT FROM pg_roles WHERE rolname = '${DEFINER_ROLE}') THEN
         CREATE ROLE ${DEFINER_ROLE} NOLOGIN NOSUPERUSER NOBYPASSRLS NOCREATEDB NOCREATEROLE;
       END IF;
+      IF NOT EXISTS (SELECT FROM pg_roles WHERE rolname = '${LEDGER_ROLE}') THEN
+        CREATE ROLE ${LEDGER_ROLE} NOLOGIN NOSUPERUSER NOBYPASSRLS NOCREATEDB NOCREATEROLE;
+      END IF;
       IF NOT EXISTS (SELECT FROM pg_roles WHERE rolname = '${APP_ROLE}') THEN
         CREATE ROLE ${APP_ROLE} LOGIN NOSUPERUSER NOBYPASSRLS NOCREATEDB NOCREATEROLE;
       END IF;
@@ -62,6 +68,7 @@ export async function bootstrapRoles(
   await client.query(`ALTER ROLE ${WORKER_ROLE} PASSWORD ${literal(workerPassword)}`);
   // The owner must be able to hand function ownership to the definer role.
   await client.query(`GRANT ${DEFINER_ROLE} TO ${OWNER_ROLE}`);
+  await client.query(`GRANT ${LEDGER_ROLE} TO ${OWNER_ROLE}`);
   const { rows } = await client.query<{ db: string }>('SELECT current_database() AS db');
   const db = `"${rows[0]!.db.replaceAll('"', '""')}"`;
   await client.query(`GRANT CONNECT ON DATABASE ${db} TO ${APP_ROLE}, ${WORKER_ROLE}`);

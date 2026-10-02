@@ -388,3 +388,167 @@ describe('under forced RLS, as the application role', () => {
     await expectInvariant();
   });
 });
+
+describe('the functions are the only way to change money (SECURITY DEFINER)', () => {
+  /** Runs sql as the app role with the given tenant set; returns the error, or null if it ran. */
+  async function appStatement(
+    tenant: string | null,
+    sql: string,
+    params: unknown[] = [],
+  ): Promise<{ code?: string; message: string } | null> {
+    const c = await app.connect();
+    try {
+      await c.query('BEGIN');
+      if (tenant) await c.query(`SELECT set_config('app.tenant_id', $1, true)`, [tenant]);
+      await c.query(sql, params);
+      return null;
+    } catch (e) {
+      return e as { code?: string; message: string };
+    } finally {
+      await c.query('ROLLBACK').catch(() => undefined);
+      c.release();
+    }
+  }
+
+  it('the app role cannot insert into the ledger or write balances directly, for its own tenant or any other', async () => {
+    const a = await makeTenant(100);
+    const b = await makeTenant(100);
+    const attempts: Array<[string, string, unknown[]]> = [
+      [
+        'insert a grant into the ledger',
+        `INSERT INTO credit_ledger (tenant_id, amount, kind) VALUES ($1, 1000000, 'grant')`,
+        [a],
+      ],
+      [
+        'insert a forged debit row',
+        `INSERT INTO credit_ledger (tenant_id, amount, kind, idempotency_key) VALUES ($1, -1, 'debit', 'forged')`,
+        [a],
+      ],
+      [
+        'update the balance',
+        `UPDATE credit_balances SET balance = 1000000 WHERE tenant_id = $1`,
+        [a],
+      ],
+      ['update every balance', `UPDATE credit_balances SET balance = 1000000`, []],
+      [
+        'insert a balance row',
+        `INSERT INTO credit_balances (tenant_id, balance) VALUES ($1, 5)`,
+        [a],
+      ],
+      ['delete a balance', `DELETE FROM credit_balances WHERE tenant_id = $1`, [a]],
+    ];
+    for (const tenant of [a, b, null]) {
+      for (const [what, sql, params] of attempts) {
+        const err = await appStatement(tenant, sql, params);
+        expect(err?.code, `${what} (tenant ${tenant === null ? 'unset' : 'set'})`).toBe('42501');
+        expect(err?.message, what).toMatch(/permission denied/);
+      }
+    }
+    expect(await balanceOf(a)).toBe(100);
+    expect(await balanceOf(b)).toBe(100);
+    expect(await ledgerRows(a)).toHaveLength(1); // only the initial grant
+    // The grants themselves, independent of any row being present.
+    const g = await admin.query(
+      `SELECT has_table_privilege('ledgerline_app', 'credit_ledger', 'INSERT') AS li,
+              has_table_privilege('ledgerline_app', 'credit_balances', 'INSERT') AS bi,
+              has_table_privilege('ledgerline_app', 'credit_balances', 'UPDATE') AS bu,
+              has_table_privilege('ledgerline_app', 'credit_ledger', 'SELECT') AS ls,
+              has_table_privilege('ledgerline_app', 'credit_balances', 'SELECT') AS bs`,
+    );
+    expect(g.rows[0]).toEqual({ li: false, bi: false, bu: false, ls: true, bs: true });
+    await expectInvariant();
+  });
+
+  it('the app role can still read its own ledger and balance, and only its own', async () => {
+    const a = await makeTenant(100);
+    const b = await makeTenant(250);
+    const c = await app.connect();
+    try {
+      await c.query('BEGIN');
+      await c.query(`SELECT set_config('app.tenant_id', $1, true)`, [a]);
+      const bal = await c.query(`SELECT tenant_id, balance::int AS b FROM credit_balances`);
+      expect(bal.rows.map((r) => r.tenant_id)).toEqual([a]);
+      expect(bal.rows.map((r) => r.b)).toEqual([100]);
+      const led = await c.query(`SELECT DISTINCT tenant_id FROM credit_ledger`);
+      expect(led.rows.map((r) => r.tenant_id)).toEqual([a]);
+      expect(led.rows.some((r) => r.tenant_id === b)).toBe(false);
+    } finally {
+      await c.query('ROLLBACK').catch(() => undefined);
+      c.release();
+    }
+  });
+
+  it('a call made as tenant A cannot affect tenant B, even when handed the debit id or key of B', async () => {
+    const a = await makeTenant(100);
+    const b = await makeTenant(100);
+    const db = await debitCredits(app, b, 30, 'b-debit');
+    const before = { ledger: await ledgerRows(b), balance: await balanceOf(b) };
+
+    // A tries to refund B's debit by id: indistinguishable from an unknown id.
+    const r = await refundCredits(app, a, db.ledgerId!, 30, 'steal-refund');
+    expect(r.outcome).toBe('debit_not_found');
+    expect(r.ledgerId).toBeNull();
+    // ...also with B's own idempotency key: it must not replay B's result or change anything.
+    expect((await refundCredits(app, a, db.ledgerId!, 1, 'b-debit')).outcome).toBe(
+      'debit_not_found',
+    );
+    // A reusing B's debit key is A's own, independent debit (keys are per tenant).
+    const same = await debitCredits(app, a, 5, 'b-debit');
+    expect(same.outcome).toBe('debited');
+    expect(same.replayed).toBe(false);
+    expect(same.ledgerId).not.toBe(db.ledgerId);
+
+    expect(await ledgerRows(b)).toEqual(before.ledger);
+    expect(await balanceOf(b)).toBe(before.balance);
+    expect(await balanceOf(a)).toBe(95);
+    // B can still refund its own debit afterwards (A did not use up the one allowed refund).
+    expect((await refundCredits(app, b, db.ledgerId!, 30, 'b-refund')).outcome).toBe('refunded');
+    await expectInvariant();
+  });
+
+  it('shadowing tables through search_path does not redirect the writes', async () => {
+    const a = await makeTenant(100);
+    const c = await app.connect();
+    try {
+      await c.query('BEGIN');
+      await c.query(`SELECT set_config('app.tenant_id', $1, true)`, [a]);
+      // The app role may create temporary objects; the functions must not pick them up.
+      await c.query(`CREATE TEMP TABLE credit_balances (tenant_id uuid, balance bigint)`);
+      await c.query(`CREATE TEMP TABLE credit_ledger (id bigint)`);
+      await c.query(`INSERT INTO pg_temp.credit_balances VALUES ($1, 1000000)`, [a]);
+      await c.query(`SET LOCAL search_path = pg_temp, public`);
+      const r = await c.query(`SELECT * FROM ledgerline_fn.debit_credits(10, 'shadow')`);
+      expect(r.rows[0].outcome).toBe('debited');
+      expect(Number(r.rows[0].balance)).toBe(90); // from the real balance row, not the shadow's
+      await c.query('COMMIT');
+    } finally {
+      c.release();
+    }
+    expect(await balanceOf(a)).toBe(90);
+    expect(await ledgerRows(a, 'shadow')).toHaveLength(1);
+    await expectInvariant();
+  });
+
+  it('is SECURITY DEFINER with a pinned search_path, owned by the ledger role', async () => {
+    const r = await admin.query(
+      `SELECT p.proname, p.prosecdef, p.proconfig, pg_get_userbyid(p.proowner) AS owner
+       FROM pg_proc p JOIN pg_namespace n ON n.oid = p.pronamespace
+       WHERE n.nspname = 'ledgerline_fn' AND p.proname IN ('debit_credits', 'refund_credits')
+       ORDER BY p.proname`,
+    );
+    expect(r.rows).toEqual([
+      {
+        proname: 'debit_credits',
+        prosecdef: true,
+        proconfig: ['search_path=pg_catalog, pg_temp'],
+        owner: 'ledgerline_ledger',
+      },
+      {
+        proname: 'refund_credits',
+        prosecdef: true,
+        proconfig: ['search_path=pg_catalog, pg_temp'],
+        owner: 'ledgerline_ledger',
+      },
+    ]);
+  });
+});
