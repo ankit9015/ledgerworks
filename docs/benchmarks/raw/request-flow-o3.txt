@@ -1,0 +1,11 @@
+
+
+5000 sequential flows per run, 3 rounds, alternating variants
+round 1 legacy p50 2.414 ms  p95 5.346 ms  p99 6.410 ms
+round 1 merged p50 2.221 ms  p95 5.016 ms  p99 6.055 ms
+round 2 legacy p50 2.602 ms  p95 5.711 ms  p99 7.119 ms
+round 2 merged p50 2.060 ms  p95 4.781 ms  p99 5.820 ms
+round 3 legacy p50 2.390 ms  p95 5.290 ms  p99 6.415 ms
+round 3 merged p50 2.041 ms  p95 4.726 ms  p99 5.717 ms
+legacy p50 median 2.414 ms (2.390 - 2.602)
+merged p50 median 2.060 ms (2.041 - 2.221)

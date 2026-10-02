@@ -9,6 +9,8 @@
     "seed": "tsx src/seed/seed.ts",
     "bench:queue": "tsx src/bench/queue-throughput.ts",
     "bench:ledger": "tsx src/bench/ledger-write-cost.ts",
+    "bench:roundtrip": "tsx src/bench/roundtrip.ts",
+    "bench:flow": "tsx src/bench/request-flow.ts",
     "dev": "tsx src/server.ts"
   },
   "dependencies": {

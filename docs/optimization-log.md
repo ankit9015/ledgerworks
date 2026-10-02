@@ -332,6 +332,38 @@ Execution Time: 0.328 ms
 - **Verdict:** a correct and cheap cleanup with a real but modest benefit (storage, bulk and seed writes). It is **not a latency win** and is not counted among the headline improvements. Safe to ship: reads use the unique index (shown above), and all isolation, schema and credit tests pass unchanged.
 - **What was learned:** redundancy created by a later constraint is easy to miss; `pg_indexes` lists it, but only `EXPLAIN` plus a write-cost measurement shows whether it matters. Here it mostly does not.
 
+### E5. Round trips per authenticated request: merged `BEGIN` + `set_config` (**negative result at the API level, reverted**)
+
+- **Observation:** O3 (below).
+- **Symptom:** every authenticated request makes five round trips to Postgres: the key lookup, `BEGIN`, `set_config('app.tenant_id', ...)`, the statement, `COMMIT`. After E1 the usage-read p50 is the same for a huge and a small tenant, so this fixed cost is what is left.
+- **What one round trip costs here** (`pnpm --filter @ledgerworks/ledgerline bench:roundtrip`, 5,000 sequential `SELECT 1` on one connection, 3 runs, `raw/roundtrip-before.txt`): p50 **0.40, 0.49, 0.40 ms**. So the five round trips are about 2 ms of the p50 of a request, and removing one can save about 0.4 ms at most. This number already says that the possible gain is small next to the 15 to 25% run-to-run spread of the end-to-end measurements.
+- **Slow query / SQL:** not a slow query: `BEGIN` and `SELECT set_config(...)` as two statements, so there is no meaningful plan to show (`SELECT set_config(...)` is a one-row `Result` node; no `EXPLAIN` of it was taken). The cost is the network round trip, not the execution.
+- **Change tried:** `withTenant` sends `BEGIN; SELECT set_config('app.tenant_id', <literal>, true)` as one simple-protocol query (two statements, one round trip). The simple protocol takes no parameters, so the tenant id was quoted with the driver's `escapeLiteral`; it is the id returned by the verified API key lookup, never request input. Nothing else changed: same transaction, same `set_config(..., true)` (local to the transaction), the same RLS. Merging the key lookup into the same round trip, or the statement with `COMMIT`, would need more parameters inlined into SQL text or a restructured auth hook, and was not attempted.
+- **Isolation:** with the change in place, all tests passed: 258 tests, including the isolation matrix (181 isolation tests, 720 assertions), the tenant-setting-leak test and the credit and queue tests.
+- **Measured, database path only** (`pnpm --filter @ledgerworks/ledgerline bench:flow`: authenticate + tenant transaction + balance read, no HTTP, 5,000 sequential flows per run, 3 rounds, alternating variants, `raw/request-flow-o3.txt`):
+
+  |                            | p50 per flow, median (range of 3 rounds) | p95          |
+  | -------------------------- | ---------------------------------------- | ------------ |
+  | legacy (4 + 1 round trips) | 2.414 ms (2.390 – 2.602)                 | 5.3 – 5.7 ms |
+  | merged (3 + 1 round trips) | 2.060 ms (2.041 – 2.221)                 | 4.7 – 5.0 ms |
+
+  The merged variant was faster in all 3 rounds and the ranges do not overlap: **about 0.35 ms, 15%, of the database part of a request**. That is real, and it matches the 0.4 ms round trip cost.
+
+- **Measured through the API** (k6, same profile as the baseline, small tenant, **3 runs each**, API restarted between the sets; `raw/*_runo3before*` and `*_runo3after*`):
+
+  | Scenario           |        | p50                | p95                   | p99                   |
+  | ------------------ | ------ | ------------------ | --------------------- | --------------------- |
+  | balance / small    | before | 3.7 ms (3.6 – 3.9) | 7.6 ms (6.3 – 9.2)    | 12.6 ms (8.2 – 14.3)  |
+  | balance / small    | after  | 4.1 ms (4.1 – 4.1) | 7.6 ms (7.3 – 7.6)    | 10.0 ms (9.1 – 12.9)  |
+  | usage-read / small | before | 6.0 ms (4.9 – 7.3) | 11.2 ms (11.2 – 15.4) | 16.1 ms (12.5 – 16.8) |
+  | usage-read / small | after  | 5.9 ms (5.8 – 6.0) | 10.0 ms (9.3 – 12.9)  | 15.3 ms (13.4 – 17.5) |
+
+  **No difference that can be told from the noise** (balance p50 is 0.4 ms higher after, usage p95 1.2 ms lower, both inside the ranges of the "before" runs). The effect of about 0.35 ms is smaller than the run-to-run spread of the end-to-end numbers, so it cannot be observed there.
+
+- **Write and storage cost:** none (no schema change).
+- **Verdict:** **not an improvement at the level that matters, so the code change was reverted** (`withTenant` is unchanged). It would add string-built SQL to the most security-sensitive helper in the code base for a gain of less than the measurement noise. The micro-benchmarks (`bench:roundtrip`, `bench:flow`) and the raw results are kept.
+- **What was learned:** (1) the fixed per-request cost that O3 pointed at is small here: five round trips are about 2 ms; the rest of the 4 to 6 ms p50 of the cheap endpoints (and the time between the k6 container and the host) is not the database. (2) A cleanly measured 15% in a component can be invisible in the end-to-end number, which is why both were measured. (3) Observation worth keeping: the "before" p50 of `balance / small` in this session is **3.7 ms against 7 to 8 ms in the 2026-10-01 baseline**, on identical code for this endpoint; the machine was in a faster state. Absolute numbers from different sessions on this laptop are not comparable; only same-session before/after pairs are used for attribution (see `benchmarks/after.md`).
+
 <!-- ENTRIES -->
 
 ## Observations (not yet acted on)
@@ -401,7 +433,7 @@ QUERY PLAN
 
 ### O3. Fixed per-request overhead from round trips
 
-`balance` and `ingest` p50 is about 7-8 ms at 100 req/s for both tenant sizes. Each authenticated request makes five round trips to Postgres (key lookup, `BEGIN`, `set_config`, the statement, `COMMIT`; the key lookup and the statement are visible in the per-run `pg_stat_statements` files in `docs/benchmarks/raw/`). That is a cost floor for every endpoint, independent of data size. Not investigated further.
+`balance` and `ingest` p50 is about 7-8 ms at 100 req/s for both tenant sizes. Each authenticated request makes five round trips to Postgres (key lookup, `BEGIN`, `set_config`, the statement, `COMMIT`; the key lookup and the statement are visible in the per-run `pg_stat_statements` files in `docs/benchmarks/raw/`). That is a cost floor for every endpoint, independent of data size. **Status:** investigated in E5: a round trip costs about 0.4 ms here, so the five are about 2 ms; merging two of them saved about 0.35 ms in the database path but nothing measurable end to end, and was reverted.
 
 ### O4. Unexplained latency spikes on the cheap endpoints
 
