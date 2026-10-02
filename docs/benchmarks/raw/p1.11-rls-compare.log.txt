@@ -1,0 +1,122 @@
+API up
+round 1 rlson: API connected as: ledgerline_app
+##### round 1 rlson: usage-read huge (rate 2) 14:57:07
+== preflight: usage-read_huge_runrlson1
+usage_events rows: 10000000
+k6 exit code: 0 (99 = a threshold failed; thresholds are informational, not gating)
+##### round 1 rlson: usage-read small (rate 2) 14:58:47
+== preflight: usage-read_small_runrlson1
+usage_events rows: 10000000
+k6 exit code: 0 (99 = a threshold failed; thresholds are informational, not gating)
+##### round 1 rlson: balance small (rate 100) 15:00:26
+== preflight: balance_small_runrlson1
+usage_events rows: 10000000
+k6 exit code: 0 (99 = a threshold failed; thresholds are informational, not gating)
+##### round 1 rlson: ingest small (rate 100) 15:02:05
+== preflight: ingest_small_runrlson1
+usage_events rows: 10000000
+k6 exit code: 0 (99 = a threshold failed; thresholds are informational, not gating)
+ingested rows this run: 9001
+after cleanup usage_events rows: 10000000
+API up
+round 1 rlsoff: API connected as: ledgerline_bench_norls
+##### round 1 rlsoff: usage-read huge (rate 2) 15:03:54
+== preflight: usage-read_huge_runrlsoff1
+usage_events rows: 10000000
+k6 exit code: 0 (99 = a threshold failed; thresholds are informational, not gating)
+##### round 1 rlsoff: usage-read small (rate 2) 15:05:32
+== preflight: usage-read_small_runrlsoff1
+usage_events rows: 10000000
+k6 exit code: 0 (99 = a threshold failed; thresholds are informational, not gating)
+##### round 1 rlsoff: balance small (rate 100) 15:07:11
+== preflight: balance_small_runrlsoff1
+usage_events rows: 10000000
+k6 exit code: 0 (99 = a threshold failed; thresholds are informational, not gating)
+##### round 1 rlsoff: ingest small (rate 100) 15:08:50
+== preflight: ingest_small_runrlsoff1
+usage_events rows: 10000000
+k6 exit code: 0 (99 = a threshold failed; thresholds are informational, not gating)
+ingested rows this run: 9001
+after cleanup usage_events rows: 10000000
+API up
+round 2 rlson: API connected as: ledgerline_app
+##### round 2 rlson: usage-read huge (rate 2) 15:10:38
+== preflight: usage-read_huge_runrlson2
+usage_events rows: 10000000
+k6 exit code: 0 (99 = a threshold failed; thresholds are informational, not gating)
+##### round 2 rlson: usage-read small (rate 2) 15:12:17
+== preflight: usage-read_small_runrlson2
+usage_events rows: 10000000
+k6 exit code: 0 (99 = a threshold failed; thresholds are informational, not gating)
+##### round 2 rlson: balance small (rate 100) 15:13:55
+== preflight: balance_small_runrlson2
+usage_events rows: 10000000
+k6 exit code: 0 (99 = a threshold failed; thresholds are informational, not gating)
+##### round 2 rlson: ingest small (rate 100) 15:15:34
+== preflight: ingest_small_runrlson2
+usage_events rows: 10000000
+k6 exit code: 0 (99 = a threshold failed; thresholds are informational, not gating)
+ingested rows this run: 9000
+after cleanup usage_events rows: 10000000
+API up
+round 2 rlsoff: API connected as: ledgerline_bench_norls
+##### round 2 rlsoff: usage-read huge (rate 2) 15:17:23
+== preflight: usage-read_huge_runrlsoff2
+usage_events rows: 10000000
+k6 exit code: 0 (99 = a threshold failed; thresholds are informational, not gating)
+##### round 2 rlsoff: usage-read small (rate 2) 15:19:01
+== preflight: usage-read_small_runrlsoff2
+usage_events rows: 10000000
+k6 exit code: 0 (99 = a threshold failed; thresholds are informational, not gating)
+##### round 2 rlsoff: balance small (rate 100) 15:20:40
+== preflight: balance_small_runrlsoff2
+usage_events rows: 10000000
+k6 exit code: 0 (99 = a threshold failed; thresholds are informational, not gating)
+##### round 2 rlsoff: ingest small (rate 100) 15:22:20
+== preflight: ingest_small_runrlsoff2
+usage_events rows: 10000000
+k6 exit code: 0 (99 = a threshold failed; thresholds are informational, not gating)
+ingested rows this run: 9002
+after cleanup usage_events rows: 10000000
+API up
+round 3 rlson: API connected as: ledgerline_app
+##### round 3 rlson: usage-read huge (rate 2) 15:24:09
+== preflight: usage-read_huge_runrlson3
+usage_events rows: 10000000
+k6 exit code: 0 (99 = a threshold failed; thresholds are informational, not gating)
+##### round 3 rlson: usage-read small (rate 2) 15:25:47
+== preflight: usage-read_small_runrlson3
+usage_events rows: 10000000
+k6 exit code: 0 (99 = a threshold failed; thresholds are informational, not gating)
+##### round 3 rlson: balance small (rate 100) 15:27:26
+== preflight: balance_small_runrlson3
+usage_events rows: 10000000
+k6 exit code: 0 (99 = a threshold failed; thresholds are informational, not gating)
+##### round 3 rlson: ingest small (rate 100) 15:29:05
+== preflight: ingest_small_runrlson3
+usage_events rows: 10000000
+k6 exit code: 0 (99 = a threshold failed; thresholds are informational, not gating)
+ingested rows this run: 9002
+after cleanup usage_events rows: 10000000
+API up
+round 3 rlsoff: API connected as: ledgerline_bench_norls
+##### round 3 rlsoff: usage-read huge (rate 2) 15:30:57
+== preflight: usage-read_huge_runrlsoff3
+usage_events rows: 10000000
+k6 exit code: 0 (99 = a threshold failed; thresholds are informational, not gating)
+##### round 3 rlsoff: usage-read small (rate 2) 15:32:37
+== preflight: usage-read_small_runrlsoff3
+usage_events rows: 10000000
+k6 exit code: 0 (99 = a threshold failed; thresholds are informational, not gating)
+##### round 3 rlsoff: balance small (rate 100) 15:34:18
+== preflight: balance_small_runrlsoff3
+usage_events rows: 10000000
+k6 exit code: 0 (99 = a threshold failed; thresholds are informational, not gating)
+##### round 3 rlsoff: ingest small (rate 100) 15:35:59
+== preflight: ingest_small_runrlsoff3
+usage_events rows: 10000000
+k6 exit code: 0 (99 = a threshold failed; thresholds are informational, not gating)
+ingested rows this run: 9001
+after cleanup usage_events rows: 10000000
+API stopped
+##### all done 15:37:50

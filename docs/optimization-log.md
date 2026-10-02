@@ -19,8 +19,9 @@ One entry per performance win. Every entry must contain all of the following, wi
 | E4    | Drop the redundant ledger index (O5)                                                  | Small, real, **not a latency win**      | bulk insert faster in 5 of 5 pairs (about 10 to 34%, ranges overlap); single debit: not measurable; 4.1 MB saved per 100k rows                               |
 | E5    | Merge `BEGIN` + `set_config` (O3)                                                     | **Negative at API level, reverted**     | 0.35 ms saved in the DB path (3 of 3 rounds), not distinguishable end to end                                                                                 |
 | E6    | Automatic partition creation; partitioning measured                                   | Operations win, **no read-latency win** | partitioned reads 12 to 24% slower per query than flat (0.03 to 0.06 ms); dropping a month 65 to 210x faster than DELETE; 900/900 boundary inserts succeeded |
+| E7    | RLS policy rewrites (P1.11)                                                           | **Negative result, nothing changed**    | RLS costs about 0.07 to 0.16 ms per transaction (not visible end to end); the best behaviour-preserving rewrite saves 0.014 ms, below the noise              |
 
-**Two entries (E1, E3) are real, attributable improvements in latency or throughput. Two more (E4, E6) are real but are cost, storage or operations improvements, not latency, and E5 is a measured null result. So the target of three real improvements is met only if E4 and E6 are counted, and I do not count E4 as a performance win.** The final comparison against the baseline is in `benchmarks/after.md`.
+**Two entries (E1, E3) are real, attributable improvements in latency or throughput. Two more (E4, E6) are real but are cost, storage or operations improvements, not latency, and E5 and E7 are measured null results. So the target of three real improvements is met only if E4 and E6 are counted, and I do not count E4 as a performance win.** The final comparison against the baseline is in `benchmarks/after.md`.
 
 ## Environment (applies to every entry)
 
@@ -422,6 +423,49 @@ The control (no date range) plan visits **all 48 partitions** (`Append` of 48 sc
 - **Operations: where partitioning does pay** (`docs/benchmarks/sql/retention-e6.sql`, `raw/retention-e6.txt`; one month = 547,332 rows, superuser, scratch objects): removing one month of data costs a `DELETE` of **5.34, 3.61 and 2.07 s** on the unpartitioned copy (the spread is cache state; it also leaves 547k dead rows to vacuum) against `DETACH PARTITION` **1.1, 1.7, 3.4 ms** + `DROP TABLE` **25.3, 23.5, 28.2 ms** on a partitioned table, about 25 to 30 ms in total and no dead tuples: **roughly 65 to 210 times faster, and no vacuum debt.** Together with the automatic creation above, this is the actual value of partitioning here: **easier retention and maintenance, not faster reads.**
 - **Write and storage cost:** a partition created by the function has the same two indexes as the ones from 0001 (primary key and `(tenant_id, occurred_at)`); no extra index. Ingest was not slowed measurably: the boundary test's 900 concurrent inserts all succeeded while partitions were being attached, and creating partitions took 39.7 ms for six months on an empty scratch database (about 7 ms each; a call that finds everything present takes 0.4 ms; `raw/partition-create-time-e6.txt`); it was not benchmarked under k6 (partitions already existed during all k6 runs, so the k6 numbers do not include any creation).
 - **What was learned:** (1) the automatic creation closes a real production cliff (ingest hard-failing on the first event after the last partition), which a benchmark would never show. (2) Partitioning is a maintenance feature; the read speed-up people expect did not exist here, and the measured cost is small but real. (3) `CREATE TABLE ... PARTITION OF` would have blocked all reads and writes for the duration; the standalone-then-`ATTACH` route does not.
+
+### E7. RLS policy rewrites (**negative result, nothing changed**)
+
+- **Observation:** new (P1.11). RLS costs about 0.07 to 0.16 ms per transaction at the database level (14 to 23% of its database time) and cannot be seen end to end (`benchmarks/rls-overhead.md`). The question here: does the way the policy reads the tenant setting matter, and does a rewrite reduce that cost?
+- **Slow query:** the usage-read page-1 statement (E1's "after" form, `docs/benchmarks/sql/usage-read-p1-fixed.sql`) run as `ledgerline_app`; the policy `tenant_id = (SELECT app_tenant_id())` adds an `InitPlan` (evaluates the setting once per statement) and a `Result` with a `One-Time Filter`.
+- **`EXPLAIN (ANALYZE, BUFFERS)` with the current policy** (warm; execution 0.38 to 0.57 ms in the warm runs, 70 buffers; raw `raw/explain-p111-ledgerline_app.txt`):
+
+```
+Limit  (cost=1.87..64.05 rows=51 width=101) (actual time=0.470..0.509 rows=51 loops=1)
+  Buffers: shared hit=70
+  InitPlan 1 (returns $0)
+    ->  Result  (cost=0.00..0.26 rows=1 width=16) (actual time=0.226..0.226 rows=1 loops=1)
+          Buffers: shared hit=6
+  ->  Incremental Sort  (cost=1.61..76960.73 rows=63127 width=101) (actual time=0.469..0.505 rows=51 loops=1)
+        Sort Key: usage_events.occurred_at DESC, usage_events.id DESC
+        Presorted Key: usage_events.occurred_at
+        Full-sort Groups: 2  Sort Method: quicksort  Average Memory: 29kB  Peak Memory: 29kB
+        Buffers: shared hit=70
+        ->  Result  (cost=0.43..74120.01 rows=63127 width=101) (actual time=0.340..0.436 rows=52 loops=1)
+              One-Time Filter: ($0 = '8641a01e-babb-4e44-d36d-f68e5233c7fb'::uuid)
+              Buffers: shared hit=61
+              ->  Index Scan Backward using usage_events_2026_08_tenant_id_occurred_at_idx on usage_events_2026_08 usage_events  (cost=0.43..73804.38 rows=63127 width=69) (actual time=0.020..0.089 rows=52 loops=1)
+                    Index Cond: ((tenant_id = '8641a01e-babb-4e44-d36d-f68e5233c7fb'::uuid) AND (occurred_at >= '2026-08-24 00:00:00+00'::timestamp with time zone) AND (occurred_at < '2026-08-31 00:00:00+00'::timestamp with time zone))
+                    Buffers: shared hit=55
+Planning:
+  Buffers: shared hit=425
+Planning Time: 1.828 ms
+Execution Time: 0.570 ms
+```
+
+- **Change tried (in a rolled-back transaction only; policies and migrations untouched):** B `app_tenant_id()` without the sub-select; C `(SELECT nullif(current_setting('app.tenant_id', true), '')::uuid)`; F the same policy with `app_tenant_id()` rewritten without a `FROM` clause so the planner can inline it:
+
+  ```sql
+  CREATE OR REPLACE FUNCTION public.app_tenant_id() RETURNS uuid LANGUAGE sql STABLE AS $f$
+    SELECT CASE WHEN current_setting('app.tenant_id', true) ~* '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$'
+                THEN current_setting('app.tenant_id', true)::uuid END $f$;
+  ```
+
+- **Measured** (`ledgerline/k6/rls-policy-variants.sh`: 3,000 executions per variant server-side, plan and execute each time, 3 rounds, three executions of the script, `raw/rls-policy-variants-p111-run{1,2,3}.txt`): mean ms per execution, median of 3 rounds, quietest execution (run 3): A (current) **0.172**, B 0.189, C 0.142, F **0.158**, no RLS 0.115. F is 6 to 8% faster than A in the two executions that had it; C is cheaper but returns an error instead of zero rows for a malformed setting, which the isolation matrix forbids by design. One execution (run 2) was disturbed by noise (A varied by 2x). A 1.2-million-row aggregate cost the same with every variant including no RLS (237 to 439 ms with noise), so the setting is **evaluated once per statement, not per row** (D14's claim is now measured).
+- **`EXPLAIN` after:** not produced, because nothing was changed (the plan of variant F was not captured).
+- **Write and storage cost:** none (no schema change).
+- **Verdict:** **no rewrite adopted.** The best behaviour-preserving variant saves about 0.014 ms per statement, which is smaller than the noise of the measurement and about 0.3% of a 5 ms request; the one with a visible gain changes the failure mode. The isolation tests were not re-run for a policy change because there was none; they were run for every other change in this phase (181 isolation tests).
+- **What was learned:** RLS is not expensive here: about 0.06 ms per statement server-side, once per statement and never per row. Most of that appears to be the call of the `app_tenant_id()` helper (a catalog lookup, a regular-expression match and a cast; variant C, which skips the helper, recovers about half of the overhead), not the row filtering.
 
 <!-- ENTRIES -->
 

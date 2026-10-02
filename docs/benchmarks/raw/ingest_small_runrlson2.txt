@@ -1,0 +1,45 @@
+
+
+  █ THRESHOLDS 
+
+    dropped_iterations{scenario:measure}
+    ✓ 'count==0' count=0
+
+    http_req_duration{phase:measure}
+    ✓ 'p(95)<200' p(95)=7.49ms
+
+    http_req_failed{phase:measure}
+    ✓ 'rate<0.01' rate=0.00%
+
+
+  █ TOTAL RESULTS 
+
+    checks_total.......: 9000    94.740149/s
+    checks_succeeded...: 100.00% 9000 out of 9000
+    checks_failed......: 0.00%   0 out of 9000
+
+    ✓ status is 201
+
+    HTTP
+    http_req_duration..............: avg=5.2ms  min=3.02ms med=4.49ms p(90)=7.16ms p(95)=8.37ms p(99)=12.68ms max=72.18ms  count=9000
+      { expected_response:true }...: avg=5.2ms  min=3.02ms med=4.49ms p(90)=7.16ms p(95)=8.37ms p(99)=12.68ms max=72.18ms  count=9000
+      { phase:measure }............: avg=4.96ms min=3.02ms med=4.37ms p(90)=6.61ms p(95)=7.49ms p(99)=10.43ms max=72.18ms  count=6000
+    http_req_failed................: 0.00%  0 out of 9000
+      { phase:measure }............: 0.00%  0 out of 6000
+    http_reqs......................: 9000   94.740149/s
+
+    EXECUTION
+    dropped_iterations.............: 0      0/s
+      { scenario:measure }.........: 0      0/s
+    iteration_duration.............: avg=5.46ms min=3.67ms med=4.69ms p(90)=7.49ms p(95)=8.77ms p(99)=13.26ms max=121.46ms count=9000
+    iterations.....................: 9000   94.740149/s
+    vus............................: 0      min=0         max=2  
+    vus_max........................: 100    min=100       max=100
+
+    NETWORK
+    data_received..................: 2.8 MB 30 kB/s
+    data_sent......................: 2.6 MB 28 kB/s
+
+
+
+k6 exit code: 0

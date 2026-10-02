@@ -87,9 +87,9 @@ Purpose: a realistic, data-heavy, multi-tenant backend that is fast, correct und
   - **Done when:** a test with 50 workers processing 10,000 jobs shows **no job executed twice, none lost**, failed jobs reach `dead_letters` after the retry limit, and throughput (jobs/s) is recorded.
 
 ### Performance work
-- [ ] **P1.10** Monthly partitioning for `usage_events` plus automatic partition creation; index design for the main read patterns.
+- [x] **P1.10** Monthly partitioning for `usage_events` plus automatic partition creation; index design for the main read patterns.
   - **Done when:** `docs/optimization-log.md` contains at least **3 entries**, each with: the slow query, `EXPLAIN (ANALYZE, BUFFERS)` before, the change, `EXPLAIN (ANALYZE, BUFFERS)` after, and measured latency before and after at the stated seed size.
-- [ ] **P1.11** RLS overhead measurement: the same k6 scenario with and without RLS.
+- [x] **P1.11** RLS overhead measurement: the same k6 scenario with and without RLS.
   - **Done when:** the overhead is published as a table in `docs/benchmarks/`.
 - [ ] **P1.12** Observability: OpenTelemetry traces, a `/metrics` endpoint, a Grafana dashboard JSON in the repo (request latency, queue depth and age, slow queries from `pg_stat_statements`).
   - **Done when:** `docker compose --profile obs up` shows the dashboard with live data.

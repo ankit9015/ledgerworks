@@ -1,0 +1,31 @@
+# Transcribed verbatim from the console output of the FIRST execution of ledgerline/k6/rls-policy-variants.sh 3000 3
+# (that version of the script had variants A, B, C and N only; the file written by that execution was then
+# overwritten by the second execution, which added variant F, so this copy was re-created from the output shown
+# in the session; run2 and run3 are the original files of the later executions)
+--- round 1
+NOTICE:  Q1 variant A: 0.2019 ms per execution (3000 executions)
+NOTICE:  Q2 variant A: 312.4346 ms per execution (5 executions)
+NOTICE:  Q1 variant B: 0.1886 ms per execution (3000 executions)
+NOTICE:  Q2 variant B: 317.2584 ms per execution (5 executions)
+NOTICE:  Q1 variant C: 0.1587 ms per execution (3000 executions)
+NOTICE:  Q2 variant C: 287.2574 ms per execution (5 executions)
+NOTICE:  Q1 variant N (no RLS): 0.1369 ms per execution (3000 executions)
+NOTICE:  Q2 variant N (no RLS): 266.7736 ms per execution (5 executions)
+--- round 2
+NOTICE:  Q1 variant A: 0.2211 ms per execution (3000 executions)
+NOTICE:  Q2 variant A: 297.3540 ms per execution (5 executions)
+NOTICE:  Q1 variant B: 0.1984 ms per execution (3000 executions)
+NOTICE:  Q2 variant B: 289.6378 ms per execution (5 executions)
+NOTICE:  Q1 variant C: 0.1683 ms per execution (3000 executions)
+NOTICE:  Q2 variant C: 301.3730 ms per execution (5 executions)
+NOTICE:  Q1 variant N (no RLS): 0.1652 ms per execution (3000 executions)
+NOTICE:  Q2 variant N (no RLS): 295.5436 ms per execution (5 executions)
+--- round 3
+NOTICE:  Q1 variant A: 0.2274 ms per execution (3000 executions)
+NOTICE:  Q2 variant A: 294.1376 ms per execution (5 executions)
+NOTICE:  Q1 variant B: 0.2018 ms per execution (3000 executions)
+NOTICE:  Q2 variant B: 301.0294 ms per execution (5 executions)
+NOTICE:  Q1 variant C: 0.1588 ms per execution (3000 executions)
+NOTICE:  Q2 variant C: 292.3702 ms per execution (5 executions)
+NOTICE:  Q1 variant N (no RLS): 0.1225 ms per execution (3000 executions)
+NOTICE:  Q2 variant N (no RLS): 303.1172 ms per execution (5 executions)

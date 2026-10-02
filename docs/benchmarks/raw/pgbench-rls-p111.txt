@@ -1,0 +1,100 @@
+# P1.11 pgbench, 15s per run, 1 client, -M simple; transactions: BEGIN; set_config; statement; COMMIT
+## round 1 scenario=usage-huge role=ledgerline_app
+number of transactions actually processed: 17684
+latency average = 0.848 ms
+tps = 1179.087872 (without initial connection time)
+## round 1 scenario=usage-huge role=ledgerline_bench_norls
+number of transactions actually processed: 23039
+latency average = 0.651 ms
+tps = 1536.121662 (without initial connection time)
+## round 1 scenario=usage-small role=ledgerline_app
+number of transactions actually processed: 22475
+latency average = 0.667 ms
+tps = 1498.615872 (without initial connection time)
+## round 1 scenario=usage-small role=ledgerline_bench_norls
+number of transactions actually processed: 25185
+latency average = 0.596 ms
+tps = 1679.169708 (without initial connection time)
+## round 1 scenario=balance role=ledgerline_app
+number of transactions actually processed: 35611
+latency average = 0.421 ms
+tps = 2374.359188 (without initial connection time)
+## round 1 scenario=balance role=ledgerline_bench_norls
+number of transactions actually processed: 40199
+latency average = 0.373 ms
+tps = 2680.559870 (without initial connection time)
+## round 1 scenario=ingest role=ledgerline_app
+number of transactions actually processed: 15567
+latency average = 0.963 ms
+tps = 1037.971058 (without initial connection time)
+## round 1 scenario=ingest role=ledgerline_bench_norls
+number of transactions actually processed: 16452
+latency average = 0.912 ms
+tps = 1096.893894 (without initial connection time)
+## round 2 scenario=usage-huge role=ledgerline_app
+number of transactions actually processed: 17428
+latency average = 0.861 ms
+tps = 1162.066620 (without initial connection time)
+## round 2 scenario=usage-huge role=ledgerline_bench_norls
+number of transactions actually processed: 21622
+latency average = 0.694 ms
+tps = 1441.741847 (without initial connection time)
+## round 2 scenario=usage-small role=ledgerline_app
+number of transactions actually processed: 19642
+latency average = 0.764 ms
+tps = 1309.730970 (without initial connection time)
+## round 2 scenario=usage-small role=ledgerline_bench_norls
+number of transactions actually processed: 22628
+latency average = 0.663 ms
+tps = 1508.704923 (without initial connection time)
+## round 2 scenario=balance role=ledgerline_app
+number of transactions actually processed: 32182
+latency average = 0.466 ms
+tps = 2145.662208 (without initial connection time)
+## round 2 scenario=balance role=ledgerline_bench_norls
+number of transactions actually processed: 37744
+latency average = 0.397 ms
+tps = 2516.905122 (without initial connection time)
+## round 2 scenario=ingest role=ledgerline_app
+number of transactions actually processed: 14302
+latency average = 1.049 ms
+tps = 953.737083 (without initial connection time)
+## round 2 scenario=ingest role=ledgerline_bench_norls
+number of transactions actually processed: 15241
+latency average = 0.984 ms
+tps = 1016.155817 (without initial connection time)
+## round 3 scenario=usage-huge role=ledgerline_app
+number of transactions actually processed: 17621
+latency average = 0.851 ms
+tps = 1174.959787 (without initial connection time)
+## round 3 scenario=usage-huge role=ledgerline_bench_norls
+number of transactions actually processed: 21003
+latency average = 0.714 ms
+tps = 1400.449187 (without initial connection time)
+## round 3 scenario=usage-small role=ledgerline_app
+number of transactions actually processed: 19467
+latency average = 0.770 ms
+tps = 1298.023606 (without initial connection time)
+## round 3 scenario=usage-small role=ledgerline_bench_norls
+number of transactions actually processed: 23470
+latency average = 0.639 ms
+tps = 1564.790285 (without initial connection time)
+## round 3 scenario=balance role=ledgerline_app
+number of transactions actually processed: 31174
+latency average = 0.481 ms
+tps = 2078.704026 (without initial connection time)
+## round 3 scenario=balance role=ledgerline_bench_norls
+number of transactions actually processed: 37845
+latency average = 0.396 ms
+tps = 2523.611050 (without initial connection time)
+## round 3 scenario=ingest role=ledgerline_app
+number of transactions actually processed: 14445
+latency average = 1.038 ms
+tps = 963.138435 (without initial connection time)
+## round 3 scenario=ingest role=ledgerline_bench_norls
+number of transactions actually processed: 16741
+latency average = 0.896 ms
+tps = 1116.189745 (without initial connection time)
+92748 rows ingested by pgbench
+TRUNCATE TABLE
+10000000 usage_events rows after cleanup

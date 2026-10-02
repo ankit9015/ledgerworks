@@ -1,0 +1,48 @@
+time="2026-10-02T15:08:19Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:3000/v1/credits/balance\": dial: i/o timeout"
+time="2026-10-02T15:08:19Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:3000/v1/credits/balance\": dial: i/o timeout"
+
+
+  █ THRESHOLDS 
+
+    dropped_iterations{scenario:measure}
+    ✓ 'count==0' count=0
+
+    http_req_duration{phase:measure}
+    ✓ 'p(95)<100' p(95)=8.9ms
+
+    http_req_failed{phase:measure}
+    ✓ 'rate<0.01' rate=0.03%
+
+
+  █ TOTAL RESULTS 
+
+    checks_total.......: 9002   94.756611/s
+    checks_succeeded...: 99.97% 9000 out of 9002
+    checks_failed......: 0.02%  2 out of 9002
+
+    ✗ status is 200
+      ↳  99% — ✓ 9000 / ✗ 2
+
+    HTTP
+    http_req_duration..............: avg=4.65ms  min=0s     med=3.81ms p(90)=7.08ms p(95)=8.6ms  p(99)=13.21ms max=40.69ms count=9002
+      { expected_response:true }...: avg=4.65ms  min=1.64ms med=3.81ms p(90)=7.08ms p(95)=8.6ms  p(99)=13.21ms max=40.69ms count=9000
+      { phase:measure }............: avg=4.73ms  min=0s     med=3.85ms p(90)=7.31ms p(95)=8.9ms  p(99)=13.75ms max=37.41ms count=6001
+    http_req_failed................: 0.02%  2 out of 9002
+      { phase:measure }............: 0.03%  2 out of 6001
+    http_reqs......................: 9002   94.756611/s
+
+    EXECUTION
+    dropped_iterations.............: 0      0/s
+      { scenario:measure }.........: 0      0/s
+    iteration_duration.............: avg=11.55ms min=2.92ms med=3.99ms p(90)=7.41ms p(95)=9.05ms p(99)=13.89ms max=30s     count=9002
+    iterations.....................: 9002   94.756611/s
+    vus............................: 1      min=0         max=4  
+    vus_max........................: 100    min=100       max=100
+
+    NETWORK
+    data_received..................: 2.5 MB 26 kB/s
+    data_sent......................: 1.9 MB 20 kB/s
+
+
+
+k6 exit code: 0
