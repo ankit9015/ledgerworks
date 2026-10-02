@@ -97,7 +97,7 @@ Purpose: a realistic, data-heavy, multi-tenant backend that is fast, correct und
   - **Done when:** it shows loading, empty and error states for each panel.
 
 ### Phase 1 deliverable
-- [ ] **P1.14** `ledgerline/README.md` leading with a results table: p95 per endpoint, queue throughput, RLS overhead, number of isolation tests, and the optimization-log highlights. Then architecture diagram (Mermaid), then a one-command demo.
+- [x] **P1.14** `ledgerline/README.md` leading with a results table: p95 per endpoint, queue throughput, RLS overhead, number of isolation tests, and the optimization-log highlights. Then architecture diagram (Mermaid), then a one-command demo.
   - **Done when:** a fresh clone can run the demo with the documented commands only.
 - **Checkpoint:** stop, summarize measured results, and wait for the author's go-ahead.
 
