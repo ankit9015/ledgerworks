@@ -3,7 +3,8 @@
 import { chromium } from '@playwright/test';
 
 const [url, out, width = '1600', height = '1500', wait = '4000'] = process.argv.slice(2);
-if (!url || !out) throw new Error('usage: screenshot.mjs <url> <out.png> [width] [height] [wait ms]');
+if (!url || !out)
+  throw new Error('usage: screenshot.mjs <url> <out.png> [width] [height] [wait ms]');
 const browser = await chromium.launch();
 const page = await browser.newPage({ viewport: { width: Number(width), height: Number(height) } });
 await page.goto(url, { waitUntil: 'networkidle' });
