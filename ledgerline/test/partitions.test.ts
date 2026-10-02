@@ -237,6 +237,118 @@ describe('partitions: the problem and the creation function', () => {
   });
 });
 
+describe('partitions: UTC bounds whatever the session time zone is (0009)', () => {
+  const ZONES = ['UTC', 'Asia/Kolkata', 'America/Los_Angeles'];
+
+  async function bounds(name: string): Promise<string> {
+    const c = await admin.connect();
+    try {
+      await c.query(`SET TIME ZONE 'UTC'`); // bounds are displayed in the reading session's zone
+      const r = await c.query(
+        `SELECT pg_get_expr(relpartbound, oid) AS b FROM pg_class WHERE relname = $1`,
+        [name],
+      );
+      return r.rows[0].b as string;
+    } finally {
+      c.release();
+    }
+  }
+
+  it('every partition from 0001 has exactly the UTC month boundaries', async () => {
+    const r = await admin.query(
+      `SELECT c.relname, pg_get_expr(c.relpartbound, c.oid) AS b FROM pg_class c
+       JOIN pg_inherits i ON i.inhrelid = c.oid WHERE i.inhparent = 'usage_events'::regclass`,
+    );
+    expect(r.rowCount).toBeGreaterThanOrEqual(34);
+    for (const row of r.rows) {
+      const [, y, m] = /usage_events_(\d{4})_(\d\d)/.exec(row.relname)!;
+      const next =
+        m === '12' ? `${Number(y) + 1}-01` : `${y}-${String(Number(m) + 1).padStart(2, '0')}`;
+      expect(row.b, row.relname).toBe(
+        `FOR VALUES FROM ('${y}-${m}-01 00:00:00+00') TO ('${next}-01 00:00:00+00')`,
+      );
+    }
+  });
+
+  it('create_usage_events_partition and ensure_usage_events_partitions_at give identical bounds under UTC, Asia/Kolkata and America/Los_Angeles', async () => {
+    const months = ['2030-03', '2030-04', '2030-05'];
+    const viaCreate: string[] = [];
+    for (const [i, zone] of ZONES.entries()) {
+      const c = await admin.connect();
+      try {
+        await c.query('SET ROLE ledgerline_owner');
+        await c.query(`SET TIME ZONE '${zone}'`);
+        const r = await c.query(`SELECT create_usage_events_partition($1::date) AS n`, [
+          `${months[i]}-15`,
+        ]);
+        expect(r.rows[0].n).toBe(`usage_events_${months[i]!.replace('-', '_')}`);
+      } finally {
+        await c.query('RESET ROLE');
+        await c.query('RESET TIME ZONE');
+        c.release();
+      }
+      viaCreate.push(await bounds(`usage_events_${months[i]!.replace('-', '_')}`));
+    }
+    expect(viaCreate).toEqual([
+      "FOR VALUES FROM ('2030-03-01 00:00:00+00') TO ('2030-04-01 00:00:00+00')",
+      "FOR VALUES FROM ('2030-04-01 00:00:00+00') TO ('2030-05-01 00:00:00+00')",
+      "FOR VALUES FROM ('2030-05-01 00:00:00+00') TO ('2030-06-01 00:00:00+00')",
+    ]);
+    // The same months made by the other function under the other zones (fresh month names).
+    const viaEnsure: string[] = [];
+    for (const [i, zone] of ZONES.entries()) {
+      const c = await admin.connect();
+      try {
+        await c.query(`SET TIME ZONE '${zone}'`);
+        await c.query(
+          `SELECT * FROM ledgerline_fn.ensure_usage_events_partitions_at($1::timestamptz, 0)`,
+          [`2031-0${i + 3}-15T12:00:00Z`],
+        );
+      } finally {
+        await c.query('RESET TIME ZONE');
+        c.release();
+      }
+      viaEnsure.push(await bounds(`usage_events_2031_0${i + 3}`));
+    }
+    expect(viaEnsure.map((b) => b.replaceAll('2031', 'Y'))).toEqual(
+      viaCreate.map((b) => b.replaceAll('2030', 'Y')),
+    );
+  });
+
+  it('events at 23:59:59 and 00:00:00 UTC on a month change land in the right partitions under non-UTC session zones', async () => {
+    // 2030-03 / 2030-04 / 2030-05 exist from the previous test.
+    const t = await newTenant();
+    for (const zone of ['Asia/Kolkata', 'America/Los_Angeles', 'Pacific/Auckland']) {
+      const c = await app.connect();
+      try {
+        await c.query('BEGIN');
+        await c.query(`SET LOCAL TIME ZONE '${zone}'`);
+        await c.query(`SELECT set_config('app.tenant_id', $1, true)`, [t.id]);
+        await c.query(
+          `INSERT INTO usage_events (tenant_id, occurred_at, event_type, quantity) VALUES
+             ($1, '2030-03-31T23:59:59Z', $2, 1), ($1, '2030-04-01T00:00:00Z', $2, 1)`,
+          [t.id, `boundary-${zone}`],
+        );
+        await c.query('COMMIT');
+      } finally {
+        c.release();
+      }
+    }
+    const r = await admin.query(
+      `SELECT event_type, to_char(occurred_at AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS') AS t,
+              tableoid::regclass::text AS part
+       FROM usage_events WHERE tenant_id = $1 AND event_type LIKE 'boundary-%' ORDER BY 1, 2`,
+      [t.id],
+    );
+    expect(r.rowCount).toBe(6);
+    for (const row of r.rows) {
+      expect(row.part, `${row.event_type} ${row.t}`).toBe(
+        row.t === '2030-03-31T23:59:59' ? 'usage_events_2030_03' : 'usage_events_2030_04',
+      );
+    }
+  });
+});
+
 describe('partitions: concurrency', () => {
   it('30 simultaneous callers: each missing partition is created exactly once, nobody errors', async () => {
     await dropFuturePartitions();
