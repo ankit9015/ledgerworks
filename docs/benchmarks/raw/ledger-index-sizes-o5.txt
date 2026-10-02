@@ -1,0 +1,8 @@
+credit_ledger|9314304
+credit_ledger_tenant_id_id_key|4079616
+credit_ledger_pkey|2260992
+credit_ledger_idempotency_key|7086080
+credit_ledger_tenant_id_idx|4079616
+seeded db: credit_ledger_tenant_id_id_key|327680
+seeded db: credit_ledger|712704
+seeded db: credit_ledger_tenant_id_idx|327680

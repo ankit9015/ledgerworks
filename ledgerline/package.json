@@ -8,6 +8,7 @@
     "migrate": "tsx src/db/migrate-cli.ts",
     "seed": "tsx src/seed/seed.ts",
     "bench:queue": "tsx src/bench/queue-throughput.ts",
+    "bench:ledger": "tsx src/bench/ledger-write-cost.ts",
     "dev": "tsx src/server.ts"
   },
   "dependencies": {

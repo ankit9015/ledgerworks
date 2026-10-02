@@ -199,3 +199,9 @@ One entry per decision: options considered, choice, reason. Newest at the bottom
 - **Invariant relied on:** the pick adds `run_at <= p_now` for running jobs. It is implied for rows that `claim_jobs` itself made running (it only claims jobs with `run_at <= p_now`, and a lease expires after the claim), so the result set is unchanged. A row forced into `running` by hand with a future `run_at` would not be re-claimed until its `run_at` passes; nothing in the code does that and no constraint enforces it. A `CHECK` was not added because it would make the invariant a hard rule for tests and tooling as well.
 - **Costs:** about 30% more time for a bulk insert of jobs and 6.9 MB per 110,000 queued jobs for the claim index (`jobs_lease_idx` is tiny). `jobs_runnable_idx` from 0001 is now unused (not dropped here). The indexes are created without `CONCURRENTLY` because migrations run in a transaction; this is only safe because the jobs table is small or empty when the migration runs, and a large live table would need the concurrent variant outside the migration runner.
 - **Verification:** queue tests unchanged and passing; the full-size 50-worker, 10,000-job test passes (257 jobs/s, previously about 64); throughput numbers in `docs/optimization-log.md` E3.
+
+## D23. Drop `credit_ledger_tenant_id_idx` (P1.10, E4)
+
+- **Options:** keep both indexes (as D13/D18 left them on purpose); drop the non-unique one; drop the unique constraint's index (impossible: it backs the composite foreign key from D18).
+- **Choice:** drop the non-unique `credit_ledger_tenant_id_idx` in migration `0007`. The unique constraint `credit_ledger_tenant_id_id_key (tenant_id, id)` has identical columns and serves the same lookups; `EXPLAIN` shows the planner already used it.
+- **Effect (measured, E4):** 4.08 MB less per 100,000 ledger rows; bulk insert about 10 to 34% faster in 5 of 5 paired runs; no measurable change in debit latency. Not claimed as a latency win.

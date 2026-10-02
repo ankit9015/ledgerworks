@@ -258,6 +258,80 @@ Execution Time: 0.019 ms
 - **Write and storage cost:** two more indexes on `jobs`, maintained on every enqueue, claim and acknowledgement. Scratch database, bulk `INSERT` of 100,000 queued jobs, 5 runs: **median 2,637 ms with the two indexes against 2,001 ms without (about 30% more for a bulk insert)**, ranges 2,267 – 2,974 against 1,919 – 2,164 ms (`raw/o6-index-write-cost.txt`); that is about 6 microseconds more per row inserted. Size at 110,000 queued jobs: `jobs_claim_idx` **6.9 MB** (table 15 MB, primary key 4.6 MB); `jobs_lease_idx` is empty unless jobs are running (8 KB). Succeeded and dead jobs are in neither index, so they do not grow with history. The end-to-end drain, which includes all the claim and acknowledgement writes, still got 3.9x faster, so in this workload the extra write cost is far smaller than the read saving. It was not measured on the HTTP ingest path (the queue has no HTTP path yet).
 - **What was learned:** (1) A partial index is only used when the planner can prove the query implies its predicate; an `OR` of different status tests defeated that, so the query shape had to change together with the index (an index alone would have been a silent no-op, which `EXPLAIN` showed). (2) Read the whole function, not only the headline query: the cheap-looking first statement was also a sequential scan. (3) The older `jobs_runnable_idx (queue, run_at) WHERE status = 'queued'` from migration 0001 is now not used by any query and is a candidate for dropping (not done here: one change at a time, and not measured).
 
+### E4. Drop the redundant `credit_ledger (tenant_id, id)` index (a storage and bulk-write saving; **no measurable effect on single-debit latency**)
+
+- **Observation:** O5 (below).
+- **Symptom:** after migration 0003 two indexes cover the same columns in the same order on `credit_ledger`: the non-unique `credit_ledger_tenant_id_idx (tenant_id, id)` from 0001 and the unique constraint `credit_ledger_tenant_id_id_key (tenant_id, id)` (needed for the composite foreign key that keeps refunds inside one tenant). Both are maintained on every ledger insert. It is redundant: the planner already uses the unique one.
+- **`EXPLAIN (ANALYZE, BUFFERS)` before** (`docs/benchmarks/sql/ledger-read.sql`, a tenant's latest 20 entries, as `ledgerline_app` with RLS, 3 executions 8.5 (cold), 0.57 and 0.44 ms; raw: `raw/explain-o5-before.txt`). The redundant index is never chosen:
+
+```
+Limit  (cost=60.39..60.44 rows=20 width=30) (actual time=0.352..0.356 rows=20 loops=1)
+  Buffers: shared hit=35
+  InitPlan 1 (returns $0)
+    ->  Result  (cost=0.00..0.26 rows=1 width=16) (actual time=0.223..0.224 rows=1 loops=1)
+          Buffers: shared hit=6
+  ->  Sort  (cost=60.13..60.19 rows=24 width=30) (actual time=0.350..0.353 rows=20 loops=1)
+        Sort Key: credit_ledger.id DESC
+        Sort Method: quicksort  Memory: 26kB
+        Buffers: shared hit=35
+        ->  Result  (cost=4.47..59.58 rows=24 width=30) (actual time=0.269..0.316 rows=24 loops=1)
+              One-Time Filter: ($0 = '8641a01e-babb-4e44-d36d-f68e5233c7fb'::uuid)
+              Buffers: shared hit=32
+              ->  Bitmap Heap Scan on credit_ledger  (cost=4.47..59.58 rows=24 width=30) (actual time=0.039..0.082 rows=24 loops=1)
+                    Recheck Cond: (tenant_id = '8641a01e-babb-4e44-d36d-f68e5233c7fb'::uuid)
+                    Heap Blocks: exact=24
+                    Buffers: shared hit=26
+                    ->  Bitmap Index Scan on credit_ledger_tenant_id_id_key  (cost=0.00..4.46 rows=24 width=0) (actual time=0.029..0.029 rows=24 loops=1)
+                          Index Cond: (tenant_id = '8641a01e-babb-4e44-d36d-f68e5233c7fb'::uuid)
+                          Buffers: shared hit=2
+Planning:
+  Buffers: shared hit=210
+Planning Time: 0.747 ms
+Execution Time: 0.438 ms
+```
+
+- **Change** (migration `0007_drop_redundant_ledger_index.sql`): `DROP INDEX credit_ledger_tenant_id_idx;`
+- **`EXPLAIN (ANALYZE, BUFFERS)` after** (3 executions: 0.37, 0.43 and 0.33 ms; raw: `raw/explain-o5-after.txt`). Same plan and the same index; nothing to gain on reads, as expected (the 8.5 ms before was a cold first run, not an effect of the index):
+
+```
+Limit  (cost=60.39..60.44 rows=20 width=30) (actual time=0.273..0.277 rows=20 loops=1)
+  Buffers: shared hit=35
+  InitPlan 1 (returns $0)
+    ->  Result  (cost=0.00..0.26 rows=1 width=16) (actual time=0.187..0.187 rows=1 loops=1)
+          Buffers: shared hit=6
+  ->  Sort  (cost=60.13..60.19 rows=24 width=30) (actual time=0.272..0.274 rows=20 loops=1)
+        Sort Key: credit_ledger.id DESC
+        Sort Method: quicksort  Memory: 26kB
+        Buffers: shared hit=35
+        ->  Result  (cost=4.47..59.58 rows=24 width=30) (actual time=0.207..0.249 rows=24 loops=1)
+              One-Time Filter: ($0 = '8641a01e-babb-4e44-d36d-f68e5233c7fb'::uuid)
+              Buffers: shared hit=32
+              ->  Bitmap Heap Scan on credit_ledger  (cost=4.47..59.58 rows=24 width=30) (actual time=0.017..0.055 rows=24 loops=1)
+                    Recheck Cond: (tenant_id = '8641a01e-babb-4e44-d36d-f68e5233c7fb'::uuid)
+                    Heap Blocks: exact=24
+                    Buffers: shared hit=26
+                    ->  Bitmap Index Scan on credit_ledger_tenant_id_id_key  (cost=0.00..4.46 rows=24 width=0) (actual time=0.009..0.009 rows=24 loops=1)
+                          Index Cond: (tenant_id = '8641a01e-babb-4e44-d36d-f68e5233c7fb'::uuid)
+                          Buffers: shared hit=2
+Planning:
+  Buffers: shared hit=195
+Planning Time: 0.562 ms
+Execution Time: 0.328 ms
+```
+
+- **Write cost, measured** (`pnpm --filter @ledgerworks/ledgerline bench:ledger`, raw `raw/ledger-write-cost-o5.txt`): scratch database per run, migrated, **5 runs per variant, alternating with/without**; there is no k6 scenario for debits (no HTTP debit endpoint yet), so this is in-process against Postgres. (1) a single `INSERT` of 100,000 ledger rows; (2) 5,000 sequential debits through `debit_credits` (app role, one connection, one tenant):
+
+  |                             | with the index (median, range) | without it (median, range) | paired difference                                                    |
+  | --------------------------- | ------------------------------ | -------------------------- | -------------------------------------------------------------------- |
+  | bulk insert of 100,000 rows | 1,739 ms (1,500 – 2,532)       | 1,413 ms (1,344 – 2,019)   | without was faster in **5 of 5** pairs: -20%, -34%, -10%, -23%, -17% |
+  | one debit, sequential       | 2.998 ms (2.853 – 4.048)       | 3.364 ms (2.966 – 4.510)   | no direction: 3 pairs slower, 2 faster; **not measurable**           |
+
+  The unpaired ranges overlap because the machine drifted during the 7 minutes (the first runs were slower for both variants). The bulk-insert saving is consistent in direction in every pair (median about 20%), but each sample is a single run and the size of the saving is uncertain; I would say "roughly 10 to 30%" and not more. **For a debit the effect is below the noise**: a debit costs about 3 ms, almost all of it round trips and the row lock, and the index adds a few microseconds of a 3 ms operation.
+
+- **Storage:** the dropped index was **4.08 MB per 100,000 ledger rows** (the table itself is 9.3 MB, so it was 44% of the table's size and about a fifth of all ledger index bytes); in the 6,053-row seeded ledger it was 320 kB of the 713 kB table (`raw/ledger-index-sizes-o5.txt`).
+- **Verdict:** a correct and cheap cleanup with a real but modest benefit (storage, bulk and seed writes). It is **not a latency win** and is not counted among the headline improvements. Safe to ship: reads use the unique index (shown above), and all isolation, schema and credit tests pass unchanged.
+- **What was learned:** redundancy created by a later constraint is easy to miss; `pg_indexes` lists it, but only `EXPLAIN` plus a write-cost measurement shows whether it matters. Here it mostly does not.
+
 <!-- ENTRIES -->
 
 ## Observations (not yet acted on)
@@ -335,7 +409,7 @@ For `balance` and `ingest` the run maxima are 64 to 401 ms and p99 is 22 to 102 
 
 ### O5. `credit_ledger (tenant_id, id)` is now a redundant index
 
-Migration 0003 added a unique constraint on `credit_ledger (tenant_id, id)` (required for the composite foreign key that keeps refunds inside one tenant). It makes the older non-unique index `credit_ledger_tenant_id_idx` on the same columns redundant: two indexes now cover the same lookups and both are maintained on every ledger insert. Not changed (no tuning in this task). A before/after write-cost measurement belongs in P1.10.
+Migration 0003 added a unique constraint on `credit_ledger (tenant_id, id)` (required for the composite foreign key that keeps refunds inside one tenant). It makes the older non-unique index `credit_ledger_tenant_id_idx` on the same columns redundant: two indexes now cover the same lookups and both are maintained on every ledger insert. **Status:** dropped in E4 (storage and bulk-write saving; no measurable effect on single-debit latency).
 
 ### O6. `claim_jobs` sequentially scans and sorts every runnable job on every claim
 

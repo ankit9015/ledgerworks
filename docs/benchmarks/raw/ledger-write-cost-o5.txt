@@ -1,0 +1,19 @@
+
+> @ledgerworks/ledgerline@0.0.0 bench:ledger D:\github\ledgerworks\ledgerline
+> tsx src/bench/ledger-write-cost.ts
+
+ledger index write cost: 5 runs per variant, alternating, fresh database each
+bulk insert 100000 rows; 5000 sequential debits; started 2026-10-02T10:15:36.296Z
+run 1 with    bulk 2532 ms; 5000 debits 19711 ms = 3.942 ms per debit
+run 1 without bulk 2019 ms; 5000 debits 22552 ms = 4.510 ms per debit
+run 2 with    bulk 2290 ms; 5000 debits 20240 ms = 4.048 ms per debit
+run 2 without bulk 1507 ms; 5000 debits 16819 ms = 3.364 ms per debit
+run 3 with    bulk 1500 ms; 5000 debits 14989 ms = 2.998 ms per debit
+run 3 without bulk 1348 ms; 5000 debits 17239 ms = 3.448 ms per debit
+run 4 with    bulk 1739 ms; 5000 debits 14968 ms = 2.994 ms per debit
+run 4 without bulk 1344 ms; 5000 debits 14829 ms = 2.966 ms per debit
+run 5 with    bulk 1709 ms; 5000 debits 14265 ms = 2.853 ms per debit
+run 5 without bulk 1413 ms; 5000 debits 15402 ms = 3.080 ms per debit
+with    bulk median 1739 ms (1500 - 2532); debit median 2.998 ms (2.853 - 4.048)
+without bulk median 1413 ms (1344 - 2019); debit median 3.364 ms (2.966 - 4.510)
+EXIT 0

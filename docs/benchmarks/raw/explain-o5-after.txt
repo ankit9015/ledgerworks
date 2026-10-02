@@ -1,0 +1,97 @@
+# O5 after: only credit_ledger_tenant_id_id_key remains
+              set_config              
+--------------------------------------
+ 8641a01e-babb-4e44-d36d-f68e5233c7fb
+(1 row)
+
+                                                                        QUERY PLAN                                                                         
+-----------------------------------------------------------------------------------------------------------------------------------------------------------
+ Limit  (cost=60.39..60.44 rows=20 width=30) (actual time=0.312..0.316 rows=20 loops=1)
+   Buffers: shared hit=35
+   InitPlan 1 (returns $0)
+     ->  Result  (cost=0.00..0.26 rows=1 width=16) (actual time=0.191..0.191 rows=1 loops=1)
+           Buffers: shared hit=6
+   ->  Sort  (cost=60.13..60.19 rows=24 width=30) (actual time=0.310..0.312 rows=20 loops=1)
+         Sort Key: credit_ledger.id DESC
+         Sort Method: quicksort  Memory: 26kB
+         Buffers: shared hit=35
+         ->  Result  (cost=4.47..59.58 rows=24 width=30) (actual time=0.235..0.282 rows=24 loops=1)
+               One-Time Filter: ($0 = '8641a01e-babb-4e44-d36d-f68e5233c7fb'::uuid)
+               Buffers: shared hit=32
+               ->  Bitmap Heap Scan on credit_ledger  (cost=4.47..59.58 rows=24 width=30) (actual time=0.041..0.084 rows=24 loops=1)
+                     Recheck Cond: (tenant_id = '8641a01e-babb-4e44-d36d-f68e5233c7fb'::uuid)
+                     Heap Blocks: exact=24
+                     Buffers: shared hit=26
+                     ->  Bitmap Index Scan on credit_ledger_tenant_id_id_key  (cost=0.00..4.46 rows=24 width=0) (actual time=0.011..0.011 rows=24 loops=1)
+                           Index Cond: (tenant_id = '8641a01e-babb-4e44-d36d-f68e5233c7fb'::uuid)
+                           Buffers: shared hit=2
+ Planning:
+   Buffers: shared hit=196 dirtied=1
+ Planning Time: 0.640 ms
+ Execution Time: 0.368 ms
+(23 rows)
+
+              set_config              
+--------------------------------------
+ 8641a01e-babb-4e44-d36d-f68e5233c7fb
+(1 row)
+
+                                                                        QUERY PLAN                                                                         
+-----------------------------------------------------------------------------------------------------------------------------------------------------------
+ Limit  (cost=60.39..60.44 rows=20 width=30) (actual time=0.354..0.359 rows=20 loops=1)
+   Buffers: shared hit=35
+   InitPlan 1 (returns $0)
+     ->  Result  (cost=0.00..0.26 rows=1 width=16) (actual time=0.223..0.224 rows=1 loops=1)
+           Buffers: shared hit=6
+   ->  Sort  (cost=60.13..60.19 rows=24 width=30) (actual time=0.352..0.355 rows=20 loops=1)
+         Sort Key: credit_ledger.id DESC
+         Sort Method: quicksort  Memory: 26kB
+         Buffers: shared hit=35
+         ->  Result  (cost=4.47..59.58 rows=24 width=30) (actual time=0.252..0.320 rows=24 loops=1)
+               One-Time Filter: ($0 = '8641a01e-babb-4e44-d36d-f68e5233c7fb'::uuid)
+               Buffers: shared hit=32
+               ->  Bitmap Heap Scan on credit_ledger  (cost=4.47..59.58 rows=24 width=30) (actual time=0.025..0.085 rows=24 loops=1)
+                     Recheck Cond: (tenant_id = '8641a01e-babb-4e44-d36d-f68e5233c7fb'::uuid)
+                     Heap Blocks: exact=24
+                     Buffers: shared hit=26
+                     ->  Bitmap Index Scan on credit_ledger_tenant_id_id_key  (cost=0.00..4.46 rows=24 width=0) (actual time=0.014..0.014 rows=24 loops=1)
+                           Index Cond: (tenant_id = '8641a01e-babb-4e44-d36d-f68e5233c7fb'::uuid)
+                           Buffers: shared hit=2
+ Planning:
+   Buffers: shared hit=195
+ Planning Time: 0.976 ms
+ Execution Time: 0.427 ms
+(23 rows)
+
+              set_config              
+--------------------------------------
+ 8641a01e-babb-4e44-d36d-f68e5233c7fb
+(1 row)
+
+                                                                        QUERY PLAN                                                                         
+-----------------------------------------------------------------------------------------------------------------------------------------------------------
+ Limit  (cost=60.39..60.44 rows=20 width=30) (actual time=0.273..0.277 rows=20 loops=1)
+   Buffers: shared hit=35
+   InitPlan 1 (returns $0)
+     ->  Result  (cost=0.00..0.26 rows=1 width=16) (actual time=0.187..0.187 rows=1 loops=1)
+           Buffers: shared hit=6
+   ->  Sort  (cost=60.13..60.19 rows=24 width=30) (actual time=0.272..0.274 rows=20 loops=1)
+         Sort Key: credit_ledger.id DESC
+         Sort Method: quicksort  Memory: 26kB
+         Buffers: shared hit=35
+         ->  Result  (cost=4.47..59.58 rows=24 width=30) (actual time=0.207..0.249 rows=24 loops=1)
+               One-Time Filter: ($0 = '8641a01e-babb-4e44-d36d-f68e5233c7fb'::uuid)
+               Buffers: shared hit=32
+               ->  Bitmap Heap Scan on credit_ledger  (cost=4.47..59.58 rows=24 width=30) (actual time=0.017..0.055 rows=24 loops=1)
+                     Recheck Cond: (tenant_id = '8641a01e-babb-4e44-d36d-f68e5233c7fb'::uuid)
+                     Heap Blocks: exact=24
+                     Buffers: shared hit=26
+                     ->  Bitmap Index Scan on credit_ledger_tenant_id_id_key  (cost=0.00..4.46 rows=24 width=0) (actual time=0.009..0.009 rows=24 loops=1)
+                           Index Cond: (tenant_id = '8641a01e-babb-4e44-d36d-f68e5233c7fb'::uuid)
+                           Buffers: shared hit=2
+ Planning:
+   Buffers: shared hit=195
+ Planning Time: 0.562 ms
+ Execution Time: 0.328 ms
+(23 rows)
+
