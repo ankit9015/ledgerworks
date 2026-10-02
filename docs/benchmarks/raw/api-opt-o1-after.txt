@@ -6538,3 +6538,6 @@
 {"level":30,"time":1790932905372,"pid":29516,"hostname":"LAPTOP-FOLHV4TB","requestId":"b7d37ad3-51d2-48e3-827a-01e3ca5fcd79","res":{"statusCode":200},"responseTime":10.67499999993015,"msg":"request completed"}
 {"level":30,"time":1790932905375,"pid":29516,"hostname":"LAPTOP-FOLHV4TB","requestId":"fbc7898f-7aaf-4d55-ac7a-f4f12900918d","req":{"method":"GET","url":"/v1/usage?from=2026-08-06T00:00:00.000Z&to=2026-08-13T00:00:00.000Z&limit=50&cursor=eyJ0IjoiMjAyNi0wOC0xMFQxOTozNzowOC4yMDcxMzVaIiwiaSI6IjI0ODYxODg2LWM1Y2EtN2ExMS1mNzUzLTFlNTQzZTU3OWNjMiJ9","host":"host.docker.internal:3000","remoteAddress":"127.0.0.1","remotePort":64180},"msg":"incoming request"}
 {"level":30,"time":1790932905383,"pid":29516,"hostname":"LAPTOP-FOLHV4TB","requestId":"fbc7898f-7aaf-4d55-ac7a-f4f12900918d","res":{"statusCode":200},"responseTime":8.42160000000149,"msg":"request completed"}
+D:\github\ledgerworks\ledgerline:
+ ERR_PNPM_RECURSIVE_RUN_FIRST_FAIL  @ledgerworks/ledgerline@0.0.0 dev: `tsx src/server.ts`
+Exit status 4294967295

@@ -157,6 +157,107 @@ Execution Time: 0.539 ms
 - **Decision:** **no index added, nothing changed.** A covering or `(tenant_id, occurred_at DESC, id DESC)` index would remove the 51-row incremental sort, which costs microseconds, at the price of a second index on every partition (more write cost and storage for no measurable gain). Not built, so there is no ingest or size cost to report.
 - **What was learned:** the index decided in D13 (`(tenant_id, occurred_at)` per partition) is the right one for this pattern; the earlier slowness was entirely E1. The `eventType` filter is not indexed on purpose (D13) and is fast enough here only because the filter is applied while walking the time order; a very rare type in a very large window could scan far more rows, and was not measured at that extreme.
 
+### E3. Job claim: two partial indexes and a provable predicate (queue throughput about 3.9x)
+
+- **Observation:** O6 (below).
+- **Slow query:** the two statements of `ledgerline_fn.claim_jobs` (migration 0004) that scan `jobs`, run on **every** claim: the pick (`... WHERE queue = $1 AND ((status IN ('queued','failed') AND run_at <= now) OR (status = 'running' AND lease_expires_at <= now AND attempts < max_attempts)) ORDER BY run_at, id LIMIT n FOR UPDATE SKIP LOCKED`) and the lease-expiry check that opens the function (`status = 'running' AND lease_expires_at <= now AND attempts >= max_attempts`). P1.9 only planned the first; the second is also a sequential scan and was added to the benchmark output here. SQL: `docs/benchmarks/sql/queue-claim-plans.sql`.
+- **`EXPLAIN (ANALYZE, BUFFERS)` before** (10,000 queued synthetic jobs in one queue, fresh database; `raw/queue-throughput-o6-before.txt`). Pick: a sequential scan and a sort of all 10,000 rows to return 1 (9.263 ms in this run, 5.670 ms in the P1.9 run; the spread is the machine):
+
+```
+Limit  (cost=532.00..532.01 rows=1 width=30) (actual time=9.229..9.231 rows=1 loops=1)
+  Buffers: shared hit=183
+  ->  LockRows  (cost=532.00..657.00 rows=10000 width=30) (actual time=9.227..9.228 rows=1 loops=1)
+        Buffers: shared hit=183
+        ->  Sort  (cost=532.00..557.00 rows=10000 width=30) (actual time=9.204..9.205 rows=1 loops=1)
+              Sort Key: run_at, id
+              Sort Method: quicksort  Memory: 931kB
+              Buffers: shared hit=182
+              ->  Seq Scan on jobs j  (cost=0.00..482.00 rows=10000 width=30) (actual time=0.007..3.735 rows=10000 loops=1)
+                    Filter: ((queue = 'bench'::text) AND (((status = ANY ('{queued,failed}'::text[])) AND (run_at <= now())) OR ((status = 'running'::text) AND (lease_expires_at <= now()) AND (attempts < max_attempts))))
+                    Buffers: shared hit=182
+Planning:
+  Buffers: shared hit=67 read=1
+Planning Time: 0.244 ms
+Execution Time: 9.263 ms
+```
+
+Lease-expiry check: a sequential scan too (1.895 ms):
+
+```
+LockRows  (cost=0.00..407.01 rows=1 width=22) (actual time=1.868..1.869 rows=0 loops=1)
+  Buffers: shared hit=182
+  ->  Seq Scan on jobs j  (cost=0.00..407.00 rows=1 width=22) (actual time=1.867..1.868 rows=0 loops=1)
+        Filter: ((attempts >= max_attempts) AND (queue = 'bench'::text) AND (status = 'running'::text) AND (lease_expires_at <= now()))
+        Rows Removed by Filter: 10000
+        Buffers: shared hit=182
+Planning:
+  Buffers: shared hit=1
+Planning Time: 0.121 ms
+Execution Time: 1.895 ms
+```
+
+- **Change** (migration `0006_claim_indexes.sql`; one logical change: make both scans indexable):
+
+  ```sql
+  CREATE INDEX jobs_claim_idx ON jobs (queue, run_at, id) WHERE status IN ('queued', 'failed', 'running');
+  CREATE INDEX jobs_lease_idx ON jobs (queue, lease_expires_at) WHERE status = 'running';
+  ```
+
+  and the pick restated, same semantics and ordering, so that the planner can prove the partial-index predicate (it cannot for an `OR` of different status tests: the first attempt, the index alone with the old query, was **not used** by default: the planner still chose the sequential scan, and with `enable_seqscan = off` it only built an unordered BitmapOr that still sorted 6,950 rows; only the restated query gets the ordered index scan) and use `run_at` as an index range:
+
+  ```sql
+  WHERE j.queue = p_queue AND j.run_at <= p_now
+    AND j.status IN ('queued', 'failed', 'running')
+    AND (j.status <> 'running' OR (j.lease_expires_at <= p_now AND j.attempts < j.max_attempts))
+  ORDER BY j.run_at, j.id LIMIT p_limit FOR UPDATE SKIP LOCKED
+  ```
+
+  Added `run_at <= p_now` for running jobs is implied (a job only becomes running through `claim_jobs`, which needs `run_at` <= the claim time, and a lease expires after that), so the rows claimed are the same; this invariant is recorded in the migration and in D22. `FOR UPDATE SKIP LOCKED`, the `LIMIT`, the ordering and everything after the pick are unchanged.
+
+- **`EXPLAIN (ANALYZE, BUFFERS)` after** (same data; `raw/queue-throughput-o6-after.txt`). Pick, an ordered index scan with no sort, 4 buffers (0.043 ms):
+
+```
+Limit  (cost=0.29..0.41 rows=1 width=30) (actual time=0.023..0.023 rows=1 loops=1)
+  Buffers: shared hit=4
+  ->  LockRows  (cost=0.29..1180.35 rows=10000 width=30) (actual time=0.022..0.022 rows=1 loops=1)
+        Buffers: shared hit=4
+        ->  Index Scan using jobs_claim_idx on jobs j  (cost=0.29..1080.35 rows=10000 width=30) (actual time=0.015..0.016 rows=1 loops=1)
+              Index Cond: ((queue = 'bench'::text) AND (run_at <= now()))
+              Filter: ((status = ANY ('{queued,failed,running}'::text[])) AND ((status <> 'running'::text) OR ((lease_expires_at <= now()) AND (attempts < max_attempts))))
+              Buffers: shared hit=3
+Planning:
+  Buffers: shared hit=83 read=2
+Planning Time: 0.346 ms
+Execution Time: 0.043 ms
+```
+
+Lease-expiry check (0.019 ms):
+
+```
+LockRows  (cost=0.13..5.91 rows=1 width=22) (actual time=0.004..0.004 rows=0 loops=1)
+  Buffers: shared hit=2
+  ->  Index Scan using jobs_lease_idx on jobs j  (cost=0.13..5.90 rows=1 width=22) (actual time=0.003..0.003 rows=0 loops=1)
+        Index Cond: ((queue = 'bench'::text) AND (lease_expires_at <= now()))
+        Filter: ((attempts >= max_attempts) AND (status = 'running'::text))
+        Buffers: shared hit=2
+Planning:
+  Buffers: shared hit=2
+Planning Time: 0.095 ms
+Execution Time: 0.019 ms
+```
+
+- **Measured** (`pnpm --filter @ledgerworks/ledgerline bench:queue`, the P1.9 method: 10,000 no-op jobs, 50 workers, 3 runs, each on a freshly created and migrated database, nothing else running; before re-measured in the same session as the after):
+
+  |                     | run 1                 | run 2                 | run 3                 | median (range)                   |
+  | ------------------- | --------------------- | --------------------- | --------------------- | -------------------------------- |
+  | before (0004 only)  | 67.0 jobs/s (149.3 s) | 64.5 jobs/s (155.1 s) | 64.0 jobs/s (156.2 s) | **64.5 jobs/s (64.0 – 67.0)**    |
+  | after (0004 + 0006) | 257.7 jobs/s (38.8 s) | 253.1 jobs/s (39.5 s) | 250.1 jobs/s (40.0 s) | **253.1 jobs/s (250.1 – 257.7)** |
+
+  A 3.9x increase in throughput, far outside the spread (the ranges are 5% and 3%, nowhere near overlapping). The P1.9 record said 77.1 jobs/s (72.1 – 85.6) for the unchanged code; the "before" measured today is lower by about 16%, which is a measure of how much this machine drifts between sessions, and is why the before was re-run rather than quoted. The full-size correctness test (`pnpm test:concurrency`, 50 workers, 10,000 jobs, no job executed twice, none lost, no double-claim of a live lease) went from about 160 s to **38.8 s (257 jobs/s)** and still passes, and the 11 queue tests (backoff schedule, dead letters, crashed workers and lease expiry, fencing of stale workers, idempotent enqueue, access control) pass unchanged.
+
+- **Write and storage cost:** two more indexes on `jobs`, maintained on every enqueue, claim and acknowledgement. Scratch database, bulk `INSERT` of 100,000 queued jobs, 5 runs: **median 2,637 ms with the two indexes against 2,001 ms without (about 30% more for a bulk insert)**, ranges 2,267 – 2,974 against 1,919 – 2,164 ms (`raw/o6-index-write-cost.txt`); that is about 6 microseconds more per row inserted. Size at 110,000 queued jobs: `jobs_claim_idx` **6.9 MB** (table 15 MB, primary key 4.6 MB); `jobs_lease_idx` is empty unless jobs are running (8 KB). Succeeded and dead jobs are in neither index, so they do not grow with history. The end-to-end drain, which includes all the claim and acknowledgement writes, still got 3.9x faster, so in this workload the extra write cost is far smaller than the read saving. It was not measured on the HTTP ingest path (the queue has no HTTP path yet).
+- **What was learned:** (1) A partial index is only used when the planner can prove the query implies its predicate; an `OR` of different status tests defeated that, so the query shape had to change together with the index (an index alone would have been a silent no-op, which `EXPLAIN` showed). (2) Read the whole function, not only the headline query: the cheap-looking first statement was also a sequential scan. (3) The older `jobs_runnable_idx (queue, run_at) WHERE status = 'queued'` from migration 0001 is now not used by any query and is a candidate for dropping (not done here: one change at a time, and not measured).
+
 <!-- ENTRIES -->
 
 ## Observations (not yet acted on)
@@ -242,7 +343,7 @@ Migration 0003 added a unique constraint on `credit_ledger (tenant_id, id)` (req
 - **Evidence:** `EXPLAIN (ANALYZE, BUFFERS)` against 10,000 queued synthetic jobs (Postgres 16.15, 2 CPU / 2 GiB container) shows `Seq Scan on jobs` + `Sort` over all 10,000 rows to return 1: Execution Time 5.670 ms, 182 buffer hits. Full plan in `docs/benchmarks/queue.md` and `docs/benchmarks/raw/queue-throughput.txt`.
 - **Measured impact:** 10,000 no-op jobs with 50 workers: median 77.1 jobs/s (72.1 to 85.6) over 3 runs. The full-size correctness test takes about 160 s.
 - **Why:** the existing partial index `(queue, run_at) WHERE status = 'queued'` cannot serve the `OR` that makes `failed` jobs and expired leases claimable.
-- **Status:** not fixed (no tuning in this task). Candidate directions for P1.10, to be measured and not assumed: an index that matches the real predicate, or a `UNION ALL` of index-friendly branches.
+- **Status:** FIXED in E3 (two partial indexes plus a provable predicate; queue throughput 64.5 to 253.1 jobs/s).
 
 ### O7. Credit and queue functions are plpgsql round trips
 

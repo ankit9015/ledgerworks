@@ -1,0 +1,40 @@
+
+> @ledgerworks/ledgerline@0.0.0 bench:queue D:\github\ledgerworks\ledgerline
+> tsx src/bench/queue-throughput.ts
+
+queue throughput: 10000 jobs, 50 workers, 3 runs, no-op handler
+started 2026-10-02T09:55:50.472Z
+--- EXPLAIN (ANALYZE, BUFFERS) of the claim pick, 10,000 queued jobs ---
+Limit  (cost=532.00..532.01 rows=1 width=30) (actual time=9.229..9.231 rows=1 loops=1)
+  Buffers: shared hit=183
+  ->  LockRows  (cost=532.00..657.00 rows=10000 width=30) (actual time=9.227..9.228 rows=1 loops=1)
+        Buffers: shared hit=183
+        ->  Sort  (cost=532.00..557.00 rows=10000 width=30) (actual time=9.204..9.205 rows=1 loops=1)
+              Sort Key: run_at, id
+              Sort Method: quicksort  Memory: 931kB
+              Buffers: shared hit=182
+              ->  Seq Scan on jobs j  (cost=0.00..482.00 rows=10000 width=30) (actual time=0.007..3.735 rows=10000 loops=1)
+                    Filter: ((queue = 'bench'::text) AND (((status = ANY ('{queued,failed}'::text[])) AND (run_at <= now())) OR ((status = 'running'::text) AND (lease_expires_at <= now()) AND (attempts < max_attempts))))
+                    Buffers: shared hit=182
+Planning:
+  Buffers: shared hit=67 read=1
+Planning Time: 0.244 ms
+Execution Time: 9.263 ms
+---
+--- EXPLAIN (ANALYZE, BUFFERS) of the exhausted-lease check, same queue ---
+LockRows  (cost=0.00..407.01 rows=1 width=22) (actual time=1.868..1.869 rows=0 loops=1)
+  Buffers: shared hit=182
+  ->  Seq Scan on jobs j  (cost=0.00..407.00 rows=1 width=22) (actual time=1.867..1.868 rows=0 loops=1)
+        Filter: ((attempts >= max_attempts) AND (queue = 'bench'::text) AND (status = 'running'::text) AND (lease_expires_at <= now()))
+        Rows Removed by Filter: 10000
+        Buffers: shared hit=182
+Planning:
+  Buffers: shared hit=1
+Planning Time: 0.121 ms
+Execution Time: 1.895 ms
+---
+run 1: 10000 jobs in 149.28 s = 67.0 jobs/s (all 10000 succeeded, max attempts 1)
+run 2: 10000 jobs in 155.14 s = 64.5 jobs/s (all 10000 succeeded, max attempts 1)
+run 3: 10000 jobs in 156.18 s = 64.0 jobs/s (all 10000 succeeded, max attempts 1)
+median 64.5 jobs/s, min 64.0, max 67.0
+EXIT 0

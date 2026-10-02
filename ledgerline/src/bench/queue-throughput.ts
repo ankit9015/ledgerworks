@@ -59,16 +59,34 @@ async function oneRun(run: number): Promise<number> {
       const c = await admin.connect();
       try {
         await c.query('BEGIN');
+        // The pick as written in the migration that is applied (0004, or 0006 once it exists).
+        const indexed = await c.query(`SELECT to_regclass('jobs_claim_idx') AS idx`);
+        const pick = indexed.rows[0].idx
+          ? `j.queue = 'bench' AND j.run_at <= now()
+             AND j.status IN ('queued', 'failed', 'running')
+             AND (j.status <> 'running' OR (j.lease_expires_at <= now() AND j.attempts < j.max_attempts))`
+          : `j.queue = 'bench'
+             AND ((j.status IN ('queued', 'failed') AND j.run_at <= now())
+               OR (j.status = 'running' AND j.lease_expires_at <= now() AND j.attempts < j.max_attempts))`;
         const plan = await c.query(
           `EXPLAIN (ANALYZE, BUFFERS)
-           SELECT j.id FROM jobs j
-           WHERE j.queue = 'bench'
-             AND ((j.status IN ('queued', 'failed') AND j.run_at <= now())
-               OR (j.status = 'running' AND j.lease_expires_at <= now() AND j.attempts < j.max_attempts))
+           SELECT j.id FROM jobs j WHERE ${pick}
            ORDER BY j.run_at, j.id LIMIT 1 FOR UPDATE SKIP LOCKED`,
         );
         console.log('--- EXPLAIN (ANALYZE, BUFFERS) of the claim pick, 10,000 queued jobs ---');
         for (const row of plan.rows) console.log(row['QUERY PLAN']);
+        console.log('---');
+        // The first statement of claim_jobs: find running jobs whose lease expired with all
+        // attempts used (it runs on every claim, so it matters as much as the pick).
+        const exhausted = await c.query(
+          `EXPLAIN (ANALYZE, BUFFERS)
+           SELECT j.id FROM jobs j
+           WHERE j.queue = 'bench' AND j.status = 'running'
+             AND j.lease_expires_at <= now() AND j.attempts >= j.max_attempts
+           FOR UPDATE SKIP LOCKED`,
+        );
+        console.log('--- EXPLAIN (ANALYZE, BUFFERS) of the exhausted-lease check, same queue ---');
+        for (const row of exhausted.rows) console.log(row['QUERY PLAN']);
         console.log('---');
         await c.query('ROLLBACK');
       } finally {

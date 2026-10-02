@@ -1,0 +1,15 @@
+# O6 / E3: bulk-insert cost and size of the two new indexes (scratch database ledgerline_proto,
+# migrated to 0006, superuser, 5 alternating sets). Statement per run:
+#   TRUNCATE jobs CASCADE;
+#   INSERT INTO jobs (tenant_id, queue, type, payload, run_at)
+#     SELECT (SELECT id FROM tenants LIMIT 1), 'bench','noop', jsonb_build_object('n',g), now()
+#     FROM generate_series(0,99999) g;          -- 100,000 rows; psql \timing, milliseconds, sorted
+with 0006 indexes: 2267.211 2414.864 2636.642 2784.006 2973.974
+without them:      1918.753 1932.650 2001.113 2101.040 2164.140
+with them again:   2423.731 2520.717 2539.124 2588.959 2880.664
+# sizes with 110,000 queued jobs in the table (pg_relation_size)
+jobs_claim_idx|6872 kB
+jobs_lease_idx|8192 bytes (no running jobs)
+jobs|15 MB
+jobs_pkey|4624 kB
+jobs_runnable_idx|712 kB (the older partial index, still present)
