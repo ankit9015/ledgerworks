@@ -62,3 +62,41 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - run: pnpm test:concurrency
+  # Admin UI end to end (Playwright, real browser) against the real API and a small demo seed.
+  e2e:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: ledgerworks
+          POSTGRES_PASSWORD: ledgerworks
+          POSTGRES_DB: ledgerworks
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U ledgerworks -d ledgerworks"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 20
+    env:
+      DATABASE_ADMIN_URL: postgres://ledgerworks:ledgerworks@localhost:5432/ledgerworks
+      E2E_KEYS_FILE: .seed/keys-demo.json
+    steps:
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm migrate
+      - run: pnpm seed:demo
+      - run: pnpm exec playwright install --with-deps chromium
+      - run: pnpm e2e
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-traces
+          path: test-results/

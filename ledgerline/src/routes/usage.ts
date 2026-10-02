@@ -169,4 +169,55 @@ export const usageRoutes: FastifyPluginAsync<{ db: Db }> = async (app, { db }) =
       };
     },
   );
+
+  // Daily totals for a chart: events and summed quantity per UTC day in [from, to), at most 92 days.
+  app.get<{ Querystring: { from?: string; to?: string } }>(
+    '/v1/usage/summary',
+    {
+      preValidation: app.requireApiKey,
+      schema: {
+        querystring: {
+          type: 'object',
+          additionalProperties: false,
+          properties: {
+            from: { type: 'string', format: 'date-time' },
+            to: { type: 'string', format: 'date-time' },
+          },
+        },
+      },
+    },
+    async (req) => {
+      const tenantId = tenantOf(req);
+      const to = req.query.to ? new Date(req.query.to) : new Date();
+      const from = req.query.from
+        ? new Date(req.query.from)
+        : new Date(to.getTime() - 30 * 86400e3);
+      if (from >= to) {
+        throw new ApiError(400, 'invalid_range', '"from" must be earlier than "to"');
+      }
+      if (to.getTime() - from.getTime() > 92 * 86400e3) {
+        throw new ApiError(400, 'range_too_large', 'The range can be at most 92 days');
+      }
+      const rows = await withTenant(db, tenantId, async (client) => {
+        const r = await client.query<{ day: string; events: string; quantity: string }>(
+          `SELECT to_char(date_trunc('day', occurred_at AT TIME ZONE 'UTC'), 'YYYY-MM-DD') AS day,
+                  count(*) AS events, sum(quantity) AS quantity
+           FROM usage_events
+           WHERE tenant_id = $1 AND occurred_at >= $2::timestamptz AND occurred_at < $3::timestamptz
+           GROUP BY 1 ORDER BY 1`,
+          [tenantId, from.toISOString(), to.toISOString()],
+        );
+        return r.rows;
+      });
+      return {
+        from: from.toISOString(),
+        to: to.toISOString(),
+        days: rows.map((r) => ({
+          day: r.day,
+          events: Number(r.events),
+          quantity: Number(r.quantity),
+        })),
+      };
+    },
+  );
 };

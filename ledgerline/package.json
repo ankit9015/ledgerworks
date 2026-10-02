@@ -7,6 +7,7 @@
     "typecheck": "tsc -p tsconfig.json",
     "migrate": "tsx src/db/migrate-cli.ts",
     "seed": "tsx src/seed/seed.ts",
+    "seed:demo": "tsx src/seed/demo-seed.ts",
     "demo:queue": "tsx src/queue/demo-worker.ts",
     "partitions:ensure": "tsx src/partitions-cli.ts",
     "bench:queue": "tsx src/bench/queue-throughput.ts",

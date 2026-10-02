@@ -93,7 +93,7 @@ Purpose: a realistic, data-heavy, multi-tenant backend that is fast, correct und
   - **Done when:** the overhead is published as a table in `docs/benchmarks/`.
 - [x] **P1.12** Observability: OpenTelemetry traces, a `/metrics` endpoint, a Grafana dashboard JSON in the repo (request latency, queue depth and age, slow queries from `pg_stat_statements`).
   - **Done when:** `docker compose --profile obs up` shows the dashboard with live data.
-- [ ] **P1.13** Small admin UI (React + Vite): tenant usage chart, credit balance, queue health.
+- [x] **P1.13** Small admin UI (React + Vite): tenant usage chart, credit balance, queue health.
   - **Done when:** it shows loading, empty and error states for each panel.
 
 ### Phase 1 deliverable

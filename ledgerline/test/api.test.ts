@@ -179,6 +179,9 @@ describe('authentication (all protected endpoints)', () => {
     { method: 'POST', url: '/v1/usage-events', payload: { eventType: 'x', quantity: 1 } },
     { method: 'GET', url: '/v1/usage' },
     { method: 'GET', url: '/v1/credits/balance' },
+    { method: 'GET', url: '/v1/credits/ledger' },
+    { method: 'GET', url: '/v1/usage/summary' },
+    { method: 'GET', url: '/v1/queue/stats' },
   ] as const;
 
   it('rejects missing, malformed, wrong-scheme, unknown and revoked keys with an identical 401', async () => {
@@ -436,6 +439,136 @@ describe('GET /v1/credits/balance', () => {
       headers: bearer(b.key),
     });
     expect(other.json().balance).toBe(0);
+  });
+});
+
+describe('admin read endpoints: ledger, usage summary, queue stats', () => {
+  async function seedTenant(label: string) {
+    const t = await createTenant(`admin-${label}-${unique()}`);
+    await admin.query(`UPDATE credit_balances SET balance = 70 WHERE tenant_id = $1`, [t.id]);
+    await admin.query(
+      `INSERT INTO credit_ledger (tenant_id, amount, kind, balance_after, reference)
+       VALUES ($1, 100, 'grant', 100, $2), ($1, -30, 'debit', 70, $2)`,
+      [t.id, `ref-${label}`],
+    );
+    await admin.query(
+      `INSERT INTO usage_events (tenant_id, occurred_at, event_type, quantity) VALUES
+         ($1, '2026-03-01T10:00:00Z', $2, 5), ($1, '2026-03-01T23:59:59Z', $2, 7),
+         ($1, '2026-03-02T00:00:00Z', $2, 11)`,
+      [t.id, `evt-${label}`],
+    );
+    const j = await admin.query(
+      `INSERT INTO jobs (tenant_id, type, status, run_at, attempts, max_attempts, last_error)
+       VALUES ($1, 'q', 'queued', now() - interval '90 seconds', 0, 3, NULL),
+              ($1, 'q', 'succeeded', now(), 1, 3, NULL),
+              ($1, 'q', 'dead', now(), 3, 3, $2) RETURNING id, status`,
+      [t.id, `boom-${label} ${'x'.repeat(300)}`],
+    );
+    const dead = j.rows.find((r) => r.status === 'dead');
+    await admin.query(
+      `INSERT INTO dead_letters (tenant_id, job_id, type, payload, attempts, last_error)
+       VALUES ($1, $2, 'q', '{}', 3, $3)`,
+      [t.id, dead.id, `boom-${label} ${'x'.repeat(300)}`],
+    );
+    return t;
+  }
+
+  it('GET /v1/credits/ledger: newest first, paginated by id, validated', async () => {
+    const a = await seedTenant('a');
+    const res = await server.inject({ url: '/v1/credits/ledger', headers: bearer(a.key) });
+    expect(res.statusCode).toBe(200);
+    const body = res.json();
+    expect(body.items.map((i: { kind: string }) => i.kind)).toEqual(['debit', 'grant']);
+    expect(body.items[0]).toMatchObject({ amount: -30, balanceAfter: 70, reference: 'ref-a' });
+    expect(body.nextCursor).toBeNull();
+    const page1 = await server.inject({
+      url: '/v1/credits/ledger?limit=1',
+      headers: bearer(a.key),
+    });
+    expect(page1.json().items).toHaveLength(1);
+    expect(page1.json().nextCursor).not.toBeNull();
+    const page2 = await server.inject({
+      url: `/v1/credits/ledger?limit=1&cursor=${page1.json().nextCursor}`,
+      headers: bearer(a.key),
+    });
+    expect(page2.json().items[0].kind).toBe('grant');
+    expect(page2.json().nextCursor).toBeNull();
+    for (const bad of ['limit=0', 'limit=101', 'limit=abc', 'cursor=x', 'tenant_id=1']) {
+      const r = await server.inject({ url: `/v1/credits/ledger?${bad}`, headers: bearer(a.key) });
+      expect(r.statusCode, bad).toBe(400);
+    }
+  });
+
+  it('GET /v1/usage/summary: daily totals in UTC, range limits', async () => {
+    const a = await seedTenant('a');
+    const res = await server.inject({
+      url: '/v1/usage/summary?from=2026-03-01T00:00:00Z&to=2026-03-05T00:00:00Z',
+      headers: bearer(a.key),
+    });
+    expect(res.statusCode).toBe(200);
+    expect(res.json().days).toEqual([
+      { day: '2026-03-01', events: 2, quantity: 12 },
+      { day: '2026-03-02', events: 1, quantity: 11 },
+    ]);
+    const tooBig = await server.inject({
+      url: '/v1/usage/summary?from=2025-01-01T00:00:00Z&to=2026-01-01T00:00:00Z',
+      headers: bearer(a.key),
+    });
+    expect(tooBig.statusCode).toBe(400);
+    expect(tooBig.json().error.code).toBe('range_too_large');
+    const inverted = await server.inject({
+      url: '/v1/usage/summary?from=2026-03-05T00:00:00Z&to=2026-03-01T00:00:00Z',
+      headers: bearer(a.key),
+    });
+    expect(inverted.json().error.code).toBe('invalid_range');
+    const dflt = await server.inject({ url: '/v1/usage/summary', headers: bearer(a.key) });
+    expect(dflt.statusCode).toBe(200); // default: the last 30 days
+  });
+
+  it('GET /v1/queue/stats: counts by state, oldest waiting age, truncated dead-letter errors', async () => {
+    const a = await seedTenant('a');
+    const res = await server.inject({ url: '/v1/queue/stats', headers: bearer(a.key) });
+    expect(res.statusCode).toBe(200);
+    const body = res.json();
+    expect(body.counts).toEqual({ queued: 1, running: 0, failed: 0, succeeded: 1, dead: 1 });
+    expect(body.oldestRunnableAgeSeconds).toBeGreaterThan(85);
+    expect(body.oldestRunnableAgeSeconds).toBeLessThan(200);
+    expect(body.recentDeadLetters).toHaveLength(1);
+    expect(body.recentDeadLetters[0].lastError.length).toBe(200);
+    const empty = await createTenant();
+    const none = await server.inject({ url: '/v1/queue/stats', headers: bearer(empty.key) });
+    expect(none.json()).toEqual({
+      counts: { queued: 0, running: 0, failed: 0, succeeded: 0, dead: 0 },
+      oldestRunnableAgeSeconds: null,
+      recentDeadLetters: [],
+    });
+  });
+
+  it('a tenant never sees another tenant on any of the three endpoints (both directions)', async () => {
+    const a = await seedTenant('a');
+    const b = await seedTenant('b');
+    for (const [mine, theirs, label, other] of [
+      [a, b, 'a', 'b'],
+      [b, a, 'b', 'a'],
+    ] as const) {
+      const ledger = (
+        await server.inject({ url: '/v1/credits/ledger?limit=100', headers: bearer(mine.key) })
+      ).body;
+      expect(ledger).toContain(`ref-${label}`);
+      expect(ledger).not.toContain(`ref-${other}`);
+      const usage = await server.inject({
+        url: '/v1/usage/summary?from=2026-03-01T00:00:00Z&to=2026-03-05T00:00:00Z',
+        headers: bearer(mine.key),
+      });
+      expect(usage.json().days.reduce((s: number, d: { events: number }) => s + d.events, 0)).toBe(
+        3,
+      );
+      const queue = (await server.inject({ url: '/v1/queue/stats', headers: bearer(mine.key) }))
+        .body;
+      expect(queue).toContain(`boom-${label}`);
+      expect(queue).not.toContain(`boom-${other}`);
+      expect(queue).not.toContain(theirs.id);
+    }
   });
 });
 

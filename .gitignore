@@ -5,3 +5,6 @@ coverage/
 *.log
 .DS_Store
 .seed/
+test-results/
+playwright-report/
+ledgerline/ui/dist/

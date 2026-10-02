@@ -29,6 +29,17 @@ export default defineWorkspace(
           test: { name, root: `./${name}`, include: ['src/**/*.test.ts'] },
         })),
         {
+          // The admin UI: component tests in jsdom (Playwright covers the real browser, see e2e/).
+          esbuild: { jsx: 'automatic' as const },
+          test: {
+            name: 'ledgerline-ui',
+            root: './ledgerline/ui',
+            environment: 'jsdom',
+            include: ['test/**/*.test.tsx'],
+            setupFiles: ['./test/setup.ts'],
+          },
+        },
+        {
           test: {
             ...ledgerline,
             name: 'ledgerline',

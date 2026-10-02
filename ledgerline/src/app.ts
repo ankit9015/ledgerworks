@@ -7,6 +7,7 @@ import { healthRoutes } from './routes/health.js';
 import { tenantRoutes } from './routes/tenants.js';
 import { usageRoutes } from './routes/usage.js';
 import { creditRoutes } from './routes/credits.js';
+import { queueRoutes } from './routes/queue.js';
 import { registerHttpMetrics } from './observability/metrics.js';
 import { registerHttpTracing } from './observability/tracing.js';
 
@@ -110,5 +111,6 @@ export function buildApp(options: AppOptions): FastifyInstance {
   });
   void app.register(usageRoutes, { db: options.db });
   void app.register(creditRoutes, { db: options.db });
+  void app.register(queueRoutes, { db: options.db });
   return app;
 }

@@ -1,5 +1,6 @@
 packages:
   - ledgerline
+  - ledgerline/ui
   - core
   - ledgerlens
   - ledgerlatch
