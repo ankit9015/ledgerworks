@@ -175,3 +175,47 @@ interface LLMProvider {
 - **`Capabilities`:** `tools`, `streaming`, `jsonMode`, `parallelToolCalls`, `maxContext`, each `{ value: T | null, source: 'declared' | 'probed' | 'unknown' }`.
 - **Errors (`src/llm/errors.ts`):** `LLMError` with `kind` one of `rate_limited` (with `retryAfterMs` when known), `auth_failed`, `timeout`, `network`, `bad_request`, `server_error`, `invalid_response`, `context_length`, `content_filtered`, `cancelled`; plus `status`, `provider`, `midStream` (content had already been delivered) and, for a fallback chain, `causes`. Messages are redacted (`src/security/redact.ts`) and capped; an error never holds a key, headers, or a request or response body.
 - **`FakeProvider` (`src/llm/fake.ts`):** scripts normal replies, tool calls (also malformed arguments and unknown tool names), 429s and other typed errors, hangs (timeout or cancellation), mid-stream failures and slow streams (with an injectable `ManualClock`), and records every request. `collectStream` assembles a stream into a result.
+
+### OpenAI-compatible adapter (`src/llm/openai.ts`, C2.4)
+
+```ts
+const provider = new OpenAICompatibleProvider({
+  baseURL: 'https://api.groq.com/openai/v1',
+  apiKey: process.env.LLM_API_KEY!,
+  model: 'some-model',
+  headers: { 'x-title': 'ledgerworks' },
+  timeoutMs: 60_000,
+  maxRetries: 3,
+});
+const r = await provider.chat({ messages: [{ role: 'user', content: 'hi' }] });
+for await (const e of provider.stream({ messages })) {
+  /* text_delta, tool_call_*, usage, done | error */
+}
+const models = await provider.listModels(); // GET /models, if the endpoint has it
+```
+
+Plain `fetch` (injectable: the safe fetch of C2.7 has the same shape), the OpenAI chat-completions format (`/chat/completions`, `tools`, `tool_choice`, `response_format`, `stream_options.include_usage`).
+
+- **Streaming (server-sent events):** partial tool-call arguments are assembled across chunks; several tool calls in one response; `[DONE]`; comment lines and keep-alives; a stream that ends without `[DONE]` but with a finish reason (accepted, flagged `stream_ended_without_done`); one that ends without finishing (typed mid-stream `network` error) or before any content (`invalid_response`); a malformed chunk (`invalid_response` event, no crash); an error object inside the stream; usage from the last chunk, or an **estimate flagged `estimated`** when the server sends none. Limits: bytes, events, total duration, idle time between chunks.
+- **Retries:** exponential backoff with full jitter on 429, 5xx and network errors; `Retry-After` (seconds or HTTP date, also `retry-after-ms`) is honored as a minimum; a retry budget (default 60 s of sleeping) and `maxRetries`; no retry on other 4xx, on `insufficient_quota`, or on a timeout; **no retry after a stream has delivered content** (a typed `midStream` error instead). Time (`Clock`) and randomness are injectable, so the tests do not sleep.
+- **Errors:** 401/403 `auth_failed`; 429 `rate_limited` (with `retryAfterMs`); 5xx `server_error`; 408 and our own timeouts `timeout`; 400/413/422 `context_length` (code or message), `content_filtered`, otherwise `bad_request`; 404 `bad_request`; connection failures `network`; unreadable or incomplete bodies `invalid_response`; the caller's abort `cancelled`. Messages are redacted (the key, bearer tokens, URL credentials); no body or header is kept.
+
+**Provider quirks handled** (each one that fires is listed in `ChatResult.quirks`):
+
+| Quirk                                                                                                                 | What the adapter does                                                                                                                           |
+| --------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
+| tool-call `arguments` as an object instead of a JSON string                                                           | accepts it, `arguments_as_object`                                                                                                               |
+| `arguments` empty string or `null` (tool without parameters)                                                          | `{}`, `empty_arguments`                                                                                                                         |
+| `arguments` encoded twice (a JSON string holding a JSON string)                                                       | decodes once more, `double_encoded_arguments`                                                                                                   |
+| `arguments` not valid JSON, or valid JSON that is not an object                                                       | **not repaired**: the call is passed on with `argumentsError` and the raw text                                                                  |
+| tool call without `id`                                                                                                | generates `call_<n>`, `tool_call_id_generated`; **duplicate ids are `invalid_response`**                                                        |
+| tool call without a `function` wrapper (`name` and `arguments` on the call)                                           | `flat_tool_call`                                                                                                                                |
+| legacy single `function_call`                                                                                         | converted, `legacy_function_call`                                                                                                               |
+| `finish_reason: "stop"` together with tool calls                                                                      | corrected to `tool_calls`, `finish_reason_corrected_to_tool_calls`; `finish_reason: "tool_calls"` with no readable call is `invalid_response`   |
+| message `content` as a list of parts                                                                                  | joined, `content_as_parts`                                                                                                                      |
+| tool call returned as **plain text** (`<tool_call>{...}</tool_call>`, a bare JSON object or array, or one json fence) | converted only when the whole reply has that shape and every `name` is one of the **offered** tools, `text_tool_call`; anything else stays text |
+| streamed tool calls without `index`                                                                                   | a new `id`, or a new name after a named call, starts a new call, `tool_call_index_missing`                                                      |
+| no usage in the response                                                                                              | estimated (about 4 characters per token), `usage_estimated`, `usage.source: 'estimated'`                                                        |
+| tool call without a name                                                                                              | `invalid_response`                                                                                                                              |
+
+**Manual real-provider check:** `LLM_BASE_URL=... LLM_API_KEY=... LLM_MODEL=... pnpm llm:smoke` runs a plain chat, a streaming chat and one tool-call round trip, prints a summary with the key masked (last 4 characters), and saves the sanitised raw report to `docs/benchmarks/raw/llm-smoke-<host>-<time>.json` (never overwritten). It exits with code 2 and makes no request when a variable is missing. Nothing in the automated tests or CI needs a key.

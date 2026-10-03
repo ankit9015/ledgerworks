@@ -17,7 +17,8 @@
     "migrate": "pnpm --filter @ledgerworks/ledgerline migrate",
     "seed": "pnpm --filter @ledgerworks/ledgerline seed",
     "seed:demo": "pnpm --filter @ledgerworks/ledgerline seed:demo",
-    "test:shadow-full": "node scripts/test-shadow-full.mjs"
+    "test:shadow-full": "node scripts/test-shadow-full.mjs",
+    "llm:smoke": "pnpm --filter @ledgerworks/core llm:smoke"
   },
   "devDependencies": {
     "@eslint/js": "^9.0.0",

@@ -6,7 +6,8 @@
   "scripts": {
     "typecheck": "tsc -p tsconfig.json",
     "shadow": "tsx src/shadow/cli.ts",
-    "variance": "tsx src/harness/variance-cli.ts"
+    "variance": "tsx src/harness/variance-cli.ts",
+    "llm:smoke": "tsx src/llm/smoke-cli.ts"
   },
   "dependencies": {
     "pg": "^8.23.1",

@@ -1,4 +1,5 @@
 import { redactText } from '../security/redact.js';
+import type { RateLimitInfo } from './types.js';
 
 export type LLMErrorKind =
   | 'rate_limited'
@@ -45,6 +46,8 @@ export class LLMError extends Error {
   readonly retryAfterMs: number | undefined;
   readonly midStream: boolean;
   readonly causes: LLMErrorCause[] | undefined;
+  /** rate-limit headers of the failed response, when the server sent them */
+  rateLimit?: RateLimitInfo;
 
   constructor(init: LLMErrorInit) {
     super(redactText(init.message, init.secrets ?? []).slice(0, 500));
