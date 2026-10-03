@@ -171,7 +171,8 @@ export async function runAgent(o: AgentOptions): Promise<RunResult> {
       : undefined;
 
   const steps: StepTrace[] = [];
-  const repairOffered = new Map<string, number>();
+  // One entry per INVALID CALL (not per tool name): offered a repair, valid for the next step only.
+  let repairOffers: { callId: string; name: string; step: number }[] = [];
   let stopReason: StopReason = 'final_answer';
   let finalAnswer: string | null = null;
   let error: RunResult['error'];
@@ -289,6 +290,17 @@ export async function runAgent(o: AgentOptions): Promise<RunResult> {
     calls: ToolCall[],
   ): Promise<{ toolMessages: ToolMessage[]; traces: ToolCallTrace[]; failedForGood: boolean }> {
     const prepared: Prepared[] = [];
+    // offers made in the previous step can be answered now; older ones have expired
+    const answerable = repairOffers.filter((x) => x.step === step - 1);
+    const consumed = new Set<string>();
+    const newOffers: typeof repairOffers = [];
+    // an incoming call answers the first unanswered offer for the same tool, in call order
+    const takeOffer = (name: string): boolean => {
+      const o2 = answerable.find((x) => x.name === name && !consumed.has(x.callId));
+      if (!o2) return false;
+      consumed.add(o2.callId);
+      return true;
+    };
     // Phase 1, one call at a time: unknown names, validation, repair bookkeeping, approval.
     for (const call of calls) {
       const tool = tools.get(call.name);
@@ -310,16 +322,14 @@ export async function runAgent(o: AgentOptions): Promise<RunResult> {
         else problem = summarizeIssues(v.error);
       }
       if (problem !== null) {
-        const offeredAt = repairOffered.get(call.name);
-        if (offeredAt !== undefined && offeredAt < step) {
-          repairOffered.delete(call.name);
+        if (takeOffer(call.name)) {
           failures++;
           p.early = {
             outcome: 'invalid_arguments_failed',
             text: `Tool call failed: the arguments of ${quoted(call.name)} were invalid again after the one repair attempt (${redactText(problem, secrets)}). The tool was not run.`,
           };
         } else {
-          repairOffered.set(call.name, step);
+          newOffers.push({ callId: call.id, name: call.name, step });
           p.early = {
             outcome: 'invalid_arguments',
             text: `Invalid arguments for tool ${quoted(call.name)}: ${redactText(problem, secrets)}. Call the tool again with corrected arguments.`,
@@ -328,8 +338,7 @@ export async function runAgent(o: AgentOptions): Promise<RunResult> {
         prepared.push(p);
         continue;
       }
-      if (repairOffered.has(call.name)) {
-        repairOffered.delete(call.name);
+      if (takeOffer(call.name)) {
         repairs++;
         p.repair = true;
       }
@@ -420,6 +429,7 @@ export async function runAgent(o: AgentOptions): Promise<RunResult> {
       }
       traces.push(trace);
     });
+    repairOffers = newOffers; // older offers expire
     return { toolMessages, traces, failedForGood };
   }
 

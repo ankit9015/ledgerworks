@@ -838,3 +838,76 @@ describe('prompt injection: tests of the LOOP mechanics, not of any model', () =
     });
   });
 });
+
+describe('repair is tracked per call, not per tool name', () => {
+  const sw = (spy: { calls: unknown[] }) => weatherTool(spy);
+
+  it('two calls to the same tool in one step, only one invalid: the valid one is not a repair; the retry of the invalid one is', async () => {
+    const spy = { calls: [] as unknown[] };
+    const p = new FakeProvider({
+      script: [
+        calls(call('get_weather', { city: 'Pune' }), call('get_weather', { city: 5 })),
+        calls(call('get_weather', { city: 'Delhi' })), // retry of the invalid one
+        text('done'),
+      ],
+    });
+    const r = await runAgent({ provider: p, prompt: 'x', tools: [sw(spy)] });
+    const [s0, s1] = r.trace.steps;
+    expect(s0!.toolCalls.map((c) => [c.outcome, c.repair])).toEqual([
+      ['ok', false],
+      ['invalid_arguments', false],
+    ]);
+    expect(s1!.toolCalls.map((c) => [c.outcome, c.repair])).toEqual([['ok', true]]);
+    expect(r.trace.totals).toMatchObject({ repairs: 1, failures: 0, toolErrors: 1 });
+    expect(spy.calls).toEqual([{ city: 'Pune' }, { city: 'Delhi' }]);
+  });
+
+  it('the invalid call comes FIRST in the step and a valid one follows: still no phantom repair', async () => {
+    const p = new FakeProvider({
+      script: [
+        calls(call('get_weather', { city: 5 }), call('get_weather', { city: 'Pune' })),
+        text('done'),
+      ],
+    });
+    const r = await runAgent({ provider: p, prompt: 'x', tools: [sw({ calls: [] })] });
+    expect(r.trace.steps[0]!.toolCalls.map((c) => c.repair)).toEqual([false, false]);
+    expect(r.trace.totals.repairs).toBe(0);
+  });
+
+  it('two invalid calls to the same tool: each gets its own offer; one retry that is invalid again is exactly one failure', async () => {
+    const p = new FakeProvider({
+      script: [
+        calls(call('get_weather', { city: 1 }), call('get_weather', { city: 2 })),
+        calls(call('get_weather', { city: 3 })),
+        text('done'),
+      ],
+    });
+    const r = await runAgent({ provider: p, prompt: 'x', tools: [sw({ calls: [] })] });
+    expect(r.trace.steps[0]!.toolCalls.map((c) => c.outcome)).toEqual([
+      'invalid_arguments',
+      'invalid_arguments',
+    ]);
+    expect(r.trace.steps[1]!.toolCalls[0]!.outcome).toBe('invalid_arguments_failed');
+    expect(r.trace.totals).toMatchObject({ repairs: 0, failures: 1 });
+  });
+
+  it('an offer expires after one step: a later unrelated invalid call is a new first attempt, not a failure', async () => {
+    const other = defineTool({
+      name: 'other',
+      description: 'x',
+      parameters: z.object({}),
+      execute: () => 'ok',
+    });
+    const p = new FakeProvider({
+      script: [
+        calls(call('get_weather', { city: 1 })),
+        calls(call('other', {})),
+        calls(call('get_weather', { city: 2 })),
+        text('done'),
+      ],
+    });
+    const r = await runAgent({ provider: p, prompt: 'x', tools: [sw({ calls: [] }), other] });
+    expect(r.trace.steps[2]!.toolCalls[0]!.outcome).toBe('invalid_arguments');
+    expect(r.trace.totals).toMatchObject({ repairs: 0, failures: 0 });
+  });
+});
