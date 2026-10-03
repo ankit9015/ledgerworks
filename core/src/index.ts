@@ -4,3 +4,4 @@ export * from './harness/index.js';
 export * from './llm/index.js';
 export * from './agent/index.js';
 export * from './security/index.js';
+export * from './db/index.js';

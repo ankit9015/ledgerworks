@@ -72,6 +72,8 @@ export interface AgentOptions {
   signal?: AbortSignal;
   /** tool calls of one step that run at the same time. Default 4. */
   toolConcurrency?: number;
+  /** after a tool's AbortSignal fires (timeout or cancellation), how long the loop waits for it to stop. Default 2,000 ms. */
+  toolAbortGraceMs?: number;
   /** per tool call, ms. Default 30,000. */
   toolTimeoutMs?: number;
   /** longer results are cut and marked "[truncated: N bytes omitted]". Default 16,384 bytes. */
@@ -120,6 +122,8 @@ export interface ToolCallTrace {
   truncated: boolean;
   resultBytes: number;
   resultHash: string;
+  /** the tool was told to stop (timeout or cancellation) but had not stopped after the grace period: work may still be running */
+  abandoned?: boolean;
   approval: 'not_required' | 'granted' | 'denied' | 'no_approver' | 'hook_failed';
   /** only with debug: redacted arguments and result text */
   arguments?: unknown;

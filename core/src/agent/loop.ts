@@ -376,9 +376,12 @@ export async function runAgent(o: AgentOptions): Promise<RunResult> {
     }
 
     // Phase 2: run what is cleared, with a concurrency limit.
-    const outputs: { outcome: ToolOutcome; text: string; latencyMs: number }[] = new Array(
-      prepared.length,
-    );
+    const outputs: {
+      outcome: ToolOutcome;
+      text: string;
+      latencyMs: number;
+      abandoned?: boolean;
+    }[] = new Array(prepared.length);
     await pool(prepared, concurrency, async (p, i) => {
       if (p.early) {
         outputs[i] = { outcome: p.early.outcome, text: p.early.text, latencyMs: 0 };
@@ -428,6 +431,7 @@ export async function runAgent(o: AgentOptions): Promise<RunResult> {
         resultHash: sha(out.text),
         approval: p.approval,
       };
+      if (out.abandoned) trace.abandoned = true;
       if (o.debug) {
         trace.arguments = p.call.arguments ?? p.call.rawArguments;
         trace.result = cut.text;
@@ -442,7 +446,8 @@ export async function runAgent(o: AgentOptions): Promise<RunResult> {
     tool: AgentTool,
     args: unknown,
     callId: string,
-  ): Promise<{ outcome: ToolOutcome; text: string; latencyMs: number }> {
+  ): Promise<{ outcome: ToolOutcome; text: string; latencyMs: number; abandoned?: boolean }> {
+    type Out = { outcome: ToolOutcome; text: string; latencyMs: number };
     const started = performance.now();
     const timeoutMs = tool.timeoutMs ?? toolTimeoutMs;
     const ac = new AbortController();
@@ -450,14 +455,20 @@ export async function runAgent(o: AgentOptions): Promise<RunResult> {
     run.signal.addEventListener('abort', onRunAbort, { once: true });
     let timer: NodeJS.Timeout | undefined;
     const elapsed = (): number => performance.now() - started;
+    let settled = false;
+    const work: Promise<Out> = (async () => {
+      const r = await tool.execute(args, { signal: ac.signal, callId });
+      const text = typeof r === 'string' ? r : (JSON.stringify(r ?? null) ?? 'null');
+      return { outcome: 'ok' as ToolOutcome, text, latencyMs: elapsed() };
+    })();
+    work.then(
+      () => (settled = true),
+      () => (settled = true),
+    );
     try {
       const outcome = await Promise.race([
-        (async () => {
-          const r = await tool.execute(args, { signal: ac.signal, callId });
-          const text = typeof r === 'string' ? r : (JSON.stringify(r ?? null) ?? 'null');
-          return { outcome: 'ok' as ToolOutcome, text, latencyMs: elapsed() };
-        })(),
-        new Promise<{ outcome: ToolOutcome; text: string; latencyMs: number }>((resolve) => {
+        work,
+        new Promise<Out>((resolve) => {
           timer = setTimeout(() => {
             ac.abort();
             resolve({
@@ -467,25 +478,31 @@ export async function runAgent(o: AgentOptions): Promise<RunResult> {
             });
           }, timeoutMs);
         }),
-        new Promise<{ outcome: ToolOutcome; text: string; latencyMs: number }>((resolve) => {
-          if (run.signal.aborted)
+        new Promise<Out>((resolve) => {
+          const cancelled = (): void =>
             resolve({
               outcome: 'cancelled',
               text: 'Tool error: the run was cancelled.',
               latencyMs: elapsed(),
             });
-          run.signal.addEventListener(
-            'abort',
-            () =>
-              resolve({
-                outcome: 'cancelled',
-                text: 'Tool error: the run was cancelled.',
-                latencyMs: elapsed(),
-              }),
-            { once: true },
-          );
+          if (run.signal.aborted) cancelled();
+          else run.signal.addEventListener('abort', cancelled, { once: true });
         }),
       ]);
+      if (outcome.outcome === 'timeout' || outcome.outcome === 'cancelled') {
+        // The tool was told to stop (its AbortSignal fired). Give it a bounded time to actually stop,
+        // so that a well-behaved tool leaves no work running when the loop moves on; one that does not
+        // stop is reported as abandoned, not hidden.
+        const grace = o.toolAbortGraceMs ?? 2000;
+        await Promise.race([
+          work.then(
+            () => undefined,
+            () => undefined,
+          ),
+          new Promise<void>((r) => setTimeout(r, grace).unref?.()),
+        ]);
+        return settled ? outcome : { ...outcome, abandoned: true };
+      }
       return outcome;
     } catch (e) {
       const msg = redactText(e instanceof Error ? e.message : String(e), secrets).slice(0, 300);

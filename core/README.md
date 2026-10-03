@@ -301,3 +301,13 @@ const key = decryptSecret(ring, stored, configId);
 - **SSRF:** the host is resolved by us, every answer must be public, and the connection goes to the validated IP with the original Host header and TLS server name (DNS rebinding cannot swap the address); no automatic redirects (re-validated hops if enabled); connect and total timeouts; maximum response size, also for streams.
 - **Keys:** AES-256-GCM with a key id for rotation, keys only in the environment; redaction in every error, trace, log and the smoke output; only the last 4 characters are ever displayed (`maskKey`).
 - The test matrix (about 170 cases) and the list of remaining risks are in `src/security/security.test.ts` and DECISIONS.md D41.
+
+### Tool contract: cancellation
+
+**Every tool receives an `AbortSignal` (`ctx.signal`) and must stop its work when it fires.** The signal fires when the tool call times out (`toolTimeoutMs` / the tool's own `timeoutMs`), when the run is cancelled, or when the run's wall-clock limit is reached. "Stop" means: no further work is started, and anything already running is cancelled, not just ignored. JavaScript cannot kill code that ignores a signal, so the loop does the following and nothing more:
+
+1. it fires the signal and returns the tool's result as `timeout` or `cancelled` to the model at once;
+2. it then waits up to `toolAbortGraceMs` (default 2,000 ms) for the tool's promise to settle, so a well-behaved tool has really finished when the loop moves on;
+3. a tool that has not settled by then is marked `abandoned: true` in the run trace. It is reported, not hidden; whatever it still runs is its own responsibility.
+
+**Database tools must use `withCancellableClient(connectionFactory, ctx.signal, fn, { statementTimeoutMs })`** (`src/db/cancellable.ts`). On abort it cancels the running query on the server with `pg_cancel_backend` from a second connection (the same database user may cancel its own sessions), drops the connection if the query has not stopped after `hardStopAfterMs`, always releases the connection, and throws `AbortError`. Tests run `pg_sleep(30)` through it and check `pg_stat_activity`: after a tool timeout and after a run cancellation no query is active and no connection of the tool is left, by the time the loop returns; a contrast test shows a tool that ignores its signal keeps its query running on the server and is reported as `abandoned`.
