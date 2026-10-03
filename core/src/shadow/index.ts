@@ -16,3 +16,4 @@ export {
   type Catalog,
   type WriteCheckResult,
 } from './source.js';
+export * from './settle.js';

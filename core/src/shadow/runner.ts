@@ -1,5 +1,6 @@
 import { randomBytes, randomUUID } from 'node:crypto';
 import { mkdir, writeFile } from 'node:fs/promises';
+import net from 'node:net';
 import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -122,6 +123,17 @@ export class CloneVerificationError extends Error {
 }
 
 const MIB = 1024 * 1024;
+
+function freePort(): Promise<number> {
+  return new Promise((resolve, reject) => {
+    const s = net.createServer();
+    s.once('error', reject);
+    s.listen(0, '127.0.0.1', () => {
+      const { port } = s.address() as net.AddressInfo;
+      s.close(() => resolve(port));
+    });
+  });
+}
 
 function pgEnvFromUrl(url: string, hostInContainer: string): Record<string, string> {
   const u = new URL(url);
@@ -386,44 +398,61 @@ export async function createShadow(opts: CreateShadowOptions): Promise<ShadowHan
     Object.assign(pgSettings, opts.postgresSettings);
 
     const port = await stage('container', async () => {
+      // A fixed host port (not a random one per start), so that the shadow keeps its address when
+      // the container is restarted, which the cold-cache measurements do.
       await docker(['volume', 'create', ...labelArgs(labels), volumeName]);
-      await docker(
-        [
-          'run',
-          '-d',
-          '--name',
-          containerName,
-          ...labelArgs(labels),
-          '--cpus',
-          String(limits.cpus),
-          '--memory',
-          `${limits.memoryMiB}m`,
-          '--memory-swap',
-          `${limits.memoryMiB}m`,
-          '--shm-size',
-          `${limits.shmMiB}m`,
-          '--pids-limit',
-          String(limits.pidsLimit),
-          '-v',
-          `${volumeName}:/var/lib/postgresql/data`,
-          '-p',
-          '127.0.0.1::5432',
-          '--add-host',
-          'host.docker.internal:host-gateway',
-          '-e',
-          `POSTGRES_USER=${SHADOW_ADMIN}`,
-          '-e',
-          'POSTGRES_PASSWORD',
-          '-e',
-          `POSTGRES_DB=${SHADOW_DB}`,
-          imageTag,
-          'postgres',
-          ...Object.entries(pgSettings).flatMap(([k, v]) => ['-c', `${k}=${v}`]),
-        ],
-        { env: { POSTGRES_PASSWORD: password }, secrets },
-      );
-      const p = (await docker(['port', containerName, '5432/tcp'])).stdout.trim().split('\n')[0]!;
-      const portNumber = Number(p.slice(p.lastIndexOf(':') + 1));
+      let hostPort = 0;
+      for (let attempt = 1; ; attempt++) {
+        hostPort = await freePort();
+        try {
+          await docker(
+            [
+              'run',
+              '-d',
+              '--name',
+              containerName,
+              ...labelArgs(labels),
+              '--cpus',
+              String(limits.cpus),
+              '--memory',
+              `${limits.memoryMiB}m`,
+              '--memory-swap',
+              `${limits.memoryMiB}m`,
+              '--shm-size',
+              `${limits.shmMiB}m`,
+              '--pids-limit',
+              String(limits.pidsLimit),
+              '-v',
+              `${volumeName}:/var/lib/postgresql/data`,
+              '-p',
+              `127.0.0.1:${hostPort}:5432`,
+              '--add-host',
+              'host.docker.internal:host-gateway',
+              '-e',
+              `POSTGRES_USER=${SHADOW_ADMIN}`,
+              '-e',
+              'POSTGRES_PASSWORD',
+              '-e',
+              `POSTGRES_DB=${SHADOW_DB}`,
+              imageTag,
+              'postgres',
+              ...Object.entries(pgSettings).flatMap(([k, v]) => ['-c', `${k}=${v}`]),
+            ],
+            { env: { POSTGRES_PASSWORD: password }, secrets },
+          );
+          break;
+        } catch (e) {
+          // Another process took the port between choosing it and binding it: remove the
+          // half-created container and try again with a new port.
+          if (
+            attempt >= 4 ||
+            !/port is already allocated|address already in use|bind for/i.test(String(e))
+          )
+            throw e;
+          await docker(['rm', '-f', containerName], { allowFail: true });
+        }
+      }
+      const portNumber = hostPort;
       st.monitor = startMemoryMonitor([
         containerName,
         ...(opts.sourceContainer ? [opts.sourceContainer] : []),

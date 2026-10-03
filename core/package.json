@@ -5,7 +5,8 @@
   "type": "module",
   "scripts": {
     "typecheck": "tsc -p tsconfig.json",
-    "shadow": "tsx src/shadow/cli.ts"
+    "shadow": "tsx src/shadow/cli.ts",
+    "variance": "tsx src/harness/variance-cli.ts"
   },
   "dependencies": {
     "pg": "^8.23.1",

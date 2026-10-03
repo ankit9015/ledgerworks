@@ -106,7 +106,7 @@ Purpose: a realistic, data-heavy, multi-tenant backend that is fast, correct und
 ### Shadow DB and measurement
 - [x] **C2.1** Shadow database runner: given a source connection (read-only), create a throwaway Postgres container with the same schema and either a full or sampled copy of the data, and tear it down afterwards. Container name prefix and labels so leftovers are cleaned up.
   - **Done when:** a test clones the Ledgerline database, verifies row counts (or sample ratio), and confirms the source database received **no writes** (compare `pg_stat_database` counters or use a read-only role that would error on write).
-- [ ] **C2.2** Measurement harness: run a query N times (warmup + measured runs), record timings (p50/p95), plan JSON, buffers, and for DDL: lock wait, duration, relation size change.
+- [x] **C2.2** Measurement harness: run a query N times (warmup + measured runs), record timings (p50/p95), plan JSON, buffers, and for DDL: lock wait, duration, relation size change.
   - **Done when:** results are returned as typed JSON, repeat runs of the same query are within a documented variance, and the harness refuses to run against a non-shadow connection unless explicitly overridden.
 
 ### LLM layer

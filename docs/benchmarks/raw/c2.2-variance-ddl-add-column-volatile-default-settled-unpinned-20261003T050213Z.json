@@ -1,0 +1,2845 @@
+{
+  "case": "ddl-add-column-volatile-default",
+  "description": "ALTER TABLE ... ADD COLUMN ... NOT NULL DEFAULT random() on a 200,000-row scratch table (rewrite), 3 runs per repetition",
+  "context": {
+    "label": "settled-unpinned",
+    "description": "Variance of the measurement harness: each case run 10 times, each repetition with 3 warmup and 20 measured runs (DDL: 3 runs).",
+    "data": "synthetic 10M-row Ledgerline benchmark database (pnpm seed --yes, seed 20251001), full shadow copy",
+    "machine": {
+      "cpuModel": "11th Gen Intel(R) Core(TM) i5-1135G7 @ 2.40GHz",
+      "logicalCores": 8,
+      "ramGiB": 19.8,
+      "platform": "win32 10.0.26200",
+      "node": "v22.13.1"
+    },
+    "dockerHost": {
+      "cpus": 8,
+      "memoryMiB": 9838,
+      "serverVersion": "28.0.4"
+    },
+    "shadow": {
+      "manifestId": "202ff9f5-0e3a-4e68-8ea2-da8f006b1cc6",
+      "sampled": false,
+      "image": {
+        "tag": "ledgerworks/shadow-postgres:16.15-hypopg1.4.3",
+        "id": "sha256:af9fe3cbcd8fc101e7878bbd4c712f7a54335df3520adc9449ebb48298d2c4a6",
+        "postgresVersion": "16.15 (Debian 16.15-1.pgdg12+2)",
+        "hypopgVersion": "1.4.3",
+        "pgStatStatementsVersion": "1.10"
+      },
+      "settings": [
+        {
+          "name": "seq_page_cost",
+          "source": "1",
+          "shadow": "1"
+        },
+        {
+          "name": "random_page_cost",
+          "source": "4",
+          "shadow": "4"
+        },
+        {
+          "name": "cpu_tuple_cost",
+          "source": "0.01",
+          "shadow": "0.01"
+        },
+        {
+          "name": "cpu_index_tuple_cost",
+          "source": "0.005",
+          "shadow": "0.005"
+        },
+        {
+          "name": "cpu_operator_cost",
+          "source": "0.0025",
+          "shadow": "0.0025"
+        },
+        {
+          "name": "parallel_setup_cost",
+          "source": "1000",
+          "shadow": "1000"
+        },
+        {
+          "name": "parallel_tuple_cost",
+          "source": "0.1",
+          "shadow": "0.1"
+        },
+        {
+          "name": "effective_cache_size",
+          "source": "1536MB",
+          "shadow": "1536MB"
+        },
+        {
+          "name": "effective_io_concurrency",
+          "source": "1",
+          "shadow": "1"
+        },
+        {
+          "name": "default_statistics_target",
+          "source": "100",
+          "shadow": "100"
+        },
+        {
+          "name": "jit",
+          "source": "on",
+          "shadow": "on"
+        },
+        {
+          "name": "work_mem",
+          "source": "16MB",
+          "shadow": "16MB"
+        },
+        {
+          "name": "max_parallel_workers_per_gather",
+          "source": "2",
+          "shadow": "2"
+        },
+        {
+          "name": "shared_buffers",
+          "source": "512MB",
+          "shadow": "768MB"
+        },
+        {
+          "name": "maintenance_work_mem",
+          "source": "128MB",
+          "shadow": "184MB"
+        },
+        {
+          "name": "max_wal_size",
+          "source": "1GB",
+          "shadow": "2GB"
+        }
+      ]
+    },
+    "containerLimits": {
+      "nanoCpus": 2000000000,
+      "cpuset": "0-7",
+      "memoryBytes": 3221225472,
+      "memorySwapBytes": 3221225472,
+      "shmBytes": 268435456
+    },
+    "cpusetAppliedForThisRun": null,
+    "notes": "Run on a developer laptop with other applications open: nothing else was started by this script, but the machine was not dedicated."
+  },
+  "repetitions": [
+    {
+      "version": 1,
+      "kind": "ddl",
+      "status": "ok",
+      "shadow": {
+        "manifestId": "202ff9f5-0e3a-4e68-8ea2-da8f006b1cc6",
+        "sampled": false,
+        "mode": "full",
+        "totalRowRatio": 1,
+        "largestTableRatio": 1,
+        "scalingNote": "Full copy: every table has the same row count as the source. Timings still depend on the shadow container limits and settings recorded here, which may differ from production."
+      },
+      "statement": {
+        "sql": "ALTER TABLE public.harness_variance_ddl ADD COLUMN v double precision NOT NULL DEFAULT random()",
+        "class": "ddl",
+        "strategy": "rollback-transaction"
+      },
+      "target": {
+        "table": "public.harness_variance_ddl",
+        "relkind": "r",
+        "partitions": 0
+      },
+      "config": {
+        "runs": 3,
+        "statementTimeoutMs": 300000,
+        "lockTimeoutMs": 10000,
+        "maxTotalRuntimeMs": 900000,
+        "samplingIntervalMs": 15.8,
+        "blockingTransaction": false
+      },
+      "durationMs": {
+        "n": 3,
+        "min": 302.0599000000075,
+        "max": 321.40529999999853,
+        "mean": 310.6230333333321,
+        "stddev": 9.861771638669959,
+        "cvPercent": 3.1748359201963012,
+        "p50": 308.40389999999024,
+        "p95": 320.1051599999977
+      },
+      "lockWaitMs": {
+        "n": 3,
+        "min": 0,
+        "max": 0,
+        "mean": 0,
+        "stddev": 0,
+        "cvPercent": 0,
+        "p50": 0,
+        "p95": 0
+      },
+      "locks": {
+        "source": "end-of-statement",
+        "held": [
+          {
+            "relation": "object",
+            "relkind": null,
+            "locktype": "object",
+            "mode": "AccessExclusiveLock",
+            "granted": true
+          },
+          {
+            "relation": "object",
+            "relkind": null,
+            "locktype": "object",
+            "mode": "AccessExclusiveLock",
+            "granted": true
+          },
+          {
+            "relation": "pg_toast.pg_toast_17764",
+            "relkind": "t",
+            "locktype": "relation",
+            "mode": "AccessExclusiveLock",
+            "granted": true
+          },
+          {
+            "relation": "pg_toast.pg_toast_17764_index",
+            "relkind": "i",
+            "locktype": "relation",
+            "mode": "AccessExclusiveLock",
+            "granted": true
+          },
+          {
+            "relation": "public.harness_variance_ddl",
+            "relkind": "r",
+            "locktype": "relation",
+            "mode": "AccessExclusiveLock",
+            "granted": true
+          },
+          {
+            "relation": "public.harness_variance_ddl_a_idx",
+            "relkind": "i",
+            "locktype": "relation",
+            "mode": "AccessExclusiveLock",
+            "granted": true
+          },
+          {
+            "relation": "relation",
+            "relkind": null,
+            "locktype": "relation",
+            "mode": "AccessExclusiveLock",
+            "granted": true
+          },
+          {
+            "relation": "relation",
+            "relkind": null,
+            "locktype": "relation",
+            "mode": "AccessExclusiveLock",
+            "granted": true
+          },
+          {
+            "relation": "relation",
+            "relkind": null,
+            "locktype": "relation",
+            "mode": "AccessExclusiveLock",
+            "granted": true
+          },
+          {
+            "relation": "pg_toast.pg_toast_17764",
+            "relkind": "t",
+            "locktype": "relation",
+            "mode": "ShareLock",
+            "granted": true
+          },
+          {
+            "relation": "public.harness_variance_ddl",
+            "relkind": "r",
+            "locktype": "relation",
+            "mode": "ShareLock",
+            "granted": true
+          },
+          {
+            "relation": "pg_toast.pg_toast_17764_index",
+            "relkind": "i",
+            "locktype": "relation",
+            "mode": "ShareUpdateExclusiveLock",
+            "granted": true
+          },
+          {
+            "relation": "object",
+            "relkind": null,
+            "locktype": "object",
+            "mode": "AccessShareLock",
+            "granted": true
+          },
+          {
+            "relation": "object",
+            "relkind": null,
+            "locktype": "object",
+            "mode": "AccessShareLock",
+            "granted": true
+          }
+        ],
+        "targetTableModes": [
+          "AccessExclusiveLock",
+          "ShareLock"
+        ],
+        "strongestTargetTableMode": "AccessExclusiveLock",
+        "blocksSelects": true,
+        "blocksWrites": true
+      },
+      "rewrite": {
+        "tableRewritten": true,
+        "relfilenodeBefore": 17764,
+        "relfilenodeAfter": 17773,
+        "indexesRebuilt": true,
+        "indexesCreated": [],
+        "indexesDropped": [],
+        "toastRewritten": true,
+        "partitionsRewritten": [],
+        "consistentAcrossRuns": true
+      },
+      "size": {
+        "before": {
+          "tableBytes": 35127296,
+          "indexesBytes": 1433600,
+          "toastBytes": 8192,
+          "totalBytes": 36610048
+        },
+        "after": {
+          "tableBytes": 36700160,
+          "indexesBytes": 1433600,
+          "toastBytes": 8192,
+          "totalBytes": 38141952
+        },
+        "deltaBytes": {
+          "table": 1572864,
+          "indexes": 0,
+          "toast": 0,
+          "total": 1531904
+        }
+      },
+      "runs": [
+        {
+          "durationMs": 302.0599000000075,
+          "lockWaitMs": 0,
+          "tableRewritten": true,
+          "sizeBefore": {
+            "tableBytes": 35127296,
+            "indexesBytes": 1433600,
+            "toastBytes": 8192,
+            "totalBytes": 36610048
+          },
+          "sizeAfter": {
+            "tableBytes": 36700160,
+            "indexesBytes": 1433600,
+            "toastBytes": 8192,
+            "totalBytes": 38141952
+          }
+        },
+        {
+          "durationMs": 321.40529999999853,
+          "lockWaitMs": 0,
+          "tableRewritten": true,
+          "sizeBefore": {
+            "tableBytes": 35127296,
+            "indexesBytes": 1433600,
+            "toastBytes": 8192,
+            "totalBytes": 36610048
+          },
+          "sizeAfter": {
+            "tableBytes": 36700160,
+            "indexesBytes": 1433600,
+            "toastBytes": 8192,
+            "totalBytes": 38141952
+          }
+        },
+        {
+          "durationMs": 308.40389999999024,
+          "lockWaitMs": 0,
+          "tableRewritten": true,
+          "sizeBefore": {
+            "tableBytes": 35127296,
+            "indexesBytes": 1433600,
+            "toastBytes": 8192,
+            "totalBytes": 36610048
+          },
+          "sizeAfter": {
+            "tableBytes": 36700160,
+            "indexesBytes": 1433600,
+            "toastBytes": 8192,
+            "totalBytes": 38141952
+          }
+        }
+      ],
+      "verification": {
+        "rolledBackCleanly": true
+      },
+      "timings": {
+        "startedAt": "2026-10-03T05:03:37.606Z",
+        "finishedAt": "2026-10-03T05:03:38.802Z",
+        "totalMs": 1197
+      },
+      "environment": {
+        "postgresVersion": "16.15 (Debian 16.15-1.pgdg12+2)",
+        "settings": {
+          "shared_buffers": "768MB",
+          "work_mem": "16MB",
+          "effective_cache_size": "1536MB",
+          "max_parallel_workers_per_gather": "2",
+          "jit": "on",
+          "random_page_cost": "4",
+          "track_io_timing": "on",
+          "default_statistics_target": "100"
+        },
+        "limits": {
+          "cpus": 2,
+          "memoryMiB": 3072,
+          "memorySwapMiB": 3072,
+          "shmMiB": 256
+        }
+      }
+    },
+    {
+      "version": 1,
+      "kind": "ddl",
+      "status": "ok",
+      "shadow": {
+        "manifestId": "202ff9f5-0e3a-4e68-8ea2-da8f006b1cc6",
+        "sampled": false,
+        "mode": "full",
+        "totalRowRatio": 1,
+        "largestTableRatio": 1,
+        "scalingNote": "Full copy: every table has the same row count as the source. Timings still depend on the shadow container limits and settings recorded here, which may differ from production."
+      },
+      "statement": {
+        "sql": "ALTER TABLE public.harness_variance_ddl ADD COLUMN v double precision NOT NULL DEFAULT random()",
+        "class": "ddl",
+        "strategy": "rollback-transaction"
+      },
+      "target": {
+        "table": "public.harness_variance_ddl",
+        "relkind": "r",
+        "partitions": 0
+      },
+      "config": {
+        "runs": 3,
+        "statementTimeoutMs": 300000,
+        "lockTimeoutMs": 10000,
+        "maxTotalRuntimeMs": 900000,
+        "samplingIntervalMs": 13.7,
+        "blockingTransaction": false
+      },
+      "durationMs": {
+        "n": 3,
+        "min": 274.29929999999877,
+        "max": 313.09610000000976,
+        "mean": 295.8934333333406,
+        "stddev": 19.767692257155012,
+        "cvPercent": 6.680679606324887,
+        "p50": 300.2849000000133,
+        "p95": 311.8149800000101
+      },
+      "lockWaitMs": {
+        "n": 3,
+        "min": 0,
+        "max": 0,
+        "mean": 0,
+        "stddev": 0,
+        "cvPercent": 0,
+        "p50": 0,
+        "p95": 0
+      },
+      "locks": {
+        "source": "end-of-statement",
+        "held": [
+          {
+            "relation": "object",
+            "relkind": null,
+            "locktype": "object",
+            "mode": "AccessExclusiveLock",
+            "granted": true
+          },
+          {
+            "relation": "object",
+            "relkind": null,
+            "locktype": "object",
+            "mode": "AccessExclusiveLock",
+            "granted": true
+          },
+          {
+            "relation": "pg_toast.pg_toast_17764",
+            "relkind": "t",
+            "locktype": "relation",
+            "mode": "AccessExclusiveLock",
+            "granted": true
+          },
+          {
+            "relation": "pg_toast.pg_toast_17764_index",
+            "relkind": "i",
+            "locktype": "relation",
+            "mode": "AccessExclusiveLock",
+            "granted": true
+          },
+          {
+            "relation": "public.harness_variance_ddl",
+            "relkind": "r",
+            "locktype": "relation",
+            "mode": "AccessExclusiveLock",
+            "granted": true
+          },
+          {
+            "relation": "public.harness_variance_ddl_a_idx",
+            "relkind": "i",
+            "locktype": "relation",
+            "mode": "AccessExclusiveLock",
+            "granted": true
+          },
+          {
+            "relation": "relation",
+            "relkind": null,
+            "locktype": "relation",
+            "mode": "AccessExclusiveLock",
+            "granted": true
+          },
+          {
+            "relation": "relation",
+            "relkind": null,
+            "locktype": "relation",
+            "mode": "AccessExclusiveLock",
+            "granted": true
+          },
+          {
+            "relation": "relation",
+            "relkind": null,
+            "locktype": "relation",
+            "mode": "AccessExclusiveLock",
+            "granted": true
+          },
+          {
+            "relation": "pg_toast.pg_toast_17764",
+            "relkind": "t",
+            "locktype": "relation",
+            "mode": "ShareLock",
+            "granted": true
+          },
+          {
+            "relation": "public.harness_variance_ddl",
+            "relkind": "r",
+            "locktype": "relation",
+            "mode": "ShareLock",
+            "granted": true
+          },
+          {
+            "relation": "pg_toast.pg_toast_17764_index",
+            "relkind": "i",
+            "locktype": "relation",
+            "mode": "ShareUpdateExclusiveLock",
+            "granted": true
+          },
+          {
+            "relation": "object",
+            "relkind": null,
+            "locktype": "object",
+            "mode": "AccessShareLock",
+            "granted": true
+          },
+          {
+            "relation": "object",
+            "relkind": null,
+            "locktype": "object",
+            "mode": "AccessShareLock",
+            "granted": true
+          }
+        ],
+        "targetTableModes": [
+          "AccessExclusiveLock",
+          "ShareLock"
+        ],
+        "strongestTargetTableMode": "AccessExclusiveLock",
+        "blocksSelects": true,
+        "blocksWrites": true
+      },
+      "rewrite": {
+        "tableRewritten": true,
+        "relfilenodeBefore": 17764,
+        "relfilenodeAfter": 17794,
+        "indexesRebuilt": true,
+        "indexesCreated": [],
+        "indexesDropped": [],
+        "toastRewritten": true,
+        "partitionsRewritten": [],
+        "consistentAcrossRuns": true
+      },
+      "size": {
+        "before": {
+          "tableBytes": 35127296,
+          "indexesBytes": 1433600,
+          "toastBytes": 8192,
+          "totalBytes": 36610048
+        },
+        "after": {
+          "tableBytes": 36700160,
+          "indexesBytes": 1433600,
+          "toastBytes": 8192,
+          "totalBytes": 38141952
+        },
+        "deltaBytes": {
+          "table": 1572864,
+          "indexes": 0,
+          "toast": 0,
+          "total": 1531904
+        }
+      },
+      "runs": [
+        {
+          "durationMs": 313.09610000000976,
+          "lockWaitMs": 0,
+          "tableRewritten": true,
+          "sizeBefore": {
+            "tableBytes": 35127296,
+            "indexesBytes": 1433600,
+            "toastBytes": 8192,
+            "totalBytes": 36610048
+          },
+          "sizeAfter": {
+            "tableBytes": 36700160,
+            "indexesBytes": 1433600,
+            "toastBytes": 8192,
+            "totalBytes": 38141952
+          }
+        },
+        {
+          "durationMs": 274.29929999999877,
+          "lockWaitMs": 0,
+          "tableRewritten": true,
+          "sizeBefore": {
+            "tableBytes": 35127296,
+            "indexesBytes": 1433600,
+            "toastBytes": 8192,
+            "totalBytes": 36610048
+          },
+          "sizeAfter": {
+            "tableBytes": 36700160,
+            "indexesBytes": 1433600,
+            "toastBytes": 8192,
+            "totalBytes": 38141952
+          }
+        },
+        {
+          "durationMs": 300.2849000000133,
+          "lockWaitMs": 0,
+          "tableRewritten": true,
+          "sizeBefore": {
+            "tableBytes": 35127296,
+            "indexesBytes": 1433600,
+            "toastBytes": 8192,
+            "totalBytes": 36610048
+          },
+          "sizeAfter": {
+            "tableBytes": 36700160,
+            "indexesBytes": 1433600,
+            "toastBytes": 8192,
+            "totalBytes": 38141952
+          }
+        }
+      ],
+      "verification": {
+        "rolledBackCleanly": true
+      },
+      "timings": {
+        "startedAt": "2026-10-03T05:03:38.803Z",
+        "finishedAt": "2026-10-03T05:03:39.910Z",
+        "totalMs": 1107
+      },
+      "environment": {
+        "postgresVersion": "16.15 (Debian 16.15-1.pgdg12+2)",
+        "settings": {
+          "shared_buffers": "768MB",
+          "work_mem": "16MB",
+          "effective_cache_size": "1536MB",
+          "max_parallel_workers_per_gather": "2",
+          "jit": "on",
+          "random_page_cost": "4",
+          "track_io_timing": "on",
+          "default_statistics_target": "100"
+        },
+        "limits": {
+          "cpus": 2,
+          "memoryMiB": 3072,
+          "memorySwapMiB": 3072,
+          "shmMiB": 256
+        }
+      }
+    },
+    {
+      "version": 1,
+      "kind": "ddl",
+      "status": "ok",
+      "shadow": {
+        "manifestId": "202ff9f5-0e3a-4e68-8ea2-da8f006b1cc6",
+        "sampled": false,
+        "mode": "full",
+        "totalRowRatio": 1,
+        "largestTableRatio": 1,
+        "scalingNote": "Full copy: every table has the same row count as the source. Timings still depend on the shadow container limits and settings recorded here, which may differ from production."
+      },
+      "statement": {
+        "sql": "ALTER TABLE public.harness_variance_ddl ADD COLUMN v double precision NOT NULL DEFAULT random()",
+        "class": "ddl",
+        "strategy": "rollback-transaction"
+      },
+      "target": {
+        "table": "public.harness_variance_ddl",
+        "relkind": "r",
+        "partitions": 0
+      },
+      "config": {
+        "runs": 3,
+        "statementTimeoutMs": 300000,
+        "lockTimeoutMs": 10000,
+        "maxTotalRuntimeMs": 900000,
+        "samplingIntervalMs": 15.2,
+        "blockingTransaction": false
+      },
+      "durationMs": {
+        "n": 3,
+        "min": 251.98180000000866,
+        "max": 281.7356,
+        "mean": 263.8692333333359,
+        "stddev": 15.752234332412504,
+        "cvPercent": 5.9697123963343275,
+        "p50": 257.8902999999991,
+        "p95": 279.3510699999999
+      },
+      "lockWaitMs": {
+        "n": 3,
+        "min": 0,
+        "max": 0,
+        "mean": 0,
+        "stddev": 0,
+        "cvPercent": 0,
+        "p50": 0,
+        "p95": 0
+      },
+      "locks": {
+        "source": "end-of-statement",
+        "held": [
+          {
+            "relation": "object",
+            "relkind": null,
+            "locktype": "object",
+            "mode": "AccessExclusiveLock",
+            "granted": true
+          },
+          {
+            "relation": "object",
+            "relkind": null,
+            "locktype": "object",
+            "mode": "AccessExclusiveLock",
+            "granted": true
+          },
+          {
+            "relation": "pg_toast.pg_toast_17764",
+            "relkind": "t",
+            "locktype": "relation",
+            "mode": "AccessExclusiveLock",
+            "granted": true
+          },
+          {
+            "relation": "pg_toast.pg_toast_17764_index",
+            "relkind": "i",
+            "locktype": "relation",
+            "mode": "AccessExclusiveLock",
+            "granted": true
+          },
+          {
+            "relation": "public.harness_variance_ddl",
+            "relkind": "r",
+            "locktype": "relation",
+            "mode": "AccessExclusiveLock",
+            "granted": true
+          },
+          {
+            "relation": "public.harness_variance_ddl_a_idx",
+            "relkind": "i",
+            "locktype": "relation",
+            "mode": "AccessExclusiveLock",
+            "granted": true
+          },
+          {
+            "relation": "relation",
+            "relkind": null,
+            "locktype": "relation",
+            "mode": "AccessExclusiveLock",
+            "granted": true
+          },
+          {
+            "relation": "relation",
+            "relkind": null,
+            "locktype": "relation",
+            "mode": "AccessExclusiveLock",
+            "granted": true
+          },
+          {
+            "relation": "relation",
+            "relkind": null,
+            "locktype": "relation",
+            "mode": "AccessExclusiveLock",
+            "granted": true
+          },
+          {
+            "relation": "pg_toast.pg_toast_17764",
+            "relkind": "t",
+            "locktype": "relation",
+            "mode": "ShareLock",
+            "granted": true
+          },
+          {
+            "relation": "public.harness_variance_ddl",
+            "relkind": "r",
+            "locktype": "relation",
+            "mode": "ShareLock",
+            "granted": true
+          },
+          {
+            "relation": "pg_toast.pg_toast_17764_index",
+            "relkind": "i",
+            "locktype": "relation",
+            "mode": "ShareUpdateExclusiveLock",
+            "granted": true
+          },
+          {
+            "relation": "object",
+            "relkind": null,
+            "locktype": "object",
+            "mode": "AccessShareLock",
+            "granted": true
+          },
+          {
+            "relation": "object",
+            "relkind": null,
+            "locktype": "object",
+            "mode": "AccessShareLock",
+            "granted": true
+          }
+        ],
+        "targetTableModes": [
+          "AccessExclusiveLock",
+          "ShareLock"
+        ],
+        "strongestTargetTableMode": "AccessExclusiveLock",
+        "blocksSelects": true,
+        "blocksWrites": true
+      },
+      "rewrite": {
+        "tableRewritten": true,
+        "relfilenodeBefore": 17764,
+        "relfilenodeAfter": 17815,
+        "indexesRebuilt": true,
+        "indexesCreated": [],
+        "indexesDropped": [],
+        "toastRewritten": true,
+        "partitionsRewritten": [],
+        "consistentAcrossRuns": true
+      },
+      "size": {
+        "before": {
+          "tableBytes": 35127296,
+          "indexesBytes": 1433600,
+          "toastBytes": 8192,
+          "totalBytes": 36610048
+        },
+        "after": {
+          "tableBytes": 36700160,
+          "indexesBytes": 1433600,
+          "toastBytes": 8192,
+          "totalBytes": 38141952
+        },
+        "deltaBytes": {
+          "table": 1572864,
+          "indexes": 0,
+          "toast": 0,
+          "total": 1531904
+        }
+      },
+      "runs": [
+        {
+          "durationMs": 257.8902999999991,
+          "lockWaitMs": 0,
+          "tableRewritten": true,
+          "sizeBefore": {
+            "tableBytes": 35127296,
+            "indexesBytes": 1433600,
+            "toastBytes": 8192,
+            "totalBytes": 36610048
+          },
+          "sizeAfter": {
+            "tableBytes": 36700160,
+            "indexesBytes": 1433600,
+            "toastBytes": 8192,
+            "totalBytes": 38141952
+          }
+        },
+        {
+          "durationMs": 281.7356,
+          "lockWaitMs": 0,
+          "tableRewritten": true,
+          "sizeBefore": {
+            "tableBytes": 35127296,
+            "indexesBytes": 1433600,
+            "toastBytes": 8192,
+            "totalBytes": 36610048
+          },
+          "sizeAfter": {
+            "tableBytes": 36700160,
+            "indexesBytes": 1433600,
+            "toastBytes": 8192,
+            "totalBytes": 38141952
+          }
+        },
+        {
+          "durationMs": 251.98180000000866,
+          "lockWaitMs": 0,
+          "tableRewritten": true,
+          "sizeBefore": {
+            "tableBytes": 35127296,
+            "indexesBytes": 1433600,
+            "toastBytes": 8192,
+            "totalBytes": 36610048
+          },
+          "sizeAfter": {
+            "tableBytes": 36700160,
+            "indexesBytes": 1433600,
+            "toastBytes": 8192,
+            "totalBytes": 38141952
+          }
+        }
+      ],
+      "verification": {
+        "rolledBackCleanly": true
+      },
+      "timings": {
+        "startedAt": "2026-10-03T05:03:39.910Z",
+        "finishedAt": "2026-10-03T05:03:40.938Z",
+        "totalMs": 1028
+      },
+      "environment": {
+        "postgresVersion": "16.15 (Debian 16.15-1.pgdg12+2)",
+        "settings": {
+          "shared_buffers": "768MB",
+          "work_mem": "16MB",
+          "effective_cache_size": "1536MB",
+          "max_parallel_workers_per_gather": "2",
+          "jit": "on",
+          "random_page_cost": "4",
+          "track_io_timing": "on",
+          "default_statistics_target": "100"
+        },
+        "limits": {
+          "cpus": 2,
+          "memoryMiB": 3072,
+          "memorySwapMiB": 3072,
+          "shmMiB": 256
+        }
+      }
+    },
+    {
+      "version": 1,
+      "kind": "ddl",
+      "status": "ok",
+      "shadow": {
+        "manifestId": "202ff9f5-0e3a-4e68-8ea2-da8f006b1cc6",
+        "sampled": false,
+        "mode": "full",
+        "totalRowRatio": 1,
+        "largestTableRatio": 1,
+        "scalingNote": "Full copy: every table has the same row count as the source. Timings still depend on the shadow container limits and settings recorded here, which may differ from production."
+      },
+      "statement": {
+        "sql": "ALTER TABLE public.harness_variance_ddl ADD COLUMN v double precision NOT NULL DEFAULT random()",
+        "class": "ddl",
+        "strategy": "rollback-transaction"
+      },
+      "target": {
+        "table": "public.harness_variance_ddl",
+        "relkind": "r",
+        "partitions": 0
+      },
+      "config": {
+        "runs": 3,
+        "statementTimeoutMs": 300000,
+        "lockTimeoutMs": 10000,
+        "maxTotalRuntimeMs": 900000,
+        "samplingIntervalMs": 15.8,
+        "blockingTransaction": false
+      },
+      "durationMs": {
+        "n": 3,
+        "min": 262.101800000004,
+        "max": 328.18529999999737,
+        "mean": 298.6137333333366,
+        "stddev": 33.58398070752138,
+        "cvPercent": 11.246629661882377,
+        "p50": 305.5541000000085,
+        "p95": 325.9221799999985
+      },
+      "lockWaitMs": {
+        "n": 3,
+        "min": 0,
+        "max": 0,
+        "mean": 0,
+        "stddev": 0,
+        "cvPercent": 0,
+        "p50": 0,
+        "p95": 0
+      },
+      "locks": {
+        "source": "end-of-statement",
+        "held": [
+          {
+            "relation": "object",
+            "relkind": null,
+            "locktype": "object",
+            "mode": "AccessExclusiveLock",
+            "granted": true
+          },
+          {
+            "relation": "object",
+            "relkind": null,
+            "locktype": "object",
+            "mode": "AccessExclusiveLock",
+            "granted": true
+          },
+          {
+            "relation": "pg_toast.pg_toast_17764",
+            "relkind": "t",
+            "locktype": "relation",
+            "mode": "AccessExclusiveLock",
+            "granted": true
+          },
+          {
+            "relation": "pg_toast.pg_toast_17764_index",
+            "relkind": "i",
+            "locktype": "relation",
+            "mode": "AccessExclusiveLock",
+            "granted": true
+          },
+          {
+            "relation": "public.harness_variance_ddl",
+            "relkind": "r",
+            "locktype": "relation",
+            "mode": "AccessExclusiveLock",
+            "granted": true
+          },
+          {
+            "relation": "public.harness_variance_ddl_a_idx",
+            "relkind": "i",
+            "locktype": "relation",
+            "mode": "AccessExclusiveLock",
+            "granted": true
+          },
+          {
+            "relation": "relation",
+            "relkind": null,
+            "locktype": "relation",
+            "mode": "AccessExclusiveLock",
+            "granted": true
+          },
+          {
+            "relation": "relation",
+            "relkind": null,
+            "locktype": "relation",
+            "mode": "AccessExclusiveLock",
+            "granted": true
+          },
+          {
+            "relation": "relation",
+            "relkind": null,
+            "locktype": "relation",
+            "mode": "AccessExclusiveLock",
+            "granted": true
+          },
+          {
+            "relation": "pg_toast.pg_toast_17764",
+            "relkind": "t",
+            "locktype": "relation",
+            "mode": "ShareLock",
+            "granted": true
+          },
+          {
+            "relation": "public.harness_variance_ddl",
+            "relkind": "r",
+            "locktype": "relation",
+            "mode": "ShareLock",
+            "granted": true
+          },
+          {
+            "relation": "pg_toast.pg_toast_17764_index",
+            "relkind": "i",
+            "locktype": "relation",
+            "mode": "ShareUpdateExclusiveLock",
+            "granted": true
+          },
+          {
+            "relation": "object",
+            "relkind": null,
+            "locktype": "object",
+            "mode": "AccessShareLock",
+            "granted": true
+          },
+          {
+            "relation": "object",
+            "relkind": null,
+            "locktype": "object",
+            "mode": "AccessShareLock",
+            "granted": true
+          }
+        ],
+        "targetTableModes": [
+          "AccessExclusiveLock",
+          "ShareLock"
+        ],
+        "strongestTargetTableMode": "AccessExclusiveLock",
+        "blocksSelects": true,
+        "blocksWrites": true
+      },
+      "rewrite": {
+        "tableRewritten": true,
+        "relfilenodeBefore": 17764,
+        "relfilenodeAfter": 17836,
+        "indexesRebuilt": true,
+        "indexesCreated": [],
+        "indexesDropped": [],
+        "toastRewritten": true,
+        "partitionsRewritten": [],
+        "consistentAcrossRuns": true
+      },
+      "size": {
+        "before": {
+          "tableBytes": 35127296,
+          "indexesBytes": 1433600,
+          "toastBytes": 8192,
+          "totalBytes": 36610048
+        },
+        "after": {
+          "tableBytes": 36700160,
+          "indexesBytes": 1433600,
+          "toastBytes": 8192,
+          "totalBytes": 38141952
+        },
+        "deltaBytes": {
+          "table": 1572864,
+          "indexes": 0,
+          "toast": 0,
+          "total": 1531904
+        }
+      },
+      "runs": [
+        {
+          "durationMs": 262.101800000004,
+          "lockWaitMs": 0,
+          "tableRewritten": true,
+          "sizeBefore": {
+            "tableBytes": 35127296,
+            "indexesBytes": 1433600,
+            "toastBytes": 8192,
+            "totalBytes": 36610048
+          },
+          "sizeAfter": {
+            "tableBytes": 36700160,
+            "indexesBytes": 1433600,
+            "toastBytes": 8192,
+            "totalBytes": 38141952
+          }
+        },
+        {
+          "durationMs": 305.5541000000085,
+          "lockWaitMs": 0,
+          "tableRewritten": true,
+          "sizeBefore": {
+            "tableBytes": 35127296,
+            "indexesBytes": 1433600,
+            "toastBytes": 8192,
+            "totalBytes": 36610048
+          },
+          "sizeAfter": {
+            "tableBytes": 36700160,
+            "indexesBytes": 1433600,
+            "toastBytes": 8192,
+            "totalBytes": 38141952
+          }
+        },
+        {
+          "durationMs": 328.18529999999737,
+          "lockWaitMs": 0,
+          "tableRewritten": true,
+          "sizeBefore": {
+            "tableBytes": 35127296,
+            "indexesBytes": 1433600,
+            "toastBytes": 8192,
+            "totalBytes": 36610048
+          },
+          "sizeAfter": {
+            "tableBytes": 36700160,
+            "indexesBytes": 1433600,
+            "toastBytes": 8192,
+            "totalBytes": 38141952
+          }
+        }
+      ],
+      "verification": {
+        "rolledBackCleanly": true
+      },
+      "timings": {
+        "startedAt": "2026-10-03T05:03:40.938Z",
+        "finishedAt": "2026-10-03T05:03:42.091Z",
+        "totalMs": 1153
+      },
+      "environment": {
+        "postgresVersion": "16.15 (Debian 16.15-1.pgdg12+2)",
+        "settings": {
+          "shared_buffers": "768MB",
+          "work_mem": "16MB",
+          "effective_cache_size": "1536MB",
+          "max_parallel_workers_per_gather": "2",
+          "jit": "on",
+          "random_page_cost": "4",
+          "track_io_timing": "on",
+          "default_statistics_target": "100"
+        },
+        "limits": {
+          "cpus": 2,
+          "memoryMiB": 3072,
+          "memorySwapMiB": 3072,
+          "shmMiB": 256
+        }
+      }
+    },
+    {
+      "version": 1,
+      "kind": "ddl",
+      "status": "ok",
+      "shadow": {
+        "manifestId": "202ff9f5-0e3a-4e68-8ea2-da8f006b1cc6",
+        "sampled": false,
+        "mode": "full",
+        "totalRowRatio": 1,
+        "largestTableRatio": 1,
+        "scalingNote": "Full copy: every table has the same row count as the source. Timings still depend on the shadow container limits and settings recorded here, which may differ from production."
+      },
+      "statement": {
+        "sql": "ALTER TABLE public.harness_variance_ddl ADD COLUMN v double precision NOT NULL DEFAULT random()",
+        "class": "ddl",
+        "strategy": "rollback-transaction"
+      },
+      "target": {
+        "table": "public.harness_variance_ddl",
+        "relkind": "r",
+        "partitions": 0
+      },
+      "config": {
+        "runs": 3,
+        "statementTimeoutMs": 300000,
+        "lockTimeoutMs": 10000,
+        "maxTotalRuntimeMs": 900000,
+        "samplingIntervalMs": 14.3,
+        "blockingTransaction": false
+      },
+      "durationMs": {
+        "n": 3,
+        "min": 296.1790999999939,
+        "max": 352.57970000000205,
+        "mean": 325.0651333333323,
+        "stddev": 28.22530089659925,
+        "cvPercent": 8.682967812378731,
+        "p50": 326.4366000000009,
+        "p95": 349.96539000000195
+      },
+      "lockWaitMs": {
+        "n": 3,
+        "min": 0,
+        "max": 0,
+        "mean": 0,
+        "stddev": 0,
+        "cvPercent": 0,
+        "p50": 0,
+        "p95": 0
+      },
+      "locks": {
+        "source": "end-of-statement",
+        "held": [
+          {
+            "relation": "object",
+            "relkind": null,
+            "locktype": "object",
+            "mode": "AccessExclusiveLock",
+            "granted": true
+          },
+          {
+            "relation": "object",
+            "relkind": null,
+            "locktype": "object",
+            "mode": "AccessExclusiveLock",
+            "granted": true
+          },
+          {
+            "relation": "pg_toast.pg_toast_17764",
+            "relkind": "t",
+            "locktype": "relation",
+            "mode": "AccessExclusiveLock",
+            "granted": true
+          },
+          {
+            "relation": "pg_toast.pg_toast_17764_index",
+            "relkind": "i",
+            "locktype": "relation",
+            "mode": "AccessExclusiveLock",
+            "granted": true
+          },
+          {
+            "relation": "public.harness_variance_ddl",
+            "relkind": "r",
+            "locktype": "relation",
+            "mode": "AccessExclusiveLock",
+            "granted": true
+          },
+          {
+            "relation": "public.harness_variance_ddl_a_idx",
+            "relkind": "i",
+            "locktype": "relation",
+            "mode": "AccessExclusiveLock",
+            "granted": true
+          },
+          {
+            "relation": "relation",
+            "relkind": null,
+            "locktype": "relation",
+            "mode": "AccessExclusiveLock",
+            "granted": true
+          },
+          {
+            "relation": "relation",
+            "relkind": null,
+            "locktype": "relation",
+            "mode": "AccessExclusiveLock",
+            "granted": true
+          },
+          {
+            "relation": "relation",
+            "relkind": null,
+            "locktype": "relation",
+            "mode": "AccessExclusiveLock",
+            "granted": true
+          },
+          {
+            "relation": "pg_toast.pg_toast_17764",
+            "relkind": "t",
+            "locktype": "relation",
+            "mode": "ShareLock",
+            "granted": true
+          },
+          {
+            "relation": "public.harness_variance_ddl",
+            "relkind": "r",
+            "locktype": "relation",
+            "mode": "ShareLock",
+            "granted": true
+          },
+          {
+            "relation": "pg_toast.pg_toast_17764_index",
+            "relkind": "i",
+            "locktype": "relation",
+            "mode": "ShareUpdateExclusiveLock",
+            "granted": true
+          },
+          {
+            "relation": "object",
+            "relkind": null,
+            "locktype": "object",
+            "mode": "AccessShareLock",
+            "granted": true
+          },
+          {
+            "relation": "object",
+            "relkind": null,
+            "locktype": "object",
+            "mode": "AccessShareLock",
+            "granted": true
+          }
+        ],
+        "targetTableModes": [
+          "AccessExclusiveLock",
+          "ShareLock"
+        ],
+        "strongestTargetTableMode": "AccessExclusiveLock",
+        "blocksSelects": true,
+        "blocksWrites": true
+      },
+      "rewrite": {
+        "tableRewritten": true,
+        "relfilenodeBefore": 17764,
+        "relfilenodeAfter": 17857,
+        "indexesRebuilt": true,
+        "indexesCreated": [],
+        "indexesDropped": [],
+        "toastRewritten": true,
+        "partitionsRewritten": [],
+        "consistentAcrossRuns": true
+      },
+      "size": {
+        "before": {
+          "tableBytes": 35127296,
+          "indexesBytes": 1433600,
+          "toastBytes": 8192,
+          "totalBytes": 36610048
+        },
+        "after": {
+          "tableBytes": 36700160,
+          "indexesBytes": 1433600,
+          "toastBytes": 8192,
+          "totalBytes": 38141952
+        },
+        "deltaBytes": {
+          "table": 1572864,
+          "indexes": 0,
+          "toast": 0,
+          "total": 1531904
+        }
+      },
+      "runs": [
+        {
+          "durationMs": 326.4366000000009,
+          "lockWaitMs": 0,
+          "tableRewritten": true,
+          "sizeBefore": {
+            "tableBytes": 35127296,
+            "indexesBytes": 1433600,
+            "toastBytes": 8192,
+            "totalBytes": 36610048
+          },
+          "sizeAfter": {
+            "tableBytes": 36700160,
+            "indexesBytes": 1433600,
+            "toastBytes": 8192,
+            "totalBytes": 38141952
+          }
+        },
+        {
+          "durationMs": 352.57970000000205,
+          "lockWaitMs": 0,
+          "tableRewritten": true,
+          "sizeBefore": {
+            "tableBytes": 35127296,
+            "indexesBytes": 1433600,
+            "toastBytes": 8192,
+            "totalBytes": 36610048
+          },
+          "sizeAfter": {
+            "tableBytes": 36700160,
+            "indexesBytes": 1433600,
+            "toastBytes": 8192,
+            "totalBytes": 38141952
+          }
+        },
+        {
+          "durationMs": 296.1790999999939,
+          "lockWaitMs": 0,
+          "tableRewritten": true,
+          "sizeBefore": {
+            "tableBytes": 35127296,
+            "indexesBytes": 1433600,
+            "toastBytes": 8192,
+            "totalBytes": 36610048
+          },
+          "sizeAfter": {
+            "tableBytes": 36700160,
+            "indexesBytes": 1433600,
+            "toastBytes": 8192,
+            "totalBytes": 38141952
+          }
+        }
+      ],
+      "verification": {
+        "rolledBackCleanly": true
+      },
+      "timings": {
+        "startedAt": "2026-10-03T05:03:42.091Z",
+        "finishedAt": "2026-10-03T05:03:43.336Z",
+        "totalMs": 1245
+      },
+      "environment": {
+        "postgresVersion": "16.15 (Debian 16.15-1.pgdg12+2)",
+        "settings": {
+          "shared_buffers": "768MB",
+          "work_mem": "16MB",
+          "effective_cache_size": "1536MB",
+          "max_parallel_workers_per_gather": "2",
+          "jit": "on",
+          "random_page_cost": "4",
+          "track_io_timing": "on",
+          "default_statistics_target": "100"
+        },
+        "limits": {
+          "cpus": 2,
+          "memoryMiB": 3072,
+          "memorySwapMiB": 3072,
+          "shmMiB": 256
+        }
+      }
+    },
+    {
+      "version": 1,
+      "kind": "ddl",
+      "status": "ok",
+      "shadow": {
+        "manifestId": "202ff9f5-0e3a-4e68-8ea2-da8f006b1cc6",
+        "sampled": false,
+        "mode": "full",
+        "totalRowRatio": 1,
+        "largestTableRatio": 1,
+        "scalingNote": "Full copy: every table has the same row count as the source. Timings still depend on the shadow container limits and settings recorded here, which may differ from production."
+      },
+      "statement": {
+        "sql": "ALTER TABLE public.harness_variance_ddl ADD COLUMN v double precision NOT NULL DEFAULT random()",
+        "class": "ddl",
+        "strategy": "rollback-transaction"
+      },
+      "target": {
+        "table": "public.harness_variance_ddl",
+        "relkind": "r",
+        "partitions": 0
+      },
+      "config": {
+        "runs": 3,
+        "statementTimeoutMs": 300000,
+        "lockTimeoutMs": 10000,
+        "maxTotalRuntimeMs": 900000,
+        "samplingIntervalMs": 15.2,
+        "blockingTransaction": false
+      },
+      "durationMs": {
+        "n": 3,
+        "min": 264.9256999999925,
+        "max": 288.9808000000048,
+        "mean": 274.6364333333331,
+        "stddev": 12.679309027051351,
+        "cvPercent": 4.6167614664810905,
+        "p50": 270.002800000002,
+        "p95": 287.0830000000045
+      },
+      "lockWaitMs": {
+        "n": 3,
+        "min": 0,
+        "max": 0,
+        "mean": 0,
+        "stddev": 0,
+        "cvPercent": 0,
+        "p50": 0,
+        "p95": 0
+      },
+      "locks": {
+        "source": "end-of-statement",
+        "held": [
+          {
+            "relation": "object",
+            "relkind": null,
+            "locktype": "object",
+            "mode": "AccessExclusiveLock",
+            "granted": true
+          },
+          {
+            "relation": "object",
+            "relkind": null,
+            "locktype": "object",
+            "mode": "AccessExclusiveLock",
+            "granted": true
+          },
+          {
+            "relation": "pg_toast.pg_toast_17764",
+            "relkind": "t",
+            "locktype": "relation",
+            "mode": "AccessExclusiveLock",
+            "granted": true
+          },
+          {
+            "relation": "pg_toast.pg_toast_17764_index",
+            "relkind": "i",
+            "locktype": "relation",
+            "mode": "AccessExclusiveLock",
+            "granted": true
+          },
+          {
+            "relation": "public.harness_variance_ddl",
+            "relkind": "r",
+            "locktype": "relation",
+            "mode": "AccessExclusiveLock",
+            "granted": true
+          },
+          {
+            "relation": "public.harness_variance_ddl_a_idx",
+            "relkind": "i",
+            "locktype": "relation",
+            "mode": "AccessExclusiveLock",
+            "granted": true
+          },
+          {
+            "relation": "relation",
+            "relkind": null,
+            "locktype": "relation",
+            "mode": "AccessExclusiveLock",
+            "granted": true
+          },
+          {
+            "relation": "relation",
+            "relkind": null,
+            "locktype": "relation",
+            "mode": "AccessExclusiveLock",
+            "granted": true
+          },
+          {
+            "relation": "relation",
+            "relkind": null,
+            "locktype": "relation",
+            "mode": "AccessExclusiveLock",
+            "granted": true
+          },
+          {
+            "relation": "pg_toast.pg_toast_17764",
+            "relkind": "t",
+            "locktype": "relation",
+            "mode": "ShareLock",
+            "granted": true
+          },
+          {
+            "relation": "public.harness_variance_ddl",
+            "relkind": "r",
+            "locktype": "relation",
+            "mode": "ShareLock",
+            "granted": true
+          },
+          {
+            "relation": "pg_toast.pg_toast_17764_index",
+            "relkind": "i",
+            "locktype": "relation",
+            "mode": "ShareUpdateExclusiveLock",
+            "granted": true
+          },
+          {
+            "relation": "object",
+            "relkind": null,
+            "locktype": "object",
+            "mode": "AccessShareLock",
+            "granted": true
+          },
+          {
+            "relation": "object",
+            "relkind": null,
+            "locktype": "object",
+            "mode": "AccessShareLock",
+            "granted": true
+          }
+        ],
+        "targetTableModes": [
+          "AccessExclusiveLock",
+          "ShareLock"
+        ],
+        "strongestTargetTableMode": "AccessExclusiveLock",
+        "blocksSelects": true,
+        "blocksWrites": true
+      },
+      "rewrite": {
+        "tableRewritten": true,
+        "relfilenodeBefore": 17764,
+        "relfilenodeAfter": 17878,
+        "indexesRebuilt": true,
+        "indexesCreated": [],
+        "indexesDropped": [],
+        "toastRewritten": true,
+        "partitionsRewritten": [],
+        "consistentAcrossRuns": true
+      },
+      "size": {
+        "before": {
+          "tableBytes": 35127296,
+          "indexesBytes": 1433600,
+          "toastBytes": 8192,
+          "totalBytes": 36610048
+        },
+        "after": {
+          "tableBytes": 36700160,
+          "indexesBytes": 1433600,
+          "toastBytes": 8192,
+          "totalBytes": 38141952
+        },
+        "deltaBytes": {
+          "table": 1572864,
+          "indexes": 0,
+          "toast": 0,
+          "total": 1531904
+        }
+      },
+      "runs": [
+        {
+          "durationMs": 264.9256999999925,
+          "lockWaitMs": 0,
+          "tableRewritten": true,
+          "sizeBefore": {
+            "tableBytes": 35127296,
+            "indexesBytes": 1433600,
+            "toastBytes": 8192,
+            "totalBytes": 36610048
+          },
+          "sizeAfter": {
+            "tableBytes": 36700160,
+            "indexesBytes": 1433600,
+            "toastBytes": 8192,
+            "totalBytes": 38141952
+          }
+        },
+        {
+          "durationMs": 270.002800000002,
+          "lockWaitMs": 0,
+          "tableRewritten": true,
+          "sizeBefore": {
+            "tableBytes": 35127296,
+            "indexesBytes": 1433600,
+            "toastBytes": 8192,
+            "totalBytes": 36610048
+          },
+          "sizeAfter": {
+            "tableBytes": 36700160,
+            "indexesBytes": 1433600,
+            "toastBytes": 8192,
+            "totalBytes": 38141952
+          }
+        },
+        {
+          "durationMs": 288.9808000000048,
+          "lockWaitMs": 0,
+          "tableRewritten": true,
+          "sizeBefore": {
+            "tableBytes": 35127296,
+            "indexesBytes": 1433600,
+            "toastBytes": 8192,
+            "totalBytes": 36610048
+          },
+          "sizeAfter": {
+            "tableBytes": 36700160,
+            "indexesBytes": 1433600,
+            "toastBytes": 8192,
+            "totalBytes": 38141952
+          }
+        }
+      ],
+      "verification": {
+        "rolledBackCleanly": true
+      },
+      "timings": {
+        "startedAt": "2026-10-03T05:03:43.336Z",
+        "finishedAt": "2026-10-03T05:03:44.403Z",
+        "totalMs": 1068
+      },
+      "environment": {
+        "postgresVersion": "16.15 (Debian 16.15-1.pgdg12+2)",
+        "settings": {
+          "shared_buffers": "768MB",
+          "work_mem": "16MB",
+          "effective_cache_size": "1536MB",
+          "max_parallel_workers_per_gather": "2",
+          "jit": "on",
+          "random_page_cost": "4",
+          "track_io_timing": "on",
+          "default_statistics_target": "100"
+        },
+        "limits": {
+          "cpus": 2,
+          "memoryMiB": 3072,
+          "memorySwapMiB": 3072,
+          "shmMiB": 256
+        }
+      }
+    },
+    {
+      "version": 1,
+      "kind": "ddl",
+      "status": "ok",
+      "shadow": {
+        "manifestId": "202ff9f5-0e3a-4e68-8ea2-da8f006b1cc6",
+        "sampled": false,
+        "mode": "full",
+        "totalRowRatio": 1,
+        "largestTableRatio": 1,
+        "scalingNote": "Full copy: every table has the same row count as the source. Timings still depend on the shadow container limits and settings recorded here, which may differ from production."
+      },
+      "statement": {
+        "sql": "ALTER TABLE public.harness_variance_ddl ADD COLUMN v double precision NOT NULL DEFAULT random()",
+        "class": "ddl",
+        "strategy": "rollback-transaction"
+      },
+      "target": {
+        "table": "public.harness_variance_ddl",
+        "relkind": "r",
+        "partitions": 0
+      },
+      "config": {
+        "runs": 3,
+        "statementTimeoutMs": 300000,
+        "lockTimeoutMs": 10000,
+        "maxTotalRuntimeMs": 900000,
+        "samplingIntervalMs": 15.2,
+        "blockingTransaction": false
+      },
+      "durationMs": {
+        "n": 3,
+        "min": 257.97879999999714,
+        "max": 284.0371000000014,
+        "mean": 270.2605666666641,
+        "stddev": 13.093299632384374,
+        "cvPercent": 4.844694804674735,
+        "p50": 268.76579999999376,
+        "p95": 282.50997000000064
+      },
+      "lockWaitMs": {
+        "n": 3,
+        "min": 0,
+        "max": 0,
+        "mean": 0,
+        "stddev": 0,
+        "cvPercent": 0,
+        "p50": 0,
+        "p95": 0
+      },
+      "locks": {
+        "source": "end-of-statement",
+        "held": [
+          {
+            "relation": "object",
+            "relkind": null,
+            "locktype": "object",
+            "mode": "AccessExclusiveLock",
+            "granted": true
+          },
+          {
+            "relation": "object",
+            "relkind": null,
+            "locktype": "object",
+            "mode": "AccessExclusiveLock",
+            "granted": true
+          },
+          {
+            "relation": "pg_toast.pg_toast_17764",
+            "relkind": "t",
+            "locktype": "relation",
+            "mode": "AccessExclusiveLock",
+            "granted": true
+          },
+          {
+            "relation": "pg_toast.pg_toast_17764_index",
+            "relkind": "i",
+            "locktype": "relation",
+            "mode": "AccessExclusiveLock",
+            "granted": true
+          },
+          {
+            "relation": "public.harness_variance_ddl",
+            "relkind": "r",
+            "locktype": "relation",
+            "mode": "AccessExclusiveLock",
+            "granted": true
+          },
+          {
+            "relation": "public.harness_variance_ddl_a_idx",
+            "relkind": "i",
+            "locktype": "relation",
+            "mode": "AccessExclusiveLock",
+            "granted": true
+          },
+          {
+            "relation": "relation",
+            "relkind": null,
+            "locktype": "relation",
+            "mode": "AccessExclusiveLock",
+            "granted": true
+          },
+          {
+            "relation": "relation",
+            "relkind": null,
+            "locktype": "relation",
+            "mode": "AccessExclusiveLock",
+            "granted": true
+          },
+          {
+            "relation": "relation",
+            "relkind": null,
+            "locktype": "relation",
+            "mode": "AccessExclusiveLock",
+            "granted": true
+          },
+          {
+            "relation": "pg_toast.pg_toast_17764",
+            "relkind": "t",
+            "locktype": "relation",
+            "mode": "ShareLock",
+            "granted": true
+          },
+          {
+            "relation": "public.harness_variance_ddl",
+            "relkind": "r",
+            "locktype": "relation",
+            "mode": "ShareLock",
+            "granted": true
+          },
+          {
+            "relation": "pg_toast.pg_toast_17764_index",
+            "relkind": "i",
+            "locktype": "relation",
+            "mode": "ShareUpdateExclusiveLock",
+            "granted": true
+          },
+          {
+            "relation": "object",
+            "relkind": null,
+            "locktype": "object",
+            "mode": "AccessShareLock",
+            "granted": true
+          },
+          {
+            "relation": "object",
+            "relkind": null,
+            "locktype": "object",
+            "mode": "AccessShareLock",
+            "granted": true
+          }
+        ],
+        "targetTableModes": [
+          "AccessExclusiveLock",
+          "ShareLock"
+        ],
+        "strongestTargetTableMode": "AccessExclusiveLock",
+        "blocksSelects": true,
+        "blocksWrites": true
+      },
+      "rewrite": {
+        "tableRewritten": true,
+        "relfilenodeBefore": 17764,
+        "relfilenodeAfter": 17899,
+        "indexesRebuilt": true,
+        "indexesCreated": [],
+        "indexesDropped": [],
+        "toastRewritten": true,
+        "partitionsRewritten": [],
+        "consistentAcrossRuns": true
+      },
+      "size": {
+        "before": {
+          "tableBytes": 35127296,
+          "indexesBytes": 1433600,
+          "toastBytes": 8192,
+          "totalBytes": 36610048
+        },
+        "after": {
+          "tableBytes": 36700160,
+          "indexesBytes": 1433600,
+          "toastBytes": 8192,
+          "totalBytes": 38141952
+        },
+        "deltaBytes": {
+          "table": 1572864,
+          "indexes": 0,
+          "toast": 0,
+          "total": 1531904
+        }
+      },
+      "runs": [
+        {
+          "durationMs": 257.97879999999714,
+          "lockWaitMs": 0,
+          "tableRewritten": true,
+          "sizeBefore": {
+            "tableBytes": 35127296,
+            "indexesBytes": 1433600,
+            "toastBytes": 8192,
+            "totalBytes": 36610048
+          },
+          "sizeAfter": {
+            "tableBytes": 36700160,
+            "indexesBytes": 1433600,
+            "toastBytes": 8192,
+            "totalBytes": 38141952
+          }
+        },
+        {
+          "durationMs": 284.0371000000014,
+          "lockWaitMs": 0,
+          "tableRewritten": true,
+          "sizeBefore": {
+            "tableBytes": 35127296,
+            "indexesBytes": 1433600,
+            "toastBytes": 8192,
+            "totalBytes": 36610048
+          },
+          "sizeAfter": {
+            "tableBytes": 36700160,
+            "indexesBytes": 1433600,
+            "toastBytes": 8192,
+            "totalBytes": 38141952
+          }
+        },
+        {
+          "durationMs": 268.76579999999376,
+          "lockWaitMs": 0,
+          "tableRewritten": true,
+          "sizeBefore": {
+            "tableBytes": 35127296,
+            "indexesBytes": 1433600,
+            "toastBytes": 8192,
+            "totalBytes": 36610048
+          },
+          "sizeAfter": {
+            "tableBytes": 36700160,
+            "indexesBytes": 1433600,
+            "toastBytes": 8192,
+            "totalBytes": 38141952
+          }
+        }
+      ],
+      "verification": {
+        "rolledBackCleanly": true
+      },
+      "timings": {
+        "startedAt": "2026-10-03T05:03:44.404Z",
+        "finishedAt": "2026-10-03T05:03:45.440Z",
+        "totalMs": 1036
+      },
+      "environment": {
+        "postgresVersion": "16.15 (Debian 16.15-1.pgdg12+2)",
+        "settings": {
+          "shared_buffers": "768MB",
+          "work_mem": "16MB",
+          "effective_cache_size": "1536MB",
+          "max_parallel_workers_per_gather": "2",
+          "jit": "on",
+          "random_page_cost": "4",
+          "track_io_timing": "on",
+          "default_statistics_target": "100"
+        },
+        "limits": {
+          "cpus": 2,
+          "memoryMiB": 3072,
+          "memorySwapMiB": 3072,
+          "shmMiB": 256
+        }
+      }
+    },
+    {
+      "version": 1,
+      "kind": "ddl",
+      "status": "ok",
+      "shadow": {
+        "manifestId": "202ff9f5-0e3a-4e68-8ea2-da8f006b1cc6",
+        "sampled": false,
+        "mode": "full",
+        "totalRowRatio": 1,
+        "largestTableRatio": 1,
+        "scalingNote": "Full copy: every table has the same row count as the source. Timings still depend on the shadow container limits and settings recorded here, which may differ from production."
+      },
+      "statement": {
+        "sql": "ALTER TABLE public.harness_variance_ddl ADD COLUMN v double precision NOT NULL DEFAULT random()",
+        "class": "ddl",
+        "strategy": "rollback-transaction"
+      },
+      "target": {
+        "table": "public.harness_variance_ddl",
+        "relkind": "r",
+        "partitions": 0
+      },
+      "config": {
+        "runs": 3,
+        "statementTimeoutMs": 300000,
+        "lockTimeoutMs": 10000,
+        "maxTotalRuntimeMs": 900000,
+        "samplingIntervalMs": 15.6,
+        "blockingTransaction": false
+      },
+      "durationMs": {
+        "n": 3,
+        "min": 263.15089999999327,
+        "max": 281.55860000000393,
+        "mean": 274.22853333333234,
+        "stddev": 9.759305649657469,
+        "cvPercent": 3.558822100322713,
+        "p50": 277.97609999999986,
+        "p95": 281.20035000000354
+      },
+      "lockWaitMs": {
+        "n": 3,
+        "min": 0,
+        "max": 0,
+        "mean": 0,
+        "stddev": 0,
+        "cvPercent": 0,
+        "p50": 0,
+        "p95": 0
+      },
+      "locks": {
+        "source": "end-of-statement",
+        "held": [
+          {
+            "relation": "object",
+            "relkind": null,
+            "locktype": "object",
+            "mode": "AccessExclusiveLock",
+            "granted": true
+          },
+          {
+            "relation": "object",
+            "relkind": null,
+            "locktype": "object",
+            "mode": "AccessExclusiveLock",
+            "granted": true
+          },
+          {
+            "relation": "pg_toast.pg_toast_17764",
+            "relkind": "t",
+            "locktype": "relation",
+            "mode": "AccessExclusiveLock",
+            "granted": true
+          },
+          {
+            "relation": "pg_toast.pg_toast_17764_index",
+            "relkind": "i",
+            "locktype": "relation",
+            "mode": "AccessExclusiveLock",
+            "granted": true
+          },
+          {
+            "relation": "public.harness_variance_ddl",
+            "relkind": "r",
+            "locktype": "relation",
+            "mode": "AccessExclusiveLock",
+            "granted": true
+          },
+          {
+            "relation": "public.harness_variance_ddl_a_idx",
+            "relkind": "i",
+            "locktype": "relation",
+            "mode": "AccessExclusiveLock",
+            "granted": true
+          },
+          {
+            "relation": "relation",
+            "relkind": null,
+            "locktype": "relation",
+            "mode": "AccessExclusiveLock",
+            "granted": true
+          },
+          {
+            "relation": "relation",
+            "relkind": null,
+            "locktype": "relation",
+            "mode": "AccessExclusiveLock",
+            "granted": true
+          },
+          {
+            "relation": "relation",
+            "relkind": null,
+            "locktype": "relation",
+            "mode": "AccessExclusiveLock",
+            "granted": true
+          },
+          {
+            "relation": "pg_toast.pg_toast_17764",
+            "relkind": "t",
+            "locktype": "relation",
+            "mode": "ShareLock",
+            "granted": true
+          },
+          {
+            "relation": "public.harness_variance_ddl",
+            "relkind": "r",
+            "locktype": "relation",
+            "mode": "ShareLock",
+            "granted": true
+          },
+          {
+            "relation": "pg_toast.pg_toast_17764_index",
+            "relkind": "i",
+            "locktype": "relation",
+            "mode": "ShareUpdateExclusiveLock",
+            "granted": true
+          },
+          {
+            "relation": "object",
+            "relkind": null,
+            "locktype": "object",
+            "mode": "AccessShareLock",
+            "granted": true
+          },
+          {
+            "relation": "object",
+            "relkind": null,
+            "locktype": "object",
+            "mode": "AccessShareLock",
+            "granted": true
+          }
+        ],
+        "targetTableModes": [
+          "AccessExclusiveLock",
+          "ShareLock"
+        ],
+        "strongestTargetTableMode": "AccessExclusiveLock",
+        "blocksSelects": true,
+        "blocksWrites": true
+      },
+      "rewrite": {
+        "tableRewritten": true,
+        "relfilenodeBefore": 17764,
+        "relfilenodeAfter": 17920,
+        "indexesRebuilt": true,
+        "indexesCreated": [],
+        "indexesDropped": [],
+        "toastRewritten": true,
+        "partitionsRewritten": [],
+        "consistentAcrossRuns": true
+      },
+      "size": {
+        "before": {
+          "tableBytes": 35127296,
+          "indexesBytes": 1433600,
+          "toastBytes": 8192,
+          "totalBytes": 36610048
+        },
+        "after": {
+          "tableBytes": 36700160,
+          "indexesBytes": 1433600,
+          "toastBytes": 8192,
+          "totalBytes": 38141952
+        },
+        "deltaBytes": {
+          "table": 1572864,
+          "indexes": 0,
+          "toast": 0,
+          "total": 1531904
+        }
+      },
+      "runs": [
+        {
+          "durationMs": 277.97609999999986,
+          "lockWaitMs": 0,
+          "tableRewritten": true,
+          "sizeBefore": {
+            "tableBytes": 35127296,
+            "indexesBytes": 1433600,
+            "toastBytes": 8192,
+            "totalBytes": 36610048
+          },
+          "sizeAfter": {
+            "tableBytes": 36700160,
+            "indexesBytes": 1433600,
+            "toastBytes": 8192,
+            "totalBytes": 38141952
+          }
+        },
+        {
+          "durationMs": 263.15089999999327,
+          "lockWaitMs": 0,
+          "tableRewritten": true,
+          "sizeBefore": {
+            "tableBytes": 35127296,
+            "indexesBytes": 1433600,
+            "toastBytes": 8192,
+            "totalBytes": 36610048
+          },
+          "sizeAfter": {
+            "tableBytes": 36700160,
+            "indexesBytes": 1433600,
+            "toastBytes": 8192,
+            "totalBytes": 38141952
+          }
+        },
+        {
+          "durationMs": 281.55860000000393,
+          "lockWaitMs": 0,
+          "tableRewritten": true,
+          "sizeBefore": {
+            "tableBytes": 35127296,
+            "indexesBytes": 1433600,
+            "toastBytes": 8192,
+            "totalBytes": 36610048
+          },
+          "sizeAfter": {
+            "tableBytes": 36700160,
+            "indexesBytes": 1433600,
+            "toastBytes": 8192,
+            "totalBytes": 38141952
+          }
+        }
+      ],
+      "verification": {
+        "rolledBackCleanly": true
+      },
+      "timings": {
+        "startedAt": "2026-10-03T05:03:45.440Z",
+        "finishedAt": "2026-10-03T05:03:46.499Z",
+        "totalMs": 1059
+      },
+      "environment": {
+        "postgresVersion": "16.15 (Debian 16.15-1.pgdg12+2)",
+        "settings": {
+          "shared_buffers": "768MB",
+          "work_mem": "16MB",
+          "effective_cache_size": "1536MB",
+          "max_parallel_workers_per_gather": "2",
+          "jit": "on",
+          "random_page_cost": "4",
+          "track_io_timing": "on",
+          "default_statistics_target": "100"
+        },
+        "limits": {
+          "cpus": 2,
+          "memoryMiB": 3072,
+          "memorySwapMiB": 3072,
+          "shmMiB": 256
+        }
+      }
+    },
+    {
+      "version": 1,
+      "kind": "ddl",
+      "status": "ok",
+      "shadow": {
+        "manifestId": "202ff9f5-0e3a-4e68-8ea2-da8f006b1cc6",
+        "sampled": false,
+        "mode": "full",
+        "totalRowRatio": 1,
+        "largestTableRatio": 1,
+        "scalingNote": "Full copy: every table has the same row count as the source. Timings still depend on the shadow container limits and settings recorded here, which may differ from production."
+      },
+      "statement": {
+        "sql": "ALTER TABLE public.harness_variance_ddl ADD COLUMN v double precision NOT NULL DEFAULT random()",
+        "class": "ddl",
+        "strategy": "rollback-transaction"
+      },
+      "target": {
+        "table": "public.harness_variance_ddl",
+        "relkind": "r",
+        "partitions": 0
+      },
+      "config": {
+        "runs": 3,
+        "statementTimeoutMs": 300000,
+        "lockTimeoutMs": 10000,
+        "maxTotalRuntimeMs": 900000,
+        "samplingIntervalMs": 15.5,
+        "blockingTransaction": false
+      },
+      "durationMs": {
+        "n": 3,
+        "min": 277.2838999999949,
+        "max": 324.6730000000098,
+        "mean": 304.68730000000505,
+        "stddev": 24.549916591923747,
+        "cvPercent": 8.057413811446471,
+        "p50": 312.1050000000105,
+        "p95": 323.41620000000984
+      },
+      "lockWaitMs": {
+        "n": 3,
+        "min": 0,
+        "max": 0,
+        "mean": 0,
+        "stddev": 0,
+        "cvPercent": 0,
+        "p50": 0,
+        "p95": 0
+      },
+      "locks": {
+        "source": "end-of-statement",
+        "held": [
+          {
+            "relation": "object",
+            "relkind": null,
+            "locktype": "object",
+            "mode": "AccessExclusiveLock",
+            "granted": true
+          },
+          {
+            "relation": "object",
+            "relkind": null,
+            "locktype": "object",
+            "mode": "AccessExclusiveLock",
+            "granted": true
+          },
+          {
+            "relation": "pg_toast.pg_toast_17764",
+            "relkind": "t",
+            "locktype": "relation",
+            "mode": "AccessExclusiveLock",
+            "granted": true
+          },
+          {
+            "relation": "pg_toast.pg_toast_17764_index",
+            "relkind": "i",
+            "locktype": "relation",
+            "mode": "AccessExclusiveLock",
+            "granted": true
+          },
+          {
+            "relation": "public.harness_variance_ddl",
+            "relkind": "r",
+            "locktype": "relation",
+            "mode": "AccessExclusiveLock",
+            "granted": true
+          },
+          {
+            "relation": "public.harness_variance_ddl_a_idx",
+            "relkind": "i",
+            "locktype": "relation",
+            "mode": "AccessExclusiveLock",
+            "granted": true
+          },
+          {
+            "relation": "relation",
+            "relkind": null,
+            "locktype": "relation",
+            "mode": "AccessExclusiveLock",
+            "granted": true
+          },
+          {
+            "relation": "relation",
+            "relkind": null,
+            "locktype": "relation",
+            "mode": "AccessExclusiveLock",
+            "granted": true
+          },
+          {
+            "relation": "relation",
+            "relkind": null,
+            "locktype": "relation",
+            "mode": "AccessExclusiveLock",
+            "granted": true
+          },
+          {
+            "relation": "pg_toast.pg_toast_17764",
+            "relkind": "t",
+            "locktype": "relation",
+            "mode": "ShareLock",
+            "granted": true
+          },
+          {
+            "relation": "public.harness_variance_ddl",
+            "relkind": "r",
+            "locktype": "relation",
+            "mode": "ShareLock",
+            "granted": true
+          },
+          {
+            "relation": "pg_toast.pg_toast_17764_index",
+            "relkind": "i",
+            "locktype": "relation",
+            "mode": "ShareUpdateExclusiveLock",
+            "granted": true
+          },
+          {
+            "relation": "object",
+            "relkind": null,
+            "locktype": "object",
+            "mode": "AccessShareLock",
+            "granted": true
+          },
+          {
+            "relation": "object",
+            "relkind": null,
+            "locktype": "object",
+            "mode": "AccessShareLock",
+            "granted": true
+          }
+        ],
+        "targetTableModes": [
+          "AccessExclusiveLock",
+          "ShareLock"
+        ],
+        "strongestTargetTableMode": "AccessExclusiveLock",
+        "blocksSelects": true,
+        "blocksWrites": true
+      },
+      "rewrite": {
+        "tableRewritten": true,
+        "relfilenodeBefore": 17764,
+        "relfilenodeAfter": 17941,
+        "indexesRebuilt": true,
+        "indexesCreated": [],
+        "indexesDropped": [],
+        "toastRewritten": true,
+        "partitionsRewritten": [],
+        "consistentAcrossRuns": true
+      },
+      "size": {
+        "before": {
+          "tableBytes": 35127296,
+          "indexesBytes": 1433600,
+          "toastBytes": 8192,
+          "totalBytes": 36610048
+        },
+        "after": {
+          "tableBytes": 36700160,
+          "indexesBytes": 1433600,
+          "toastBytes": 8192,
+          "totalBytes": 38141952
+        },
+        "deltaBytes": {
+          "table": 1572864,
+          "indexes": 0,
+          "toast": 0,
+          "total": 1531904
+        }
+      },
+      "runs": [
+        {
+          "durationMs": 312.1050000000105,
+          "lockWaitMs": 0,
+          "tableRewritten": true,
+          "sizeBefore": {
+            "tableBytes": 35127296,
+            "indexesBytes": 1433600,
+            "toastBytes": 8192,
+            "totalBytes": 36610048
+          },
+          "sizeAfter": {
+            "tableBytes": 36700160,
+            "indexesBytes": 1433600,
+            "toastBytes": 8192,
+            "totalBytes": 38141952
+          }
+        },
+        {
+          "durationMs": 277.2838999999949,
+          "lockWaitMs": 0,
+          "tableRewritten": true,
+          "sizeBefore": {
+            "tableBytes": 35127296,
+            "indexesBytes": 1433600,
+            "toastBytes": 8192,
+            "totalBytes": 36610048
+          },
+          "sizeAfter": {
+            "tableBytes": 36700160,
+            "indexesBytes": 1433600,
+            "toastBytes": 8192,
+            "totalBytes": 38141952
+          }
+        },
+        {
+          "durationMs": 324.6730000000098,
+          "lockWaitMs": 0,
+          "tableRewritten": true,
+          "sizeBefore": {
+            "tableBytes": 35127296,
+            "indexesBytes": 1433600,
+            "toastBytes": 8192,
+            "totalBytes": 36610048
+          },
+          "sizeAfter": {
+            "tableBytes": 36700160,
+            "indexesBytes": 1433600,
+            "toastBytes": 8192,
+            "totalBytes": 38141952
+          }
+        }
+      ],
+      "verification": {
+        "rolledBackCleanly": true
+      },
+      "timings": {
+        "startedAt": "2026-10-03T05:03:46.500Z",
+        "finishedAt": "2026-10-03T05:03:47.666Z",
+        "totalMs": 1166
+      },
+      "environment": {
+        "postgresVersion": "16.15 (Debian 16.15-1.pgdg12+2)",
+        "settings": {
+          "shared_buffers": "768MB",
+          "work_mem": "16MB",
+          "effective_cache_size": "1536MB",
+          "max_parallel_workers_per_gather": "2",
+          "jit": "on",
+          "random_page_cost": "4",
+          "track_io_timing": "on",
+          "default_statistics_target": "100"
+        },
+        "limits": {
+          "cpus": 2,
+          "memoryMiB": 3072,
+          "memorySwapMiB": 3072,
+          "shmMiB": 256
+        }
+      }
+    },
+    {
+      "version": 1,
+      "kind": "ddl",
+      "status": "ok",
+      "shadow": {
+        "manifestId": "202ff9f5-0e3a-4e68-8ea2-da8f006b1cc6",
+        "sampled": false,
+        "mode": "full",
+        "totalRowRatio": 1,
+        "largestTableRatio": 1,
+        "scalingNote": "Full copy: every table has the same row count as the source. Timings still depend on the shadow container limits and settings recorded here, which may differ from production."
+      },
+      "statement": {
+        "sql": "ALTER TABLE public.harness_variance_ddl ADD COLUMN v double precision NOT NULL DEFAULT random()",
+        "class": "ddl",
+        "strategy": "rollback-transaction"
+      },
+      "target": {
+        "table": "public.harness_variance_ddl",
+        "relkind": "r",
+        "partitions": 0
+      },
+      "config": {
+        "runs": 3,
+        "statementTimeoutMs": 300000,
+        "lockTimeoutMs": 10000,
+        "maxTotalRuntimeMs": 900000,
+        "samplingIntervalMs": 15.7,
+        "blockingTransaction": false
+      },
+      "durationMs": {
+        "n": 3,
+        "min": 258.4231,
+        "max": 295.42089999999735,
+        "mean": 276.7724333333317,
+        "stddev": 18.50071381793916,
+        "cvPercent": 6.684449601835082,
+        "p50": 276.47329999999783,
+        "p95": 293.5261399999974
+      },
+      "lockWaitMs": {
+        "n": 3,
+        "min": 0,
+        "max": 0,
+        "mean": 0,
+        "stddev": 0,
+        "cvPercent": 0,
+        "p50": 0,
+        "p95": 0
+      },
+      "locks": {
+        "source": "end-of-statement",
+        "held": [
+          {
+            "relation": "object",
+            "relkind": null,
+            "locktype": "object",
+            "mode": "AccessExclusiveLock",
+            "granted": true
+          },
+          {
+            "relation": "object",
+            "relkind": null,
+            "locktype": "object",
+            "mode": "AccessExclusiveLock",
+            "granted": true
+          },
+          {
+            "relation": "pg_toast.pg_toast_17764",
+            "relkind": "t",
+            "locktype": "relation",
+            "mode": "AccessExclusiveLock",
+            "granted": true
+          },
+          {
+            "relation": "pg_toast.pg_toast_17764_index",
+            "relkind": "i",
+            "locktype": "relation",
+            "mode": "AccessExclusiveLock",
+            "granted": true
+          },
+          {
+            "relation": "public.harness_variance_ddl",
+            "relkind": "r",
+            "locktype": "relation",
+            "mode": "AccessExclusiveLock",
+            "granted": true
+          },
+          {
+            "relation": "public.harness_variance_ddl_a_idx",
+            "relkind": "i",
+            "locktype": "relation",
+            "mode": "AccessExclusiveLock",
+            "granted": true
+          },
+          {
+            "relation": "relation",
+            "relkind": null,
+            "locktype": "relation",
+            "mode": "AccessExclusiveLock",
+            "granted": true
+          },
+          {
+            "relation": "relation",
+            "relkind": null,
+            "locktype": "relation",
+            "mode": "AccessExclusiveLock",
+            "granted": true
+          },
+          {
+            "relation": "relation",
+            "relkind": null,
+            "locktype": "relation",
+            "mode": "AccessExclusiveLock",
+            "granted": true
+          },
+          {
+            "relation": "pg_toast.pg_toast_17764",
+            "relkind": "t",
+            "locktype": "relation",
+            "mode": "ShareLock",
+            "granted": true
+          },
+          {
+            "relation": "public.harness_variance_ddl",
+            "relkind": "r",
+            "locktype": "relation",
+            "mode": "ShareLock",
+            "granted": true
+          },
+          {
+            "relation": "pg_toast.pg_toast_17764_index",
+            "relkind": "i",
+            "locktype": "relation",
+            "mode": "ShareUpdateExclusiveLock",
+            "granted": true
+          },
+          {
+            "relation": "object",
+            "relkind": null,
+            "locktype": "object",
+            "mode": "AccessShareLock",
+            "granted": true
+          },
+          {
+            "relation": "object",
+            "relkind": null,
+            "locktype": "object",
+            "mode": "AccessShareLock",
+            "granted": true
+          }
+        ],
+        "targetTableModes": [
+          "AccessExclusiveLock",
+          "ShareLock"
+        ],
+        "strongestTargetTableMode": "AccessExclusiveLock",
+        "blocksSelects": true,
+        "blocksWrites": true
+      },
+      "rewrite": {
+        "tableRewritten": true,
+        "relfilenodeBefore": 17764,
+        "relfilenodeAfter": 17962,
+        "indexesRebuilt": true,
+        "indexesCreated": [],
+        "indexesDropped": [],
+        "toastRewritten": true,
+        "partitionsRewritten": [],
+        "consistentAcrossRuns": true
+      },
+      "size": {
+        "before": {
+          "tableBytes": 35127296,
+          "indexesBytes": 1433600,
+          "toastBytes": 8192,
+          "totalBytes": 36610048
+        },
+        "after": {
+          "tableBytes": 36700160,
+          "indexesBytes": 1433600,
+          "toastBytes": 8192,
+          "totalBytes": 38141952
+        },
+        "deltaBytes": {
+          "table": 1572864,
+          "indexes": 0,
+          "toast": 0,
+          "total": 1531904
+        }
+      },
+      "runs": [
+        {
+          "durationMs": 295.42089999999735,
+          "lockWaitMs": 0,
+          "tableRewritten": true,
+          "sizeBefore": {
+            "tableBytes": 35127296,
+            "indexesBytes": 1433600,
+            "toastBytes": 8192,
+            "totalBytes": 36610048
+          },
+          "sizeAfter": {
+            "tableBytes": 36700160,
+            "indexesBytes": 1433600,
+            "toastBytes": 8192,
+            "totalBytes": 38141952
+          }
+        },
+        {
+          "durationMs": 276.47329999999783,
+          "lockWaitMs": 0,
+          "tableRewritten": true,
+          "sizeBefore": {
+            "tableBytes": 35127296,
+            "indexesBytes": 1433600,
+            "toastBytes": 8192,
+            "totalBytes": 36610048
+          },
+          "sizeAfter": {
+            "tableBytes": 36700160,
+            "indexesBytes": 1433600,
+            "toastBytes": 8192,
+            "totalBytes": 38141952
+          }
+        },
+        {
+          "durationMs": 258.4231,
+          "lockWaitMs": 0,
+          "tableRewritten": true,
+          "sizeBefore": {
+            "tableBytes": 35127296,
+            "indexesBytes": 1433600,
+            "toastBytes": 8192,
+            "totalBytes": 36610048
+          },
+          "sizeAfter": {
+            "tableBytes": 36700160,
+            "indexesBytes": 1433600,
+            "toastBytes": 8192,
+            "totalBytes": 38141952
+          }
+        }
+      ],
+      "verification": {
+        "rolledBackCleanly": true
+      },
+      "timings": {
+        "startedAt": "2026-10-03T05:03:47.666Z",
+        "finishedAt": "2026-10-03T05:03:48.731Z",
+        "totalMs": 1065
+      },
+      "environment": {
+        "postgresVersion": "16.15 (Debian 16.15-1.pgdg12+2)",
+        "settings": {
+          "shared_buffers": "768MB",
+          "work_mem": "16MB",
+          "effective_cache_size": "1536MB",
+          "max_parallel_workers_per_gather": "2",
+          "jit": "on",
+          "random_page_cost": "4",
+          "track_io_timing": "on",
+          "default_statistics_target": "100"
+        },
+        "limits": {
+          "cpus": 2,
+          "memoryMiB": 3072,
+          "memorySwapMiB": 3072,
+          "shmMiB": 256
+        }
+      }
+    }
+  ]
+}

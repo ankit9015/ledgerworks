@@ -1,0 +1,5095 @@
+{
+  "case": "credit-balance-update",
+  "description": "UPDATE of one credit_balances row, measured inside a rolled-back transaction",
+  "context": {
+    "label": "settled-unpinned-repeat",
+    "description": "Variance of the measurement harness: each case run 10 times, each repetition with 3 warmup and 20 measured runs (DDL: 3 runs).",
+    "data": "synthetic 10M-row Ledgerline benchmark database (pnpm seed --yes, seed 20251001), full shadow copy",
+    "machine": {
+      "cpuModel": "11th Gen Intel(R) Core(TM) i5-1135G7 @ 2.40GHz",
+      "logicalCores": 8,
+      "ramGiB": 19.8,
+      "platform": "win32 10.0.26200",
+      "node": "v22.13.1"
+    },
+    "dockerHost": {
+      "cpus": 8,
+      "memoryMiB": 9838,
+      "serverVersion": "28.0.4"
+    },
+    "shadow": {
+      "manifestId": "202ff9f5-0e3a-4e68-8ea2-da8f006b1cc6",
+      "sampled": false,
+      "image": {
+        "tag": "ledgerworks/shadow-postgres:16.15-hypopg1.4.3",
+        "id": "sha256:af9fe3cbcd8fc101e7878bbd4c712f7a54335df3520adc9449ebb48298d2c4a6",
+        "postgresVersion": "16.15 (Debian 16.15-1.pgdg12+2)",
+        "hypopgVersion": "1.4.3",
+        "pgStatStatementsVersion": "1.10"
+      },
+      "settings": [
+        {
+          "name": "seq_page_cost",
+          "source": "1",
+          "shadow": "1"
+        },
+        {
+          "name": "random_page_cost",
+          "source": "4",
+          "shadow": "4"
+        },
+        {
+          "name": "cpu_tuple_cost",
+          "source": "0.01",
+          "shadow": "0.01"
+        },
+        {
+          "name": "cpu_index_tuple_cost",
+          "source": "0.005",
+          "shadow": "0.005"
+        },
+        {
+          "name": "cpu_operator_cost",
+          "source": "0.0025",
+          "shadow": "0.0025"
+        },
+        {
+          "name": "parallel_setup_cost",
+          "source": "1000",
+          "shadow": "1000"
+        },
+        {
+          "name": "parallel_tuple_cost",
+          "source": "0.1",
+          "shadow": "0.1"
+        },
+        {
+          "name": "effective_cache_size",
+          "source": "1536MB",
+          "shadow": "1536MB"
+        },
+        {
+          "name": "effective_io_concurrency",
+          "source": "1",
+          "shadow": "1"
+        },
+        {
+          "name": "default_statistics_target",
+          "source": "100",
+          "shadow": "100"
+        },
+        {
+          "name": "jit",
+          "source": "on",
+          "shadow": "on"
+        },
+        {
+          "name": "work_mem",
+          "source": "16MB",
+          "shadow": "16MB"
+        },
+        {
+          "name": "max_parallel_workers_per_gather",
+          "source": "2",
+          "shadow": "2"
+        },
+        {
+          "name": "shared_buffers",
+          "source": "512MB",
+          "shadow": "768MB"
+        },
+        {
+          "name": "maintenance_work_mem",
+          "source": "128MB",
+          "shadow": "184MB"
+        },
+        {
+          "name": "max_wal_size",
+          "source": "1GB",
+          "shadow": "2GB"
+        }
+      ]
+    },
+    "containerLimits": {
+      "nanoCpus": 2000000000,
+      "cpuset": "0-7",
+      "memoryBytes": 3221225472,
+      "memorySwapBytes": 3221225472,
+      "shmBytes": 268435456
+    },
+    "cpusetAppliedForThisRun": null,
+    "notes": "Run on a developer laptop with other applications open: nothing else was started by this script, but the machine was not dedicated."
+  },
+  "repetitions": [
+    {
+      "version": 1,
+      "kind": "query",
+      "status": "ok",
+      "shadow": {
+        "manifestId": "202ff9f5-0e3a-4e68-8ea2-da8f006b1cc6",
+        "sampled": false,
+        "mode": "full",
+        "totalRowRatio": 1,
+        "largestTableRatio": 1,
+        "scalingNote": "Full copy: every table has the same row count as the source. Timings still depend on the shadow container limits and settings recorded here, which may differ from production."
+      },
+      "statement": {
+        "sql": "UPDATE credit_balances SET balance = balance + 1 WHERE tenant_id = $1",
+        "paramCount": 1,
+        "class": "dml",
+        "strategy": "rollback-transaction"
+      },
+      "config": {
+        "warmupRuns": 3,
+        "measuredRuns": 20,
+        "statementTimeoutMs": 30000,
+        "maxTotalRuntimeMs": 300000
+      },
+      "cache": {
+        "mode": "warm",
+        "claim": "warm-after-warmup",
+        "restartedPostgres": false,
+        "droppedOsCache": false,
+        "notes": "3 warmup run(s) before the measured runs; shared_buffers and the OS cache hold what the statement touches."
+      },
+      "wallMs": {
+        "n": 20,
+        "min": 0.7739000000001397,
+        "max": 1.3499999999985448,
+        "mean": 1.0234999999999672,
+        "stddev": 0.15297339637966126,
+        "cvPercent": 14.9461061435922,
+        "p50": 1.0420999999996639,
+        "p95": 1.2250750000007429
+      },
+      "serverExecMs": {
+        "n": 20,
+        "min": 0.054,
+        "max": 0.118,
+        "mean": 0.07364999999999998,
+        "stddev": 0.018725931921156538,
+        "cvPercent": 25.42556947882762,
+        "p50": 0.068,
+        "p95": 0.11325
+      },
+      "planningMs": {
+        "n": 20,
+        "min": 0.031,
+        "max": 0.08,
+        "mean": 0.048350000000000004,
+        "stddev": 0.013421408664008252,
+        "cvPercent": 27.758859698052223,
+        "p50": 0.0435,
+        "p95": 0.07525
+      },
+      "rows": 1,
+      "rowsKind": "affected",
+      "buffers": {
+        "sharedHit": 5,
+        "sharedRead": 0,
+        "sharedDirtied": 0,
+        "sharedWritten": 0,
+        "tempRead": 0,
+        "tempWritten": 0,
+        "ioReadMs": 0
+      },
+      "plans": {
+        "first": {
+          "runIndex": 0,
+          "json": [
+            {
+              "Plan": {
+                "Node Type": "ModifyTable",
+                "Operation": "Update",
+                "Parallel Aware": false,
+                "Async Capable": false,
+                "Relation Name": "credit_balances",
+                "Alias": "credit_balances",
+                "Startup Cost": 0,
+                "Total Cost": 5.13,
+                "Plan Rows": 0,
+                "Plan Width": 0,
+                "Actual Startup Time": 0.087,
+                "Actual Total Time": 0.089,
+                "Actual Rows": 0,
+                "Actual Loops": 1,
+                "Shared Hit Blocks": 5,
+                "Shared Read Blocks": 0,
+                "Shared Dirtied Blocks": 0,
+                "Shared Written Blocks": 0,
+                "Local Hit Blocks": 0,
+                "Local Read Blocks": 0,
+                "Local Dirtied Blocks": 0,
+                "Local Written Blocks": 0,
+                "Temp Read Blocks": 0,
+                "Temp Written Blocks": 0,
+                "I/O Read Time": 0,
+                "I/O Write Time": 0,
+                "Temp I/O Read Time": 0,
+                "Temp I/O Write Time": 0,
+                "Plans": [
+                  {
+                    "Node Type": "Seq Scan",
+                    "Parent Relationship": "Outer",
+                    "Parallel Aware": false,
+                    "Async Capable": false,
+                    "Relation Name": "credit_balances",
+                    "Alias": "credit_balances",
+                    "Startup Cost": 0,
+                    "Total Cost": 5.13,
+                    "Plan Rows": 1,
+                    "Plan Width": 14,
+                    "Actual Startup Time": 0.051,
+                    "Actual Total Time": 0.052,
+                    "Actual Rows": 1,
+                    "Actual Loops": 1,
+                    "Filter": "(tenant_id = '8641a01e-babb-4e44-d36d-f68e5233c7fb'::uuid)",
+                    "Rows Removed by Filter": 249,
+                    "Shared Hit Blocks": 2,
+                    "Shared Read Blocks": 0,
+                    "Shared Dirtied Blocks": 0,
+                    "Shared Written Blocks": 0,
+                    "Local Hit Blocks": 0,
+                    "Local Read Blocks": 0,
+                    "Local Dirtied Blocks": 0,
+                    "Local Written Blocks": 0,
+                    "Temp Read Blocks": 0,
+                    "Temp Written Blocks": 0,
+                    "I/O Read Time": 0,
+                    "I/O Write Time": 0,
+                    "Temp I/O Read Time": 0,
+                    "Temp I/O Write Time": 0
+                  }
+                ]
+              },
+              "Planning": {
+                "Shared Hit Blocks": 0,
+                "Shared Read Blocks": 0,
+                "Shared Dirtied Blocks": 0,
+                "Shared Written Blocks": 0,
+                "Local Hit Blocks": 0,
+                "Local Read Blocks": 0,
+                "Local Dirtied Blocks": 0,
+                "Local Written Blocks": 0,
+                "Temp Read Blocks": 0,
+                "Temp Written Blocks": 0,
+                "I/O Read Time": 0,
+                "I/O Write Time": 0,
+                "Temp I/O Read Time": 0,
+                "Temp I/O Write Time": 0
+              },
+              "Planning Time": 0.056,
+              "Triggers": [],
+              "Execution Time": 0.113
+            }
+          ],
+          "summary": {
+            "executionMs": 0.113,
+            "planningMs": 0.056,
+            "rows": 0,
+            "buffers": {
+              "sharedHit": 5,
+              "sharedRead": 0,
+              "sharedDirtied": 0,
+              "sharedWritten": 0,
+              "tempRead": 0,
+              "tempWritten": 0,
+              "ioReadMs": 0
+            },
+            "nodeTypes": [
+              "ModifyTable",
+              "Seq Scan"
+            ],
+            "scans": [
+              {
+                "nodeType": "Seq Scan",
+                "relation": "credit_balances",
+                "index": null
+              }
+            ],
+            "usesSeqScan": true,
+            "usesIndexScan": false,
+            "usesSort": false
+          }
+        },
+        "median": {
+          "runIndex": 8,
+          "json": [
+            {
+              "Plan": {
+                "Node Type": "ModifyTable",
+                "Operation": "Update",
+                "Parallel Aware": false,
+                "Async Capable": false,
+                "Relation Name": "credit_balances",
+                "Alias": "credit_balances",
+                "Startup Cost": 0,
+                "Total Cost": 5.13,
+                "Plan Rows": 0,
+                "Plan Width": 0,
+                "Actual Startup Time": 0.051,
+                "Actual Total Time": 0.052,
+                "Actual Rows": 0,
+                "Actual Loops": 1,
+                "Shared Hit Blocks": 5,
+                "Shared Read Blocks": 0,
+                "Shared Dirtied Blocks": 0,
+                "Shared Written Blocks": 0,
+                "Local Hit Blocks": 0,
+                "Local Read Blocks": 0,
+                "Local Dirtied Blocks": 0,
+                "Local Written Blocks": 0,
+                "Temp Read Blocks": 0,
+                "Temp Written Blocks": 0,
+                "I/O Read Time": 0,
+                "I/O Write Time": 0,
+                "Temp I/O Read Time": 0,
+                "Temp I/O Write Time": 0,
+                "Plans": [
+                  {
+                    "Node Type": "Seq Scan",
+                    "Parent Relationship": "Outer",
+                    "Parallel Aware": false,
+                    "Async Capable": false,
+                    "Relation Name": "credit_balances",
+                    "Alias": "credit_balances",
+                    "Startup Cost": 0,
+                    "Total Cost": 5.13,
+                    "Plan Rows": 1,
+                    "Plan Width": 14,
+                    "Actual Startup Time": 0.03,
+                    "Actual Total Time": 0.03,
+                    "Actual Rows": 1,
+                    "Actual Loops": 1,
+                    "Filter": "(tenant_id = '8641a01e-babb-4e44-d36d-f68e5233c7fb'::uuid)",
+                    "Rows Removed by Filter": 249,
+                    "Shared Hit Blocks": 2,
+                    "Shared Read Blocks": 0,
+                    "Shared Dirtied Blocks": 0,
+                    "Shared Written Blocks": 0,
+                    "Local Hit Blocks": 0,
+                    "Local Read Blocks": 0,
+                    "Local Dirtied Blocks": 0,
+                    "Local Written Blocks": 0,
+                    "Temp Read Blocks": 0,
+                    "Temp Written Blocks": 0,
+                    "I/O Read Time": 0,
+                    "I/O Write Time": 0,
+                    "Temp I/O Read Time": 0,
+                    "Temp I/O Write Time": 0
+                  }
+                ]
+              },
+              "Planning": {
+                "Shared Hit Blocks": 0,
+                "Shared Read Blocks": 0,
+                "Shared Dirtied Blocks": 0,
+                "Shared Written Blocks": 0,
+                "Local Hit Blocks": 0,
+                "Local Read Blocks": 0,
+                "Local Dirtied Blocks": 0,
+                "Local Written Blocks": 0,
+                "Temp Read Blocks": 0,
+                "Temp Written Blocks": 0,
+                "I/O Read Time": 0,
+                "I/O Write Time": 0,
+                "Temp I/O Read Time": 0,
+                "Temp I/O Write Time": 0
+              },
+              "Planning Time": 0.042,
+              "Triggers": [],
+              "Execution Time": 0.066
+            }
+          ],
+          "summary": {
+            "executionMs": 0.066,
+            "planningMs": 0.042,
+            "rows": 0,
+            "buffers": {
+              "sharedHit": 5,
+              "sharedRead": 0,
+              "sharedDirtied": 0,
+              "sharedWritten": 0,
+              "tempRead": 0,
+              "tempWritten": 0,
+              "ioReadMs": 0
+            },
+            "nodeTypes": [
+              "ModifyTable",
+              "Seq Scan"
+            ],
+            "scans": [
+              {
+                "nodeType": "Seq Scan",
+                "relation": "credit_balances",
+                "index": null
+              }
+            ],
+            "usesSeqScan": true,
+            "usesIndexScan": false,
+            "usesSort": false
+          }
+        }
+      },
+      "perRun": [
+        {
+          "wallMs": 1.2114000000001397,
+          "serverExecMs": 0.113,
+          "planningMs": 0.056,
+          "rows": 0,
+          "sharedHit": 5,
+          "sharedRead": 0
+        },
+        {
+          "wallMs": 1.2185000000008586,
+          "serverExecMs": 0.066,
+          "planningMs": 0.044,
+          "rows": 0,
+          "sharedHit": 5,
+          "sharedRead": 0
+        },
+        {
+          "wallMs": 1.0399999999990541,
+          "serverExecMs": 0.058,
+          "planningMs": 0.04,
+          "rows": 0,
+          "sharedHit": 5,
+          "sharedRead": 0
+        },
+        {
+          "wallMs": 1.1015999999999622,
+          "serverExecMs": 0.081,
+          "planningMs": 0.058,
+          "rows": 0,
+          "sharedHit": 5,
+          "sharedRead": 0
+        },
+        {
+          "wallMs": 1.1137999999991735,
+          "serverExecMs": 0.077,
+          "planningMs": 0.038,
+          "rows": 0,
+          "sharedHit": 5,
+          "sharedRead": 0
+        },
+        {
+          "wallMs": 0.8914000000004307,
+          "serverExecMs": 0.08,
+          "planningMs": 0.059,
+          "rows": 0,
+          "sharedHit": 5,
+          "sharedRead": 0
+        },
+        {
+          "wallMs": 1.033900000000358,
+          "serverExecMs": 0.077,
+          "planningMs": 0.048,
+          "rows": 0,
+          "sharedHit": 5,
+          "sharedRead": 0
+        },
+        {
+          "wallMs": 1.1180999999996857,
+          "serverExecMs": 0.08,
+          "planningMs": 0.055,
+          "rows": 0,
+          "sharedHit": 5,
+          "sharedRead": 0
+        },
+        {
+          "wallMs": 1.0445999999992637,
+          "serverExecMs": 0.066,
+          "planningMs": 0.042,
+          "rows": 0,
+          "sharedHit": 5,
+          "sharedRead": 0
+        },
+        {
+          "wallMs": 0.9855999999999767,
+          "serverExecMs": 0.065,
+          "planningMs": 0.039,
+          "rows": 0,
+          "sharedHit": 5,
+          "sharedRead": 0
+        },
+        {
+          "wallMs": 1.0444000000006781,
+          "serverExecMs": 0.104,
+          "planningMs": 0.075,
+          "rows": 0,
+          "sharedHit": 5,
+          "sharedRead": 0
+        },
+        {
+          "wallMs": 1.0763000000006286,
+          "serverExecMs": 0.07,
+          "planningMs": 0.049,
+          "rows": 0,
+          "sharedHit": 5,
+          "sharedRead": 0
+        },
+        {
+          "wallMs": 1.0315999999984342,
+          "serverExecMs": 0.118,
+          "planningMs": 0.08,
+          "rows": 0,
+          "sharedHit": 5,
+          "sharedRead": 0
+        },
+        {
+          "wallMs": 0.7908000000006723,
+          "serverExecMs": 0.056,
+          "planningMs": 0.036,
+          "rows": 0,
+          "sharedHit": 5,
+          "sharedRead": 0
+        },
+        {
+          "wallMs": 1.0442000000002736,
+          "serverExecMs": 0.063,
+          "planningMs": 0.043,
+          "rows": 0,
+          "sharedHit": 5,
+          "sharedRead": 0
+        },
+        {
+          "wallMs": 1.3499999999985448,
+          "serverExecMs": 0.059,
+          "planningMs": 0.041,
+          "rows": 0,
+          "sharedHit": 5,
+          "sharedRead": 0
+        },
+        {
+          "wallMs": 0.8214000000007218,
+          "serverExecMs": 0.058,
+          "planningMs": 0.039,
+          "rows": 0,
+          "sharedHit": 5,
+          "sharedRead": 0
+        },
+        {
+          "wallMs": 0.7739000000001397,
+          "serverExecMs": 0.055,
+          "planningMs": 0.031,
+          "rows": 0,
+          "sharedHit": 5,
+          "sharedRead": 0
+        },
+        {
+          "wallMs": 1.000400000000809,
+          "serverExecMs": 0.073,
+          "planningMs": 0.062,
+          "rows": 0,
+          "sharedHit": 5,
+          "sharedRead": 0
+        },
+        {
+          "wallMs": 0.7780999999995402,
+          "serverExecMs": 0.054,
+          "planningMs": 0.032,
+          "rows": 0,
+          "sharedHit": 5,
+          "sharedRead": 0
+        }
+      ],
+      "timings": {
+        "startedAt": "2026-10-03T05:04:01.544Z",
+        "finishedAt": "2026-10-03T05:04:01.726Z",
+        "totalMs": 182
+      },
+      "environment": {
+        "postgresVersion": "16.15 (Debian 16.15-1.pgdg12+2)",
+        "settings": {
+          "shared_buffers": "768MB",
+          "work_mem": "16MB",
+          "effective_cache_size": "1536MB",
+          "max_parallel_workers_per_gather": "2",
+          "jit": "on",
+          "random_page_cost": "4",
+          "track_io_timing": "on",
+          "default_statistics_target": "100"
+        },
+        "limits": {
+          "cpus": 2,
+          "memoryMiB": 3072,
+          "memorySwapMiB": 3072,
+          "shmMiB": 256
+        }
+      }
+    },
+    {
+      "version": 1,
+      "kind": "query",
+      "status": "ok",
+      "shadow": {
+        "manifestId": "202ff9f5-0e3a-4e68-8ea2-da8f006b1cc6",
+        "sampled": false,
+        "mode": "full",
+        "totalRowRatio": 1,
+        "largestTableRatio": 1,
+        "scalingNote": "Full copy: every table has the same row count as the source. Timings still depend on the shadow container limits and settings recorded here, which may differ from production."
+      },
+      "statement": {
+        "sql": "UPDATE credit_balances SET balance = balance + 1 WHERE tenant_id = $1",
+        "paramCount": 1,
+        "class": "dml",
+        "strategy": "rollback-transaction"
+      },
+      "config": {
+        "warmupRuns": 3,
+        "measuredRuns": 20,
+        "statementTimeoutMs": 30000,
+        "maxTotalRuntimeMs": 300000
+      },
+      "cache": {
+        "mode": "warm",
+        "claim": "warm-after-warmup",
+        "restartedPostgres": false,
+        "droppedOsCache": false,
+        "notes": "3 warmup run(s) before the measured runs; shared_buffers and the OS cache hold what the statement touches."
+      },
+      "wallMs": {
+        "n": 20,
+        "min": 0.7111999999997352,
+        "max": 1.4723999999987427,
+        "mean": 0.8582399999999325,
+        "stddev": 0.1867325878586103,
+        "cvPercent": 21.757618831402052,
+        "p50": 0.7992499999991196,
+        "p95": 1.1214699999991355
+      },
+      "serverExecMs": {
+        "n": 20,
+        "min": 0.049,
+        "max": 0.088,
+        "mean": 0.06135,
+        "stddev": 0.010011966524325303,
+        "cvPercent": 16.319423837531055,
+        "p50": 0.0575,
+        "p95": 0.07755000000000001
+      },
+      "planningMs": {
+        "n": 20,
+        "min": 0.032,
+        "max": 0.083,
+        "mean": 0.041400000000000006,
+        "stddev": 0.012231968469203105,
+        "cvPercent": 29.5458175584616,
+        "p50": 0.037,
+        "p95": 0.06305000000000001
+      },
+      "rows": 1,
+      "rowsKind": "affected",
+      "buffers": {
+        "sharedHit": 5,
+        "sharedRead": 0,
+        "sharedDirtied": 0,
+        "sharedWritten": 0,
+        "tempRead": 0,
+        "tempWritten": 0,
+        "ioReadMs": 0
+      },
+      "plans": {
+        "first": {
+          "runIndex": 0,
+          "json": [
+            {
+              "Plan": {
+                "Node Type": "ModifyTable",
+                "Operation": "Update",
+                "Parallel Aware": false,
+                "Async Capable": false,
+                "Relation Name": "credit_balances",
+                "Alias": "credit_balances",
+                "Startup Cost": 0,
+                "Total Cost": 5.13,
+                "Plan Rows": 0,
+                "Plan Width": 0,
+                "Actual Startup Time": 0.072,
+                "Actual Total Time": 0.073,
+                "Actual Rows": 0,
+                "Actual Loops": 1,
+                "Shared Hit Blocks": 5,
+                "Shared Read Blocks": 0,
+                "Shared Dirtied Blocks": 0,
+                "Shared Written Blocks": 0,
+                "Local Hit Blocks": 0,
+                "Local Read Blocks": 0,
+                "Local Dirtied Blocks": 0,
+                "Local Written Blocks": 0,
+                "Temp Read Blocks": 0,
+                "Temp Written Blocks": 0,
+                "I/O Read Time": 0,
+                "I/O Write Time": 0,
+                "Temp I/O Read Time": 0,
+                "Temp I/O Write Time": 0,
+                "Plans": [
+                  {
+                    "Node Type": "Seq Scan",
+                    "Parent Relationship": "Outer",
+                    "Parallel Aware": false,
+                    "Async Capable": false,
+                    "Relation Name": "credit_balances",
+                    "Alias": "credit_balances",
+                    "Startup Cost": 0,
+                    "Total Cost": 5.13,
+                    "Plan Rows": 1,
+                    "Plan Width": 14,
+                    "Actual Startup Time": 0.04,
+                    "Actual Total Time": 0.04,
+                    "Actual Rows": 1,
+                    "Actual Loops": 1,
+                    "Filter": "(tenant_id = '8641a01e-babb-4e44-d36d-f68e5233c7fb'::uuid)",
+                    "Rows Removed by Filter": 249,
+                    "Shared Hit Blocks": 2,
+                    "Shared Read Blocks": 0,
+                    "Shared Dirtied Blocks": 0,
+                    "Shared Written Blocks": 0,
+                    "Local Hit Blocks": 0,
+                    "Local Read Blocks": 0,
+                    "Local Dirtied Blocks": 0,
+                    "Local Written Blocks": 0,
+                    "Temp Read Blocks": 0,
+                    "Temp Written Blocks": 0,
+                    "I/O Read Time": 0,
+                    "I/O Write Time": 0,
+                    "Temp I/O Read Time": 0,
+                    "Temp I/O Write Time": 0
+                  }
+                ]
+              },
+              "Planning": {
+                "Shared Hit Blocks": 0,
+                "Shared Read Blocks": 0,
+                "Shared Dirtied Blocks": 0,
+                "Shared Written Blocks": 0,
+                "Local Hit Blocks": 0,
+                "Local Read Blocks": 0,
+                "Local Dirtied Blocks": 0,
+                "Local Written Blocks": 0,
+                "Temp Read Blocks": 0,
+                "Temp Written Blocks": 0,
+                "I/O Read Time": 0,
+                "I/O Write Time": 0,
+                "Temp I/O Read Time": 0,
+                "Temp I/O Write Time": 0
+              },
+              "Planning Time": 0.036,
+              "Triggers": [],
+              "Execution Time": 0.088
+            }
+          ],
+          "summary": {
+            "executionMs": 0.088,
+            "planningMs": 0.036,
+            "rows": 0,
+            "buffers": {
+              "sharedHit": 5,
+              "sharedRead": 0,
+              "sharedDirtied": 0,
+              "sharedWritten": 0,
+              "tempRead": 0,
+              "tempWritten": 0,
+              "ioReadMs": 0
+            },
+            "nodeTypes": [
+              "ModifyTable",
+              "Seq Scan"
+            ],
+            "scans": [
+              {
+                "nodeType": "Seq Scan",
+                "relation": "credit_balances",
+                "index": null
+              }
+            ],
+            "usesSeqScan": true,
+            "usesIndexScan": false,
+            "usesSort": false
+          }
+        },
+        "median": {
+          "runIndex": 10,
+          "json": [
+            {
+              "Plan": {
+                "Node Type": "ModifyTable",
+                "Operation": "Update",
+                "Parallel Aware": false,
+                "Async Capable": false,
+                "Relation Name": "credit_balances",
+                "Alias": "credit_balances",
+                "Startup Cost": 0,
+                "Total Cost": 5.13,
+                "Plan Rows": 0,
+                "Plan Width": 0,
+                "Actual Startup Time": 0.044,
+                "Actual Total Time": 0.044,
+                "Actual Rows": 0,
+                "Actual Loops": 1,
+                "Shared Hit Blocks": 5,
+                "Shared Read Blocks": 0,
+                "Shared Dirtied Blocks": 0,
+                "Shared Written Blocks": 0,
+                "Local Hit Blocks": 0,
+                "Local Read Blocks": 0,
+                "Local Dirtied Blocks": 0,
+                "Local Written Blocks": 0,
+                "Temp Read Blocks": 0,
+                "Temp Written Blocks": 0,
+                "I/O Read Time": 0,
+                "I/O Write Time": 0,
+                "Temp I/O Read Time": 0,
+                "Temp I/O Write Time": 0,
+                "Plans": [
+                  {
+                    "Node Type": "Seq Scan",
+                    "Parent Relationship": "Outer",
+                    "Parallel Aware": false,
+                    "Async Capable": false,
+                    "Relation Name": "credit_balances",
+                    "Alias": "credit_balances",
+                    "Startup Cost": 0,
+                    "Total Cost": 5.13,
+                    "Plan Rows": 1,
+                    "Plan Width": 14,
+                    "Actual Startup Time": 0.023,
+                    "Actual Total Time": 0.024,
+                    "Actual Rows": 1,
+                    "Actual Loops": 1,
+                    "Filter": "(tenant_id = '8641a01e-babb-4e44-d36d-f68e5233c7fb'::uuid)",
+                    "Rows Removed by Filter": 249,
+                    "Shared Hit Blocks": 2,
+                    "Shared Read Blocks": 0,
+                    "Shared Dirtied Blocks": 0,
+                    "Shared Written Blocks": 0,
+                    "Local Hit Blocks": 0,
+                    "Local Read Blocks": 0,
+                    "Local Dirtied Blocks": 0,
+                    "Local Written Blocks": 0,
+                    "Temp Read Blocks": 0,
+                    "Temp Written Blocks": 0,
+                    "I/O Read Time": 0,
+                    "I/O Write Time": 0,
+                    "Temp I/O Read Time": 0,
+                    "Temp I/O Write Time": 0
+                  }
+                ]
+              },
+              "Planning": {
+                "Shared Hit Blocks": 0,
+                "Shared Read Blocks": 0,
+                "Shared Dirtied Blocks": 0,
+                "Shared Written Blocks": 0,
+                "Local Hit Blocks": 0,
+                "Local Read Blocks": 0,
+                "Local Dirtied Blocks": 0,
+                "Local Written Blocks": 0,
+                "Temp Read Blocks": 0,
+                "Temp Written Blocks": 0,
+                "I/O Read Time": 0,
+                "I/O Write Time": 0,
+                "Temp I/O Read Time": 0,
+                "Temp I/O Write Time": 0
+              },
+              "Planning Time": 0.037,
+              "Triggers": [],
+              "Execution Time": 0.057
+            }
+          ],
+          "summary": {
+            "executionMs": 0.057,
+            "planningMs": 0.037,
+            "rows": 0,
+            "buffers": {
+              "sharedHit": 5,
+              "sharedRead": 0,
+              "sharedDirtied": 0,
+              "sharedWritten": 0,
+              "tempRead": 0,
+              "tempWritten": 0,
+              "ioReadMs": 0
+            },
+            "nodeTypes": [
+              "ModifyTable",
+              "Seq Scan"
+            ],
+            "scans": [
+              {
+                "nodeType": "Seq Scan",
+                "relation": "credit_balances",
+                "index": null
+              }
+            ],
+            "usesSeqScan": true,
+            "usesIndexScan": false,
+            "usesSort": false
+          }
+        }
+      },
+      "perRun": [
+        {
+          "wallMs": 0.963000000001557,
+          "serverExecMs": 0.088,
+          "planningMs": 0.036,
+          "rows": 0,
+          "sharedHit": 5,
+          "sharedRead": 0
+        },
+        {
+          "wallMs": 0.8531000000002678,
+          "serverExecMs": 0.054,
+          "planningMs": 0.036,
+          "rows": 0,
+          "sharedHit": 5,
+          "sharedRead": 0
+        },
+        {
+          "wallMs": 1.102999999999156,
+          "serverExecMs": 0.067,
+          "planningMs": 0.046,
+          "rows": 0,
+          "sharedHit": 5,
+          "sharedRead": 0
+        },
+        {
+          "wallMs": 0.7958999999991647,
+          "serverExecMs": 0.056,
+          "planningMs": 0.036,
+          "rows": 0,
+          "sharedHit": 5,
+          "sharedRead": 0
+        },
+        {
+          "wallMs": 1.0381000000015774,
+          "serverExecMs": 0.058,
+          "planningMs": 0.037,
+          "rows": 0,
+          "sharedHit": 5,
+          "sharedRead": 0
+        },
+        {
+          "wallMs": 0.7531999999991967,
+          "serverExecMs": 0.057,
+          "planningMs": 0.038,
+          "rows": 0,
+          "sharedHit": 5,
+          "sharedRead": 0
+        },
+        {
+          "wallMs": 0.7538999999997031,
+          "serverExecMs": 0.077,
+          "planningMs": 0.083,
+          "rows": 0,
+          "sharedHit": 5,
+          "sharedRead": 0
+        },
+        {
+          "wallMs": 0.8038999999989755,
+          "serverExecMs": 0.057,
+          "planningMs": 0.034,
+          "rows": 0,
+          "sharedHit": 5,
+          "sharedRead": 0
+        },
+        {
+          "wallMs": 0.712599999998929,
+          "serverExecMs": 0.074,
+          "planningMs": 0.048,
+          "rows": 0,
+          "sharedHit": 5,
+          "sharedRead": 0
+        },
+        {
+          "wallMs": 1.4723999999987427,
+          "serverExecMs": 0.069,
+          "planningMs": 0.045,
+          "rows": 0,
+          "sharedHit": 5,
+          "sharedRead": 0
+        },
+        {
+          "wallMs": 0.7177000000010594,
+          "serverExecMs": 0.057,
+          "planningMs": 0.037,
+          "rows": 0,
+          "sharedHit": 5,
+          "sharedRead": 0
+        },
+        {
+          "wallMs": 0.7134000000005472,
+          "serverExecMs": 0.051,
+          "planningMs": 0.032,
+          "rows": 0,
+          "sharedHit": 5,
+          "sharedRead": 0
+        },
+        {
+          "wallMs": 0.9855999999999767,
+          "serverExecMs": 0.062,
+          "planningMs": 0.042,
+          "rows": 0,
+          "sharedHit": 5,
+          "sharedRead": 0
+        },
+        {
+          "wallMs": 0.7181000000000495,
+          "serverExecMs": 0.049,
+          "planningMs": 0.032,
+          "rows": 0,
+          "sharedHit": 5,
+          "sharedRead": 0
+        },
+        {
+          "wallMs": 0.7111999999997352,
+          "serverExecMs": 0.051,
+          "planningMs": 0.032,
+          "rows": 0,
+          "sharedHit": 5,
+          "sharedRead": 0
+        },
+        {
+          "wallMs": 0.8528000000005704,
+          "serverExecMs": 0.065,
+          "planningMs": 0.046,
+          "rows": 0,
+          "sharedHit": 5,
+          "sharedRead": 0
+        },
+        {
+          "wallMs": 0.8025999999990745,
+          "serverExecMs": 0.055,
+          "planningMs": 0.062,
+          "rows": 0,
+          "sharedHit": 5,
+          "sharedRead": 0
+        },
+        {
+          "wallMs": 0.7726000000002387,
+          "serverExecMs": 0.065,
+          "planningMs": 0.034,
+          "rows": 0,
+          "sharedHit": 5,
+          "sharedRead": 0
+        },
+        {
+          "wallMs": 0.9223999999994703,
+          "serverExecMs": 0.064,
+          "planningMs": 0.039,
+          "rows": 0,
+          "sharedHit": 5,
+          "sharedRead": 0
+        },
+        {
+          "wallMs": 0.7193000000006577,
+          "serverExecMs": 0.051,
+          "planningMs": 0.033,
+          "rows": 0,
+          "sharedHit": 5,
+          "sharedRead": 0
+        }
+      ],
+      "timings": {
+        "startedAt": "2026-10-03T05:04:01.788Z",
+        "finishedAt": "2026-10-03T05:04:01.974Z",
+        "totalMs": 186
+      },
+      "environment": {
+        "postgresVersion": "16.15 (Debian 16.15-1.pgdg12+2)",
+        "settings": {
+          "shared_buffers": "768MB",
+          "work_mem": "16MB",
+          "effective_cache_size": "1536MB",
+          "max_parallel_workers_per_gather": "2",
+          "jit": "on",
+          "random_page_cost": "4",
+          "track_io_timing": "on",
+          "default_statistics_target": "100"
+        },
+        "limits": {
+          "cpus": 2,
+          "memoryMiB": 3072,
+          "memorySwapMiB": 3072,
+          "shmMiB": 256
+        }
+      }
+    },
+    {
+      "version": 1,
+      "kind": "query",
+      "status": "ok",
+      "shadow": {
+        "manifestId": "202ff9f5-0e3a-4e68-8ea2-da8f006b1cc6",
+        "sampled": false,
+        "mode": "full",
+        "totalRowRatio": 1,
+        "largestTableRatio": 1,
+        "scalingNote": "Full copy: every table has the same row count as the source. Timings still depend on the shadow container limits and settings recorded here, which may differ from production."
+      },
+      "statement": {
+        "sql": "UPDATE credit_balances SET balance = balance + 1 WHERE tenant_id = $1",
+        "paramCount": 1,
+        "class": "dml",
+        "strategy": "rollback-transaction"
+      },
+      "config": {
+        "warmupRuns": 3,
+        "measuredRuns": 20,
+        "statementTimeoutMs": 30000,
+        "maxTotalRuntimeMs": 300000
+      },
+      "cache": {
+        "mode": "warm",
+        "claim": "warm-after-warmup",
+        "restartedPostgres": false,
+        "droppedOsCache": false,
+        "notes": "3 warmup run(s) before the measured runs; shared_buffers and the OS cache hold what the statement touches."
+      },
+      "wallMs": {
+        "n": 20,
+        "min": 0.7555000000011205,
+        "max": 2.712600000000748,
+        "mean": 1.108810000000085,
+        "stddev": 0.45225453115202513,
+        "cvPercent": 40.787378464479076,
+        "p50": 0.9326000000000931,
+        "p95": 1.9024400000002066
+      },
+      "serverExecMs": {
+        "n": 20,
+        "min": 0.058,
+        "max": 0.139,
+        "mean": 0.07909999999999999,
+        "stddev": 0.018828589683608392,
+        "cvPercent": 23.803526780794428,
+        "p50": 0.0745,
+        "p95": 0.10290000000000003
+      },
+      "planningMs": {
+        "n": 20,
+        "min": 0.035,
+        "max": 0.093,
+        "mean": 0.053200000000000004,
+        "stddev": 0.016116679820020394,
+        "cvPercent": 30.294510939887953,
+        "p50": 0.049,
+        "p95": 0.07970000000000001
+      },
+      "rows": 1,
+      "rowsKind": "affected",
+      "buffers": {
+        "sharedHit": 5,
+        "sharedRead": 0,
+        "sharedDirtied": 0,
+        "sharedWritten": 0,
+        "tempRead": 0,
+        "tempWritten": 0,
+        "ioReadMs": 0
+      },
+      "plans": {
+        "first": {
+          "runIndex": 0,
+          "json": [
+            {
+              "Plan": {
+                "Node Type": "ModifyTable",
+                "Operation": "Update",
+                "Parallel Aware": false,
+                "Async Capable": false,
+                "Relation Name": "credit_balances",
+                "Alias": "credit_balances",
+                "Startup Cost": 0,
+                "Total Cost": 5.13,
+                "Plan Rows": 0,
+                "Plan Width": 0,
+                "Actual Startup Time": 0.055,
+                "Actual Total Time": 0.055,
+                "Actual Rows": 0,
+                "Actual Loops": 1,
+                "Shared Hit Blocks": 5,
+                "Shared Read Blocks": 0,
+                "Shared Dirtied Blocks": 0,
+                "Shared Written Blocks": 0,
+                "Local Hit Blocks": 0,
+                "Local Read Blocks": 0,
+                "Local Dirtied Blocks": 0,
+                "Local Written Blocks": 0,
+                "Temp Read Blocks": 0,
+                "Temp Written Blocks": 0,
+                "I/O Read Time": 0,
+                "I/O Write Time": 0,
+                "Temp I/O Read Time": 0,
+                "Temp I/O Write Time": 0,
+                "Plans": [
+                  {
+                    "Node Type": "Seq Scan",
+                    "Parent Relationship": "Outer",
+                    "Parallel Aware": false,
+                    "Async Capable": false,
+                    "Relation Name": "credit_balances",
+                    "Alias": "credit_balances",
+                    "Startup Cost": 0,
+                    "Total Cost": 5.13,
+                    "Plan Rows": 1,
+                    "Plan Width": 14,
+                    "Actual Startup Time": 0.023,
+                    "Actual Total Time": 0.023,
+                    "Actual Rows": 1,
+                    "Actual Loops": 1,
+                    "Filter": "(tenant_id = '8641a01e-babb-4e44-d36d-f68e5233c7fb'::uuid)",
+                    "Rows Removed by Filter": 249,
+                    "Shared Hit Blocks": 2,
+                    "Shared Read Blocks": 0,
+                    "Shared Dirtied Blocks": 0,
+                    "Shared Written Blocks": 0,
+                    "Local Hit Blocks": 0,
+                    "Local Read Blocks": 0,
+                    "Local Dirtied Blocks": 0,
+                    "Local Written Blocks": 0,
+                    "Temp Read Blocks": 0,
+                    "Temp Written Blocks": 0,
+                    "I/O Read Time": 0,
+                    "I/O Write Time": 0,
+                    "Temp I/O Read Time": 0,
+                    "Temp I/O Write Time": 0
+                  }
+                ]
+              },
+              "Planning": {
+                "Shared Hit Blocks": 0,
+                "Shared Read Blocks": 0,
+                "Shared Dirtied Blocks": 0,
+                "Shared Written Blocks": 0,
+                "Local Hit Blocks": 0,
+                "Local Read Blocks": 0,
+                "Local Dirtied Blocks": 0,
+                "Local Written Blocks": 0,
+                "Temp Read Blocks": 0,
+                "Temp Written Blocks": 0,
+                "I/O Read Time": 0,
+                "I/O Write Time": 0,
+                "Temp I/O Read Time": 0,
+                "Temp I/O Write Time": 0
+              },
+              "Planning Time": 0.035,
+              "Triggers": [],
+              "Execution Time": 0.069
+            }
+          ],
+          "summary": {
+            "executionMs": 0.069,
+            "planningMs": 0.035,
+            "rows": 0,
+            "buffers": {
+              "sharedHit": 5,
+              "sharedRead": 0,
+              "sharedDirtied": 0,
+              "sharedWritten": 0,
+              "tempRead": 0,
+              "tempWritten": 0,
+              "ioReadMs": 0
+            },
+            "nodeTypes": [
+              "ModifyTable",
+              "Seq Scan"
+            ],
+            "scans": [
+              {
+                "nodeType": "Seq Scan",
+                "relation": "credit_balances",
+                "index": null
+              }
+            ],
+            "usesSeqScan": true,
+            "usesIndexScan": false,
+            "usesSort": false
+          }
+        },
+        "median": {
+          "runIndex": 3,
+          "json": [
+            {
+              "Plan": {
+                "Node Type": "ModifyTable",
+                "Operation": "Update",
+                "Parallel Aware": false,
+                "Async Capable": false,
+                "Relation Name": "credit_balances",
+                "Alias": "credit_balances",
+                "Startup Cost": 0,
+                "Total Cost": 5.13,
+                "Plan Rows": 0,
+                "Plan Width": 0,
+                "Actual Startup Time": 0.055,
+                "Actual Total Time": 0.055,
+                "Actual Rows": 0,
+                "Actual Loops": 1,
+                "Shared Hit Blocks": 5,
+                "Shared Read Blocks": 0,
+                "Shared Dirtied Blocks": 0,
+                "Shared Written Blocks": 0,
+                "Local Hit Blocks": 0,
+                "Local Read Blocks": 0,
+                "Local Dirtied Blocks": 0,
+                "Local Written Blocks": 0,
+                "Temp Read Blocks": 0,
+                "Temp Written Blocks": 0,
+                "I/O Read Time": 0,
+                "I/O Write Time": 0,
+                "Temp I/O Read Time": 0,
+                "Temp I/O Write Time": 0,
+                "Plans": [
+                  {
+                    "Node Type": "Seq Scan",
+                    "Parent Relationship": "Outer",
+                    "Parallel Aware": false,
+                    "Async Capable": false,
+                    "Relation Name": "credit_balances",
+                    "Alias": "credit_balances",
+                    "Startup Cost": 0,
+                    "Total Cost": 5.13,
+                    "Plan Rows": 1,
+                    "Plan Width": 14,
+                    "Actual Startup Time": 0.028,
+                    "Actual Total Time": 0.028,
+                    "Actual Rows": 1,
+                    "Actual Loops": 1,
+                    "Filter": "(tenant_id = '8641a01e-babb-4e44-d36d-f68e5233c7fb'::uuid)",
+                    "Rows Removed by Filter": 249,
+                    "Shared Hit Blocks": 2,
+                    "Shared Read Blocks": 0,
+                    "Shared Dirtied Blocks": 0,
+                    "Shared Written Blocks": 0,
+                    "Local Hit Blocks": 0,
+                    "Local Read Blocks": 0,
+                    "Local Dirtied Blocks": 0,
+                    "Local Written Blocks": 0,
+                    "Temp Read Blocks": 0,
+                    "Temp Written Blocks": 0,
+                    "I/O Read Time": 0,
+                    "I/O Write Time": 0,
+                    "Temp I/O Read Time": 0,
+                    "Temp I/O Write Time": 0
+                  }
+                ]
+              },
+              "Planning": {
+                "Shared Hit Blocks": 0,
+                "Shared Read Blocks": 0,
+                "Shared Dirtied Blocks": 0,
+                "Shared Written Blocks": 0,
+                "Local Hit Blocks": 0,
+                "Local Read Blocks": 0,
+                "Local Dirtied Blocks": 0,
+                "Local Written Blocks": 0,
+                "Temp Read Blocks": 0,
+                "Temp Written Blocks": 0,
+                "I/O Read Time": 0,
+                "I/O Write Time": 0,
+                "Temp I/O Read Time": 0,
+                "Temp I/O Write Time": 0
+              },
+              "Planning Time": 0.079,
+              "Triggers": [],
+              "Execution Time": 0.074
+            }
+          ],
+          "summary": {
+            "executionMs": 0.074,
+            "planningMs": 0.079,
+            "rows": 0,
+            "buffers": {
+              "sharedHit": 5,
+              "sharedRead": 0,
+              "sharedDirtied": 0,
+              "sharedWritten": 0,
+              "tempRead": 0,
+              "tempWritten": 0,
+              "ioReadMs": 0
+            },
+            "nodeTypes": [
+              "ModifyTable",
+              "Seq Scan"
+            ],
+            "scans": [
+              {
+                "nodeType": "Seq Scan",
+                "relation": "credit_balances",
+                "index": null
+              }
+            ],
+            "usesSeqScan": true,
+            "usesIndexScan": false,
+            "usesSort": false
+          }
+        }
+      },
+      "perRun": [
+        {
+          "wallMs": 0.7555000000011205,
+          "serverExecMs": 0.069,
+          "planningMs": 0.035,
+          "rows": 0,
+          "sharedHit": 5,
+          "sharedRead": 0
+        },
+        {
+          "wallMs": 1.539200000001074,
+          "serverExecMs": 0.077,
+          "planningMs": 0.038,
+          "rows": 0,
+          "sharedHit": 5,
+          "sharedRead": 0
+        },
+        {
+          "wallMs": 2.712600000000748,
+          "serverExecMs": 0.066,
+          "planningMs": 0.046,
+          "rows": 0,
+          "sharedHit": 5,
+          "sharedRead": 0
+        },
+        {
+          "wallMs": 1.8598000000001775,
+          "serverExecMs": 0.074,
+          "planningMs": 0.079,
+          "rows": 0,
+          "sharedHit": 5,
+          "sharedRead": 0
+        },
+        {
+          "wallMs": 1.0203999999994267,
+          "serverExecMs": 0.063,
+          "planningMs": 0.042,
+          "rows": 0,
+          "sharedHit": 5,
+          "sharedRead": 0
+        },
+        {
+          "wallMs": 0.9240000000008877,
+          "serverExecMs": 0.08,
+          "planningMs": 0.05,
+          "rows": 0,
+          "sharedHit": 5,
+          "sharedRead": 0
+        },
+        {
+          "wallMs": 0.9224000000012893,
+          "serverExecMs": 0.075,
+          "planningMs": 0.056,
+          "rows": 0,
+          "sharedHit": 5,
+          "sharedRead": 0
+        },
+        {
+          "wallMs": 1.060299999999188,
+          "serverExecMs": 0.101,
+          "planningMs": 0.056,
+          "rows": 0,
+          "sharedHit": 5,
+          "sharedRead": 0
+        },
+        {
+          "wallMs": 0.9004999999997381,
+          "serverExecMs": 0.066,
+          "planningMs": 0.037,
+          "rows": 0,
+          "sharedHit": 5,
+          "sharedRead": 0
+        },
+        {
+          "wallMs": 0.914600000000064,
+          "serverExecMs": 0.063,
+          "planningMs": 0.039,
+          "rows": 0,
+          "sharedHit": 5,
+          "sharedRead": 0
+        },
+        {
+          "wallMs": 0.9555000000000291,
+          "serverExecMs": 0.094,
+          "planningMs": 0.058,
+          "rows": 0,
+          "sharedHit": 5,
+          "sharedRead": 0
+        },
+        {
+          "wallMs": 1.041400000000067,
+          "serverExecMs": 0.073,
+          "planningMs": 0.046,
+          "rows": 0,
+          "sharedHit": 5,
+          "sharedRead": 0
+        },
+        {
+          "wallMs": 0.9411999999992986,
+          "serverExecMs": 0.086,
+          "planningMs": 0.057,
+          "rows": 0,
+          "sharedHit": 5,
+          "sharedRead": 0
+        },
+        {
+          "wallMs": 0.9015999999992346,
+          "serverExecMs": 0.059,
+          "planningMs": 0.038,
+          "rows": 0,
+          "sharedHit": 5,
+          "sharedRead": 0
+        },
+        {
+          "wallMs": 0.8858999999993102,
+          "serverExecMs": 0.091,
+          "planningMs": 0.062,
+          "rows": 0,
+          "sharedHit": 5,
+          "sharedRead": 0
+        },
+        {
+          "wallMs": 1.1051000000006752,
+          "serverExecMs": 0.097,
+          "planningMs": 0.079,
+          "rows": 0,
+          "sharedHit": 5,
+          "sharedRead": 0
+        },
+        {
+          "wallMs": 0.9239999999990687,
+          "serverExecMs": 0.058,
+          "planningMs": 0.039,
+          "rows": 0,
+          "sharedHit": 5,
+          "sharedRead": 0
+        },
+        {
+          "wallMs": 1.0097999999998137,
+          "serverExecMs": 0.078,
+          "planningMs": 0.093,
+          "rows": 0,
+          "sharedHit": 5,
+          "sharedRead": 0
+        },
+        {
+          "wallMs": 0.8808000000008178,
+          "serverExecMs": 0.073,
+          "planningMs": 0.048,
+          "rows": 0,
+          "sharedHit": 5,
+          "sharedRead": 0
+        },
+        {
+          "wallMs": 0.9215999999996711,
+          "serverExecMs": 0.139,
+          "planningMs": 0.066,
+          "rows": 0,
+          "sharedHit": 5,
+          "sharedRead": 0
+        }
+      ],
+      "timings": {
+        "startedAt": "2026-10-03T05:04:01.977Z",
+        "finishedAt": "2026-10-03T05:04:02.153Z",
+        "totalMs": 176
+      },
+      "environment": {
+        "postgresVersion": "16.15 (Debian 16.15-1.pgdg12+2)",
+        "settings": {
+          "shared_buffers": "768MB",
+          "work_mem": "16MB",
+          "effective_cache_size": "1536MB",
+          "max_parallel_workers_per_gather": "2",
+          "jit": "on",
+          "random_page_cost": "4",
+          "track_io_timing": "on",
+          "default_statistics_target": "100"
+        },
+        "limits": {
+          "cpus": 2,
+          "memoryMiB": 3072,
+          "memorySwapMiB": 3072,
+          "shmMiB": 256
+        }
+      }
+    },
+    {
+      "version": 1,
+      "kind": "query",
+      "status": "ok",
+      "shadow": {
+        "manifestId": "202ff9f5-0e3a-4e68-8ea2-da8f006b1cc6",
+        "sampled": false,
+        "mode": "full",
+        "totalRowRatio": 1,
+        "largestTableRatio": 1,
+        "scalingNote": "Full copy: every table has the same row count as the source. Timings still depend on the shadow container limits and settings recorded here, which may differ from production."
+      },
+      "statement": {
+        "sql": "UPDATE credit_balances SET balance = balance + 1 WHERE tenant_id = $1",
+        "paramCount": 1,
+        "class": "dml",
+        "strategy": "rollback-transaction"
+      },
+      "config": {
+        "warmupRuns": 3,
+        "measuredRuns": 20,
+        "statementTimeoutMs": 30000,
+        "maxTotalRuntimeMs": 300000
+      },
+      "cache": {
+        "mode": "warm",
+        "claim": "warm-after-warmup",
+        "restartedPostgres": false,
+        "droppedOsCache": false,
+        "notes": "3 warmup run(s) before the measured runs; shared_buffers and the OS cache hold what the statement touches."
+      },
+      "wallMs": {
+        "n": 20,
+        "min": 0.6826999999993859,
+        "max": 0.9588000000003376,
+        "mean": 0.8028550000004543,
+        "stddev": 0.0773733156436223,
+        "cvPercent": 9.637271442985163,
+        "p50": 0.7851000000009662,
+        "p95": 0.9399900000003072
+      },
+      "serverExecMs": {
+        "n": 20,
+        "min": 0.051,
+        "max": 0.104,
+        "mean": 0.06584999999999999,
+        "stddev": 0.01498165544924859,
+        "cvPercent": 22.751185192480776,
+        "p50": 0.0595,
+        "p95": 0.0926
+      },
+      "planningMs": {
+        "n": 20,
+        "min": 0.031,
+        "max": 0.095,
+        "mean": 0.042300000000000004,
+        "stddev": 0.016354944528377824,
+        "cvPercent": 38.664171461886106,
+        "p50": 0.0365,
+        "p95": 0.07505
+      },
+      "rows": 1,
+      "rowsKind": "affected",
+      "buffers": {
+        "sharedHit": 5,
+        "sharedRead": 0,
+        "sharedDirtied": 0,
+        "sharedWritten": 0,
+        "tempRead": 0,
+        "tempWritten": 0,
+        "ioReadMs": 0
+      },
+      "plans": {
+        "first": {
+          "runIndex": 0,
+          "json": [
+            {
+              "Plan": {
+                "Node Type": "ModifyTable",
+                "Operation": "Update",
+                "Parallel Aware": false,
+                "Async Capable": false,
+                "Relation Name": "credit_balances",
+                "Alias": "credit_balances",
+                "Startup Cost": 0,
+                "Total Cost": 5.13,
+                "Plan Rows": 0,
+                "Plan Width": 0,
+                "Actual Startup Time": 0.053,
+                "Actual Total Time": 0.053,
+                "Actual Rows": 0,
+                "Actual Loops": 1,
+                "Shared Hit Blocks": 5,
+                "Shared Read Blocks": 0,
+                "Shared Dirtied Blocks": 0,
+                "Shared Written Blocks": 0,
+                "Local Hit Blocks": 0,
+                "Local Read Blocks": 0,
+                "Local Dirtied Blocks": 0,
+                "Local Written Blocks": 0,
+                "Temp Read Blocks": 0,
+                "Temp Written Blocks": 0,
+                "I/O Read Time": 0,
+                "I/O Write Time": 0,
+                "Temp I/O Read Time": 0,
+                "Temp I/O Write Time": 0,
+                "Plans": [
+                  {
+                    "Node Type": "Seq Scan",
+                    "Parent Relationship": "Outer",
+                    "Parallel Aware": false,
+                    "Async Capable": false,
+                    "Relation Name": "credit_balances",
+                    "Alias": "credit_balances",
+                    "Startup Cost": 0,
+                    "Total Cost": 5.13,
+                    "Plan Rows": 1,
+                    "Plan Width": 14,
+                    "Actual Startup Time": 0.023,
+                    "Actual Total Time": 0.023,
+                    "Actual Rows": 1,
+                    "Actual Loops": 1,
+                    "Filter": "(tenant_id = '8641a01e-babb-4e44-d36d-f68e5233c7fb'::uuid)",
+                    "Rows Removed by Filter": 249,
+                    "Shared Hit Blocks": 2,
+                    "Shared Read Blocks": 0,
+                    "Shared Dirtied Blocks": 0,
+                    "Shared Written Blocks": 0,
+                    "Local Hit Blocks": 0,
+                    "Local Read Blocks": 0,
+                    "Local Dirtied Blocks": 0,
+                    "Local Written Blocks": 0,
+                    "Temp Read Blocks": 0,
+                    "Temp Written Blocks": 0,
+                    "I/O Read Time": 0,
+                    "I/O Write Time": 0,
+                    "Temp I/O Read Time": 0,
+                    "Temp I/O Write Time": 0
+                  }
+                ]
+              },
+              "Planning": {
+                "Shared Hit Blocks": 0,
+                "Shared Read Blocks": 0,
+                "Shared Dirtied Blocks": 0,
+                "Shared Written Blocks": 0,
+                "Local Hit Blocks": 0,
+                "Local Read Blocks": 0,
+                "Local Dirtied Blocks": 0,
+                "Local Written Blocks": 0,
+                "Temp Read Blocks": 0,
+                "Temp Written Blocks": 0,
+                "I/O Read Time": 0,
+                "I/O Write Time": 0,
+                "Temp I/O Read Time": 0,
+                "Temp I/O Write Time": 0
+              },
+              "Planning Time": 0.038,
+              "Triggers": [],
+              "Execution Time": 0.069
+            }
+          ],
+          "summary": {
+            "executionMs": 0.069,
+            "planningMs": 0.038,
+            "rows": 0,
+            "buffers": {
+              "sharedHit": 5,
+              "sharedRead": 0,
+              "sharedDirtied": 0,
+              "sharedWritten": 0,
+              "tempRead": 0,
+              "tempWritten": 0,
+              "ioReadMs": 0
+            },
+            "nodeTypes": [
+              "ModifyTable",
+              "Seq Scan"
+            ],
+            "scans": [
+              {
+                "nodeType": "Seq Scan",
+                "relation": "credit_balances",
+                "index": null
+              }
+            ],
+            "usesSeqScan": true,
+            "usesIndexScan": false,
+            "usesSort": false
+          }
+        },
+        "median": {
+          "runIndex": 8,
+          "json": [
+            {
+              "Plan": {
+                "Node Type": "ModifyTable",
+                "Operation": "Update",
+                "Parallel Aware": false,
+                "Async Capable": false,
+                "Relation Name": "credit_balances",
+                "Alias": "credit_balances",
+                "Startup Cost": 0,
+                "Total Cost": 5.13,
+                "Plan Rows": 0,
+                "Plan Width": 0,
+                "Actual Startup Time": 0.045,
+                "Actual Total Time": 0.045,
+                "Actual Rows": 0,
+                "Actual Loops": 1,
+                "Shared Hit Blocks": 5,
+                "Shared Read Blocks": 0,
+                "Shared Dirtied Blocks": 0,
+                "Shared Written Blocks": 0,
+                "Local Hit Blocks": 0,
+                "Local Read Blocks": 0,
+                "Local Dirtied Blocks": 0,
+                "Local Written Blocks": 0,
+                "Temp Read Blocks": 0,
+                "Temp Written Blocks": 0,
+                "I/O Read Time": 0,
+                "I/O Write Time": 0,
+                "Temp I/O Read Time": 0,
+                "Temp I/O Write Time": 0,
+                "Plans": [
+                  {
+                    "Node Type": "Seq Scan",
+                    "Parent Relationship": "Outer",
+                    "Parallel Aware": false,
+                    "Async Capable": false,
+                    "Relation Name": "credit_balances",
+                    "Alias": "credit_balances",
+                    "Startup Cost": 0,
+                    "Total Cost": 5.13,
+                    "Plan Rows": 1,
+                    "Plan Width": 14,
+                    "Actual Startup Time": 0.024,
+                    "Actual Total Time": 0.025,
+                    "Actual Rows": 1,
+                    "Actual Loops": 1,
+                    "Filter": "(tenant_id = '8641a01e-babb-4e44-d36d-f68e5233c7fb'::uuid)",
+                    "Rows Removed by Filter": 249,
+                    "Shared Hit Blocks": 2,
+                    "Shared Read Blocks": 0,
+                    "Shared Dirtied Blocks": 0,
+                    "Shared Written Blocks": 0,
+                    "Local Hit Blocks": 0,
+                    "Local Read Blocks": 0,
+                    "Local Dirtied Blocks": 0,
+                    "Local Written Blocks": 0,
+                    "Temp Read Blocks": 0,
+                    "Temp Written Blocks": 0,
+                    "I/O Read Time": 0,
+                    "I/O Write Time": 0,
+                    "Temp I/O Read Time": 0,
+                    "Temp I/O Write Time": 0
+                  }
+                ]
+              },
+              "Planning": {
+                "Shared Hit Blocks": 0,
+                "Shared Read Blocks": 0,
+                "Shared Dirtied Blocks": 0,
+                "Shared Written Blocks": 0,
+                "Local Hit Blocks": 0,
+                "Local Read Blocks": 0,
+                "Local Dirtied Blocks": 0,
+                "Local Written Blocks": 0,
+                "Temp Read Blocks": 0,
+                "Temp Written Blocks": 0,
+                "I/O Read Time": 0,
+                "I/O Write Time": 0,
+                "Temp I/O Read Time": 0,
+                "Temp I/O Write Time": 0
+              },
+              "Planning Time": 0.037,
+              "Triggers": [],
+              "Execution Time": 0.058
+            }
+          ],
+          "summary": {
+            "executionMs": 0.058,
+            "planningMs": 0.037,
+            "rows": 0,
+            "buffers": {
+              "sharedHit": 5,
+              "sharedRead": 0,
+              "sharedDirtied": 0,
+              "sharedWritten": 0,
+              "tempRead": 0,
+              "tempWritten": 0,
+              "ioReadMs": 0
+            },
+            "nodeTypes": [
+              "ModifyTable",
+              "Seq Scan"
+            ],
+            "scans": [
+              {
+                "nodeType": "Seq Scan",
+                "relation": "credit_balances",
+                "index": null
+              }
+            ],
+            "usesSeqScan": true,
+            "usesIndexScan": false,
+            "usesSort": false
+          }
+        }
+      },
+      "perRun": [
+        {
+          "wallMs": 0.8432000000011612,
+          "serverExecMs": 0.069,
+          "planningMs": 0.038,
+          "rows": 0,
+          "sharedHit": 5,
+          "sharedRead": 0
+        },
+        {
+          "wallMs": 0.7678000000014435,
+          "serverExecMs": 0.062,
+          "planningMs": 0.034,
+          "rows": 0,
+          "sharedHit": 5,
+          "sharedRead": 0
+        },
+        {
+          "wallMs": 0.7066000000013446,
+          "serverExecMs": 0.086,
+          "planningMs": 0.043,
+          "rows": 0,
+          "sharedHit": 5,
+          "sharedRead": 0
+        },
+        {
+          "wallMs": 0.7715000000007421,
+          "serverExecMs": 0.077,
+          "planningMs": 0.063,
+          "rows": 0,
+          "sharedHit": 5,
+          "sharedRead": 0
+        },
+        {
+          "wallMs": 0.7498000000014144,
+          "serverExecMs": 0.055,
+          "planningMs": 0.035,
+          "rows": 0,
+          "sharedHit": 5,
+          "sharedRead": 0
+        },
+        {
+          "wallMs": 0.7613000000001193,
+          "serverExecMs": 0.092,
+          "planningMs": 0.033,
+          "rows": 0,
+          "sharedHit": 5,
+          "sharedRead": 0
+        },
+        {
+          "wallMs": 0.6826999999993859,
+          "serverExecMs": 0.051,
+          "planningMs": 0.031,
+          "rows": 0,
+          "sharedHit": 5,
+          "sharedRead": 0
+        },
+        {
+          "wallMs": 0.8258999999998196,
+          "serverExecMs": 0.079,
+          "planningMs": 0.095,
+          "rows": 0,
+          "sharedHit": 5,
+          "sharedRead": 0
+        },
+        {
+          "wallMs": 0.8689000000013039,
+          "serverExecMs": 0.058,
+          "planningMs": 0.037,
+          "rows": 0,
+          "sharedHit": 5,
+          "sharedRead": 0
+        },
+        {
+          "wallMs": 0.9390000000003056,
+          "serverExecMs": 0.053,
+          "planningMs": 0.033,
+          "rows": 0,
+          "sharedHit": 5,
+          "sharedRead": 0
+        },
+        {
+          "wallMs": 0.8842000000004191,
+          "serverExecMs": 0.065,
+          "planningMs": 0.045,
+          "rows": 0,
+          "sharedHit": 5,
+          "sharedRead": 0
+        },
+        {
+          "wallMs": 0.7504000000008091,
+          "serverExecMs": 0.057,
+          "planningMs": 0.034,
+          "rows": 0,
+          "sharedHit": 5,
+          "sharedRead": 0
+        },
+        {
+          "wallMs": 0.7701999999990221,
+          "serverExecMs": 0.104,
+          "planningMs": 0.074,
+          "rows": 0,
+          "sharedHit": 5,
+          "sharedRead": 0
+        },
+        {
+          "wallMs": 0.8194000000003143,
+          "serverExecMs": 0.054,
+          "planningMs": 0.037,
+          "rows": 0,
+          "sharedHit": 5,
+          "sharedRead": 0
+        },
+        {
+          "wallMs": 0.7547999999987951,
+          "serverExecMs": 0.075,
+          "planningMs": 0.034,
+          "rows": 0,
+          "sharedHit": 5,
+          "sharedRead": 0
+        },
+        {
+          "wallMs": 0.7987000000011903,
+          "serverExecMs": 0.057,
+          "planningMs": 0.037,
+          "rows": 0,
+          "sharedHit": 5,
+          "sharedRead": 0
+        },
+        {
+          "wallMs": 0.9588000000003376,
+          "serverExecMs": 0.061,
+          "planningMs": 0.04,
+          "rows": 0,
+          "sharedHit": 5,
+          "sharedRead": 0
+        },
+        {
+          "wallMs": 0.802799999999479,
+          "serverExecMs": 0.053,
+          "planningMs": 0.033,
+          "rows": 0,
+          "sharedHit": 5,
+          "sharedRead": 0
+        },
+        {
+          "wallMs": 0.6984000000011292,
+          "serverExecMs": 0.056,
+          "planningMs": 0.036,
+          "rows": 0,
+          "sharedHit": 5,
+          "sharedRead": 0
+        },
+        {
+          "wallMs": 0.9027000000005501,
+          "serverExecMs": 0.053,
+          "planningMs": 0.034,
+          "rows": 0,
+          "sharedHit": 5,
+          "sharedRead": 0
+        }
+      ],
+      "timings": {
+        "startedAt": "2026-10-03T05:04:02.157Z",
+        "finishedAt": "2026-10-03T05:04:02.305Z",
+        "totalMs": 148
+      },
+      "environment": {
+        "postgresVersion": "16.15 (Debian 16.15-1.pgdg12+2)",
+        "settings": {
+          "shared_buffers": "768MB",
+          "work_mem": "16MB",
+          "effective_cache_size": "1536MB",
+          "max_parallel_workers_per_gather": "2",
+          "jit": "on",
+          "random_page_cost": "4",
+          "track_io_timing": "on",
+          "default_statistics_target": "100"
+        },
+        "limits": {
+          "cpus": 2,
+          "memoryMiB": 3072,
+          "memorySwapMiB": 3072,
+          "shmMiB": 256
+        }
+      }
+    },
+    {
+      "version": 1,
+      "kind": "query",
+      "status": "ok",
+      "shadow": {
+        "manifestId": "202ff9f5-0e3a-4e68-8ea2-da8f006b1cc6",
+        "sampled": false,
+        "mode": "full",
+        "totalRowRatio": 1,
+        "largestTableRatio": 1,
+        "scalingNote": "Full copy: every table has the same row count as the source. Timings still depend on the shadow container limits and settings recorded here, which may differ from production."
+      },
+      "statement": {
+        "sql": "UPDATE credit_balances SET balance = balance + 1 WHERE tenant_id = $1",
+        "paramCount": 1,
+        "class": "dml",
+        "strategy": "rollback-transaction"
+      },
+      "config": {
+        "warmupRuns": 3,
+        "measuredRuns": 20,
+        "statementTimeoutMs": 30000,
+        "maxTotalRuntimeMs": 300000
+      },
+      "cache": {
+        "mode": "warm",
+        "claim": "warm-after-warmup",
+        "restartedPostgres": false,
+        "droppedOsCache": false,
+        "notes": "3 warmup run(s) before the measured runs; shared_buffers and the OS cache hold what the statement touches."
+      },
+      "wallMs": {
+        "n": 20,
+        "min": 0.7151000000012573,
+        "max": 1.421700000000783,
+        "mean": 0.91246000000001,
+        "stddev": 0.1886782569125353,
+        "cvPercent": 20.677975682499312,
+        "p50": 0.8550000000004729,
+        "p95": 1.2742599999997766
+      },
+      "serverExecMs": {
+        "n": 20,
+        "min": 0.054,
+        "max": 0.12,
+        "mean": 0.07189999999999999,
+        "stddev": 0.02046794669978557,
+        "cvPercent": 28.467241585237236,
+        "p50": 0.061,
+        "p95": 0.11620000000000001
+      },
+      "planningMs": {
+        "n": 20,
+        "min": 0.035,
+        "max": 0.068,
+        "mean": 0.04550000000000002,
+        "stddev": 0.010221236921749066,
+        "cvPercent": 22.46425697087706,
+        "p50": 0.0405,
+        "p95": 0.06705
+      },
+      "rows": 1,
+      "rowsKind": "affected",
+      "buffers": {
+        "sharedHit": 5,
+        "sharedRead": 0,
+        "sharedDirtied": 0,
+        "sharedWritten": 0,
+        "tempRead": 0,
+        "tempWritten": 0,
+        "ioReadMs": 0
+      },
+      "plans": {
+        "first": {
+          "runIndex": 0,
+          "json": [
+            {
+              "Plan": {
+                "Node Type": "ModifyTable",
+                "Operation": "Update",
+                "Parallel Aware": false,
+                "Async Capable": false,
+                "Relation Name": "credit_balances",
+                "Alias": "credit_balances",
+                "Startup Cost": 0,
+                "Total Cost": 5.13,
+                "Plan Rows": 0,
+                "Plan Width": 0,
+                "Actual Startup Time": 0.053,
+                "Actual Total Time": 0.053,
+                "Actual Rows": 0,
+                "Actual Loops": 1,
+                "Shared Hit Blocks": 5,
+                "Shared Read Blocks": 0,
+                "Shared Dirtied Blocks": 0,
+                "Shared Written Blocks": 0,
+                "Local Hit Blocks": 0,
+                "Local Read Blocks": 0,
+                "Local Dirtied Blocks": 0,
+                "Local Written Blocks": 0,
+                "Temp Read Blocks": 0,
+                "Temp Written Blocks": 0,
+                "I/O Read Time": 0,
+                "I/O Write Time": 0,
+                "Temp I/O Read Time": 0,
+                "Temp I/O Write Time": 0,
+                "Plans": [
+                  {
+                    "Node Type": "Seq Scan",
+                    "Parent Relationship": "Outer",
+                    "Parallel Aware": false,
+                    "Async Capable": false,
+                    "Relation Name": "credit_balances",
+                    "Alias": "credit_balances",
+                    "Startup Cost": 0,
+                    "Total Cost": 5.13,
+                    "Plan Rows": 1,
+                    "Plan Width": 14,
+                    "Actual Startup Time": 0.022,
+                    "Actual Total Time": 0.023,
+                    "Actual Rows": 1,
+                    "Actual Loops": 1,
+                    "Filter": "(tenant_id = '8641a01e-babb-4e44-d36d-f68e5233c7fb'::uuid)",
+                    "Rows Removed by Filter": 249,
+                    "Shared Hit Blocks": 2,
+                    "Shared Read Blocks": 0,
+                    "Shared Dirtied Blocks": 0,
+                    "Shared Written Blocks": 0,
+                    "Local Hit Blocks": 0,
+                    "Local Read Blocks": 0,
+                    "Local Dirtied Blocks": 0,
+                    "Local Written Blocks": 0,
+                    "Temp Read Blocks": 0,
+                    "Temp Written Blocks": 0,
+                    "I/O Read Time": 0,
+                    "I/O Write Time": 0,
+                    "Temp I/O Read Time": 0,
+                    "Temp I/O Write Time": 0
+                  }
+                ]
+              },
+              "Planning": {
+                "Shared Hit Blocks": 0,
+                "Shared Read Blocks": 0,
+                "Shared Dirtied Blocks": 0,
+                "Shared Written Blocks": 0,
+                "Local Hit Blocks": 0,
+                "Local Read Blocks": 0,
+                "Local Dirtied Blocks": 0,
+                "Local Written Blocks": 0,
+                "Temp Read Blocks": 0,
+                "Temp Written Blocks": 0,
+                "I/O Read Time": 0,
+                "I/O Write Time": 0,
+                "Temp I/O Read Time": 0,
+                "Temp I/O Write Time": 0
+              },
+              "Planning Time": 0.045,
+              "Triggers": [],
+              "Execution Time": 0.069
+            }
+          ],
+          "summary": {
+            "executionMs": 0.069,
+            "planningMs": 0.045,
+            "rows": 0,
+            "buffers": {
+              "sharedHit": 5,
+              "sharedRead": 0,
+              "sharedDirtied": 0,
+              "sharedWritten": 0,
+              "tempRead": 0,
+              "tempWritten": 0,
+              "ioReadMs": 0
+            },
+            "nodeTypes": [
+              "ModifyTable",
+              "Seq Scan"
+            ],
+            "scans": [
+              {
+                "nodeType": "Seq Scan",
+                "relation": "credit_balances",
+                "index": null
+              }
+            ],
+            "usesSeqScan": true,
+            "usesIndexScan": false,
+            "usesSort": false
+          }
+        },
+        "median": {
+          "runIndex": 16,
+          "json": [
+            {
+              "Plan": {
+                "Node Type": "ModifyTable",
+                "Operation": "Update",
+                "Parallel Aware": false,
+                "Async Capable": false,
+                "Relation Name": "credit_balances",
+                "Alias": "credit_balances",
+                "Startup Cost": 0,
+                "Total Cost": 5.13,
+                "Plan Rows": 0,
+                "Plan Width": 0,
+                "Actual Startup Time": 0.046,
+                "Actual Total Time": 0.047,
+                "Actual Rows": 0,
+                "Actual Loops": 1,
+                "Shared Hit Blocks": 5,
+                "Shared Read Blocks": 0,
+                "Shared Dirtied Blocks": 0,
+                "Shared Written Blocks": 0,
+                "Local Hit Blocks": 0,
+                "Local Read Blocks": 0,
+                "Local Dirtied Blocks": 0,
+                "Local Written Blocks": 0,
+                "Temp Read Blocks": 0,
+                "Temp Written Blocks": 0,
+                "I/O Read Time": 0,
+                "I/O Write Time": 0,
+                "Temp I/O Read Time": 0,
+                "Temp I/O Write Time": 0,
+                "Plans": [
+                  {
+                    "Node Type": "Seq Scan",
+                    "Parent Relationship": "Outer",
+                    "Parallel Aware": false,
+                    "Async Capable": false,
+                    "Relation Name": "credit_balances",
+                    "Alias": "credit_balances",
+                    "Startup Cost": 0,
+                    "Total Cost": 5.13,
+                    "Plan Rows": 1,
+                    "Plan Width": 14,
+                    "Actual Startup Time": 0.025,
+                    "Actual Total Time": 0.025,
+                    "Actual Rows": 1,
+                    "Actual Loops": 1,
+                    "Filter": "(tenant_id = '8641a01e-babb-4e44-d36d-f68e5233c7fb'::uuid)",
+                    "Rows Removed by Filter": 249,
+                    "Shared Hit Blocks": 2,
+                    "Shared Read Blocks": 0,
+                    "Shared Dirtied Blocks": 0,
+                    "Shared Written Blocks": 0,
+                    "Local Hit Blocks": 0,
+                    "Local Read Blocks": 0,
+                    "Local Dirtied Blocks": 0,
+                    "Local Written Blocks": 0,
+                    "Temp Read Blocks": 0,
+                    "Temp Written Blocks": 0,
+                    "I/O Read Time": 0,
+                    "I/O Write Time": 0,
+                    "Temp I/O Read Time": 0,
+                    "Temp I/O Write Time": 0
+                  }
+                ]
+              },
+              "Planning": {
+                "Shared Hit Blocks": 0,
+                "Shared Read Blocks": 0,
+                "Shared Dirtied Blocks": 0,
+                "Shared Written Blocks": 0,
+                "Local Hit Blocks": 0,
+                "Local Read Blocks": 0,
+                "Local Dirtied Blocks": 0,
+                "Local Written Blocks": 0,
+                "Temp Read Blocks": 0,
+                "Temp Written Blocks": 0,
+                "I/O Read Time": 0,
+                "I/O Write Time": 0,
+                "Temp I/O Read Time": 0,
+                "Temp I/O Write Time": 0
+              },
+              "Planning Time": 0.04,
+              "Triggers": [],
+              "Execution Time": 0.061
+            }
+          ],
+          "summary": {
+            "executionMs": 0.061,
+            "planningMs": 0.04,
+            "rows": 0,
+            "buffers": {
+              "sharedHit": 5,
+              "sharedRead": 0,
+              "sharedDirtied": 0,
+              "sharedWritten": 0,
+              "tempRead": 0,
+              "tempWritten": 0,
+              "ioReadMs": 0
+            },
+            "nodeTypes": [
+              "ModifyTable",
+              "Seq Scan"
+            ],
+            "scans": [
+              {
+                "nodeType": "Seq Scan",
+                "relation": "credit_balances",
+                "index": null
+              }
+            ],
+            "usesSeqScan": true,
+            "usesIndexScan": false,
+            "usesSort": false
+          }
+        }
+      },
+      "perRun": [
+        {
+          "wallMs": 0.8630000000011933,
+          "serverExecMs": 0.069,
+          "planningMs": 0.045,
+          "rows": 0,
+          "sharedHit": 5,
+          "sharedRead": 0
+        },
+        {
+          "wallMs": 0.7494000000006054,
+          "serverExecMs": 0.12,
+          "planningMs": 0.054,
+          "rows": 0,
+          "sharedHit": 5,
+          "sharedRead": 0
+        },
+        {
+          "wallMs": 0.8469999999997526,
+          "serverExecMs": 0.057,
+          "planningMs": 0.039,
+          "rows": 0,
+          "sharedHit": 5,
+          "sharedRead": 0
+        },
+        {
+          "wallMs": 0.786099999999351,
+          "serverExecMs": 0.059,
+          "planningMs": 0.035,
+          "rows": 0,
+          "sharedHit": 5,
+          "sharedRead": 0
+        },
+        {
+          "wallMs": 0.7273999999997613,
+          "serverExecMs": 0.097,
+          "planningMs": 0.068,
+          "rows": 0,
+          "sharedHit": 5,
+          "sharedRead": 0
+        },
+        {
+          "wallMs": 0.8647000000000844,
+          "serverExecMs": 0.058,
+          "planningMs": 0.038,
+          "rows": 0,
+          "sharedHit": 5,
+          "sharedRead": 0
+        },
+        {
+          "wallMs": 0.8760000000002037,
+          "serverExecMs": 0.084,
+          "planningMs": 0.057,
+          "rows": 0,
+          "sharedHit": 5,
+          "sharedRead": 0
+        },
+        {
+          "wallMs": 1.1508999999987282,
+          "serverExecMs": 0.071,
+          "planningMs": 0.052,
+          "rows": 0,
+          "sharedHit": 5,
+          "sharedRead": 0
+        },
+        {
+          "wallMs": 0.7489000000005035,
+          "serverExecMs": 0.059,
+          "planningMs": 0.038,
+          "rows": 0,
+          "sharedHit": 5,
+          "sharedRead": 0
+        },
+        {
+          "wallMs": 1.0715000000000146,
+          "serverExecMs": 0.116,
+          "planningMs": 0.067,
+          "rows": 0,
+          "sharedHit": 5,
+          "sharedRead": 0
+        },
+        {
+          "wallMs": 0.8143999999992957,
+          "serverExecMs": 0.056,
+          "planningMs": 0.037,
+          "rows": 0,
+          "sharedHit": 5,
+          "sharedRead": 0
+        },
+        {
+          "wallMs": 0.814699999998993,
+          "serverExecMs": 0.054,
+          "planningMs": 0.037,
+          "rows": 0,
+          "sharedHit": 5,
+          "sharedRead": 0
+        },
+        {
+          "wallMs": 1.421700000000783,
+          "serverExecMs": 0.097,
+          "planningMs": 0.048,
+          "rows": 0,
+          "sharedHit": 5,
+          "sharedRead": 0
+        },
+        {
+          "wallMs": 0.9637999999995372,
+          "serverExecMs": 0.061,
+          "planningMs": 0.04,
+          "rows": 0,
+          "sharedHit": 5,
+          "sharedRead": 0
+        },
+        {
+          "wallMs": 0.7151000000012573,
+          "serverExecMs": 0.08,
+          "planningMs": 0.055,
+          "rows": 0,
+          "sharedHit": 5,
+          "sharedRead": 0
+        },
+        {
+          "wallMs": 0.8272999999990134,
+          "serverExecMs": 0.055,
+          "planningMs": 0.036,
+          "rows": 0,
+          "sharedHit": 5,
+          "sharedRead": 0
+        },
+        {
+          "wallMs": 1.0023000000001048,
+          "serverExecMs": 0.061,
+          "planningMs": 0.04,
+          "rows": 0,
+          "sharedHit": 5,
+          "sharedRead": 0
+        },
+        {
+          "wallMs": 0.9583000000002357,
+          "serverExecMs": 0.066,
+          "planningMs": 0.047,
+          "rows": 0,
+          "sharedHit": 5,
+          "sharedRead": 0
+        },
+        {
+          "wallMs": 1.2664999999997235,
+          "serverExecMs": 0.061,
+          "planningMs": 0.041,
+          "rows": 0,
+          "sharedHit": 5,
+          "sharedRead": 0
+        },
+        {
+          "wallMs": 0.7802000000010594,
+          "serverExecMs": 0.057,
+          "planningMs": 0.036,
+          "rows": 0,
+          "sharedHit": 5,
+          "sharedRead": 0
+        }
+      ],
+      "timings": {
+        "startedAt": "2026-10-03T05:04:02.308Z",
+        "finishedAt": "2026-10-03T05:04:02.465Z",
+        "totalMs": 157
+      },
+      "environment": {
+        "postgresVersion": "16.15 (Debian 16.15-1.pgdg12+2)",
+        "settings": {
+          "shared_buffers": "768MB",
+          "work_mem": "16MB",
+          "effective_cache_size": "1536MB",
+          "max_parallel_workers_per_gather": "2",
+          "jit": "on",
+          "random_page_cost": "4",
+          "track_io_timing": "on",
+          "default_statistics_target": "100"
+        },
+        "limits": {
+          "cpus": 2,
+          "memoryMiB": 3072,
+          "memorySwapMiB": 3072,
+          "shmMiB": 256
+        }
+      }
+    },
+    {
+      "version": 1,
+      "kind": "query",
+      "status": "ok",
+      "shadow": {
+        "manifestId": "202ff9f5-0e3a-4e68-8ea2-da8f006b1cc6",
+        "sampled": false,
+        "mode": "full",
+        "totalRowRatio": 1,
+        "largestTableRatio": 1,
+        "scalingNote": "Full copy: every table has the same row count as the source. Timings still depend on the shadow container limits and settings recorded here, which may differ from production."
+      },
+      "statement": {
+        "sql": "UPDATE credit_balances SET balance = balance + 1 WHERE tenant_id = $1",
+        "paramCount": 1,
+        "class": "dml",
+        "strategy": "rollback-transaction"
+      },
+      "config": {
+        "warmupRuns": 3,
+        "measuredRuns": 20,
+        "statementTimeoutMs": 30000,
+        "maxTotalRuntimeMs": 300000
+      },
+      "cache": {
+        "mode": "warm",
+        "claim": "warm-after-warmup",
+        "restartedPostgres": false,
+        "droppedOsCache": false,
+        "notes": "3 warmup run(s) before the measured runs; shared_buffers and the OS cache hold what the statement touches."
+      },
+      "wallMs": {
+        "n": 20,
+        "min": 0.7783999999992375,
+        "max": 2.3690999999998894,
+        "mean": 1.2292849999998907,
+        "stddev": 0.4149686244005124,
+        "cvPercent": 33.75690945554118,
+        "p50": 1.1332000000002154,
+        "p95": 1.9284900000003293
+      },
+      "serverExecMs": {
+        "n": 20,
+        "min": 0.063,
+        "max": 0.133,
+        "mean": 0.08605,
+        "stddev": 0.01771254387507102,
+        "cvPercent": 20.584013800198743,
+        "p50": 0.0835,
+        "p95": 0.11495000000000002
+      },
+      "planningMs": {
+        "n": 20,
+        "min": 0.034,
+        "max": 0.631,
+        "mean": 0.0828,
+        "stddev": 0.12961749394600294,
+        "cvPercent": 156.5428670845446,
+        "p50": 0.052,
+        "p95": 0.11420000000000038
+      },
+      "rows": 1,
+      "rowsKind": "affected",
+      "buffers": {
+        "sharedHit": 5,
+        "sharedRead": 0,
+        "sharedDirtied": 0,
+        "sharedWritten": 0,
+        "tempRead": 0,
+        "tempWritten": 0,
+        "ioReadMs": 0
+      },
+      "plans": {
+        "first": {
+          "runIndex": 0,
+          "json": [
+            {
+              "Plan": {
+                "Node Type": "ModifyTable",
+                "Operation": "Update",
+                "Parallel Aware": false,
+                "Async Capable": false,
+                "Relation Name": "credit_balances",
+                "Alias": "credit_balances",
+                "Startup Cost": 0,
+                "Total Cost": 5.13,
+                "Plan Rows": 0,
+                "Plan Width": 0,
+                "Actual Startup Time": 0.048,
+                "Actual Total Time": 0.048,
+                "Actual Rows": 0,
+                "Actual Loops": 1,
+                "Shared Hit Blocks": 5,
+                "Shared Read Blocks": 0,
+                "Shared Dirtied Blocks": 0,
+                "Shared Written Blocks": 0,
+                "Local Hit Blocks": 0,
+                "Local Read Blocks": 0,
+                "Local Dirtied Blocks": 0,
+                "Local Written Blocks": 0,
+                "Temp Read Blocks": 0,
+                "Temp Written Blocks": 0,
+                "I/O Read Time": 0,
+                "I/O Write Time": 0,
+                "Temp I/O Read Time": 0,
+                "Temp I/O Write Time": 0,
+                "Plans": [
+                  {
+                    "Node Type": "Seq Scan",
+                    "Parent Relationship": "Outer",
+                    "Parallel Aware": false,
+                    "Async Capable": false,
+                    "Relation Name": "credit_balances",
+                    "Alias": "credit_balances",
+                    "Startup Cost": 0,
+                    "Total Cost": 5.13,
+                    "Plan Rows": 1,
+                    "Plan Width": 14,
+                    "Actual Startup Time": 0.021,
+                    "Actual Total Time": 0.022,
+                    "Actual Rows": 1,
+                    "Actual Loops": 1,
+                    "Filter": "(tenant_id = '8641a01e-babb-4e44-d36d-f68e5233c7fb'::uuid)",
+                    "Rows Removed by Filter": 249,
+                    "Shared Hit Blocks": 2,
+                    "Shared Read Blocks": 0,
+                    "Shared Dirtied Blocks": 0,
+                    "Shared Written Blocks": 0,
+                    "Local Hit Blocks": 0,
+                    "Local Read Blocks": 0,
+                    "Local Dirtied Blocks": 0,
+                    "Local Written Blocks": 0,
+                    "Temp Read Blocks": 0,
+                    "Temp Written Blocks": 0,
+                    "I/O Read Time": 0,
+                    "I/O Write Time": 0,
+                    "Temp I/O Read Time": 0,
+                    "Temp I/O Write Time": 0
+                  }
+                ]
+              },
+              "Planning": {
+                "Shared Hit Blocks": 0,
+                "Shared Read Blocks": 0,
+                "Shared Dirtied Blocks": 0,
+                "Shared Written Blocks": 0,
+                "Local Hit Blocks": 0,
+                "Local Read Blocks": 0,
+                "Local Dirtied Blocks": 0,
+                "Local Written Blocks": 0,
+                "Temp Read Blocks": 0,
+                "Temp Written Blocks": 0,
+                "I/O Read Time": 0,
+                "I/O Write Time": 0,
+                "Temp I/O Read Time": 0,
+                "Temp I/O Write Time": 0
+              },
+              "Planning Time": 0.034,
+              "Triggers": [],
+              "Execution Time": 0.063
+            }
+          ],
+          "summary": {
+            "executionMs": 0.063,
+            "planningMs": 0.034,
+            "rows": 0,
+            "buffers": {
+              "sharedHit": 5,
+              "sharedRead": 0,
+              "sharedDirtied": 0,
+              "sharedWritten": 0,
+              "tempRead": 0,
+              "tempWritten": 0,
+              "ioReadMs": 0
+            },
+            "nodeTypes": [
+              "ModifyTable",
+              "Seq Scan"
+            ],
+            "scans": [
+              {
+                "nodeType": "Seq Scan",
+                "relation": "credit_balances",
+                "index": null
+              }
+            ],
+            "usesSeqScan": true,
+            "usesIndexScan": false,
+            "usesSort": false
+          }
+        },
+        "median": {
+          "runIndex": 8,
+          "json": [
+            {
+              "Plan": {
+                "Node Type": "ModifyTable",
+                "Operation": "Update",
+                "Parallel Aware": false,
+                "Async Capable": false,
+                "Relation Name": "credit_balances",
+                "Alias": "credit_balances",
+                "Startup Cost": 0,
+                "Total Cost": 5.13,
+                "Plan Rows": 0,
+                "Plan Width": 0,
+                "Actual Startup Time": 0.065,
+                "Actual Total Time": 0.066,
+                "Actual Rows": 0,
+                "Actual Loops": 1,
+                "Shared Hit Blocks": 5,
+                "Shared Read Blocks": 0,
+                "Shared Dirtied Blocks": 0,
+                "Shared Written Blocks": 0,
+                "Local Hit Blocks": 0,
+                "Local Read Blocks": 0,
+                "Local Dirtied Blocks": 0,
+                "Local Written Blocks": 0,
+                "Temp Read Blocks": 0,
+                "Temp Written Blocks": 0,
+                "I/O Read Time": 0,
+                "I/O Write Time": 0,
+                "Temp I/O Read Time": 0,
+                "Temp I/O Write Time": 0,
+                "Plans": [
+                  {
+                    "Node Type": "Seq Scan",
+                    "Parent Relationship": "Outer",
+                    "Parallel Aware": false,
+                    "Async Capable": false,
+                    "Relation Name": "credit_balances",
+                    "Alias": "credit_balances",
+                    "Startup Cost": 0,
+                    "Total Cost": 5.13,
+                    "Plan Rows": 1,
+                    "Plan Width": 14,
+                    "Actual Startup Time": 0.028,
+                    "Actual Total Time": 0.028,
+                    "Actual Rows": 1,
+                    "Actual Loops": 1,
+                    "Filter": "(tenant_id = '8641a01e-babb-4e44-d36d-f68e5233c7fb'::uuid)",
+                    "Rows Removed by Filter": 249,
+                    "Shared Hit Blocks": 2,
+                    "Shared Read Blocks": 0,
+                    "Shared Dirtied Blocks": 0,
+                    "Shared Written Blocks": 0,
+                    "Local Hit Blocks": 0,
+                    "Local Read Blocks": 0,
+                    "Local Dirtied Blocks": 0,
+                    "Local Written Blocks": 0,
+                    "Temp Read Blocks": 0,
+                    "Temp Written Blocks": 0,
+                    "I/O Read Time": 0,
+                    "I/O Write Time": 0,
+                    "Temp I/O Read Time": 0,
+                    "Temp I/O Write Time": 0
+                  }
+                ]
+              },
+              "Planning": {
+                "Shared Hit Blocks": 0,
+                "Shared Read Blocks": 0,
+                "Shared Dirtied Blocks": 0,
+                "Shared Written Blocks": 0,
+                "Local Hit Blocks": 0,
+                "Local Read Blocks": 0,
+                "Local Dirtied Blocks": 0,
+                "Local Written Blocks": 0,
+                "Temp Read Blocks": 0,
+                "Temp Written Blocks": 0,
+                "I/O Read Time": 0,
+                "I/O Write Time": 0,
+                "Temp I/O Read Time": 0,
+                "Temp I/O Write Time": 0
+              },
+              "Planning Time": 0.05,
+              "Triggers": [],
+              "Execution Time": 0.083
+            }
+          ],
+          "summary": {
+            "executionMs": 0.083,
+            "planningMs": 0.05,
+            "rows": 0,
+            "buffers": {
+              "sharedHit": 5,
+              "sharedRead": 0,
+              "sharedDirtied": 0,
+              "sharedWritten": 0,
+              "tempRead": 0,
+              "tempWritten": 0,
+              "ioReadMs": 0
+            },
+            "nodeTypes": [
+              "ModifyTable",
+              "Seq Scan"
+            ],
+            "scans": [
+              {
+                "nodeType": "Seq Scan",
+                "relation": "credit_balances",
+                "index": null
+              }
+            ],
+            "usesSeqScan": true,
+            "usesIndexScan": false,
+            "usesSort": false
+          }
+        }
+      },
+      "perRun": [
+        {
+          "wallMs": 0.834499999999025,
+          "serverExecMs": 0.063,
+          "planningMs": 0.034,
+          "rows": 0,
+          "sharedHit": 5,
+          "sharedRead": 0
+        },
+        {
+          "wallMs": 0.7783999999992375,
+          "serverExecMs": 0.078,
+          "planningMs": 0.052,
+          "rows": 0,
+          "sharedHit": 5,
+          "sharedRead": 0
+        },
+        {
+          "wallMs": 1.105600000000777,
+          "serverExecMs": 0.072,
+          "planningMs": 0.047,
+          "rows": 0,
+          "sharedHit": 5,
+          "sharedRead": 0
+        },
+        {
+          "wallMs": 0.8176000000003114,
+          "serverExecMs": 0.105,
+          "planningMs": 0.043,
+          "rows": 0,
+          "sharedHit": 5,
+          "sharedRead": 0
+        },
+        {
+          "wallMs": 1.019800000000032,
+          "serverExecMs": 0.1,
+          "planningMs": 0.051,
+          "rows": 0,
+          "sharedHit": 5,
+          "sharedRead": 0
+        },
+        {
+          "wallMs": 0.8148000000001048,
+          "serverExecMs": 0.072,
+          "planningMs": 0.036,
+          "rows": 0,
+          "sharedHit": 5,
+          "sharedRead": 0
+        },
+        {
+          "wallMs": 0.8405000000002474,
+          "serverExecMs": 0.063,
+          "planningMs": 0.041,
+          "rows": 0,
+          "sharedHit": 5,
+          "sharedRead": 0
+        },
+        {
+          "wallMs": 1.028599999999642,
+          "serverExecMs": 0.076,
+          "planningMs": 0.052,
+          "rows": 0,
+          "sharedHit": 5,
+          "sharedRead": 0
+        },
+        {
+          "wallMs": 1.4408999999996013,
+          "serverExecMs": 0.083,
+          "planningMs": 0.05,
+          "rows": 0,
+          "sharedHit": 5,
+          "sharedRead": 0
+        },
+        {
+          "wallMs": 1.3585999999995693,
+          "serverExecMs": 0.084,
+          "planningMs": 0.058,
+          "rows": 0,
+          "sharedHit": 5,
+          "sharedRead": 0
+        },
+        {
+          "wallMs": 2.3690999999998894,
+          "serverExecMs": 0.093,
+          "planningMs": 0.062,
+          "rows": 0,
+          "sharedHit": 5,
+          "sharedRead": 0
+        },
+        {
+          "wallMs": 1.9053000000003522,
+          "serverExecMs": 0.078,
+          "planningMs": 0.631,
+          "rows": 0,
+          "sharedHit": 5,
+          "sharedRead": 0
+        },
+        {
+          "wallMs": 1.1844999999993888,
+          "serverExecMs": 0.076,
+          "planningMs": 0.05,
+          "rows": 0,
+          "sharedHit": 5,
+          "sharedRead": 0
+        },
+        {
+          "wallMs": 1.7425999999995838,
+          "serverExecMs": 0.114,
+          "planningMs": 0.055,
+          "rows": 0,
+          "sharedHit": 5,
+          "sharedRead": 0
+        },
+        {
+          "wallMs": 1.153599999999642,
+          "serverExecMs": 0.097,
+          "planningMs": 0.087,
+          "rows": 0,
+          "sharedHit": 5,
+          "sharedRead": 0
+        },
+        {
+          "wallMs": 1.1128000000007887,
+          "serverExecMs": 0.084,
+          "planningMs": 0.059,
+          "rows": 0,
+          "sharedHit": 5,
+          "sharedRead": 0
+        },
+        {
+          "wallMs": 1.3070000000006985,
+          "serverExecMs": 0.095,
+          "planningMs": 0.069,
+          "rows": 0,
+          "sharedHit": 5,
+          "sharedRead": 0
+        },
+        {
+          "wallMs": 1.3445000000010623,
+          "serverExecMs": 0.133,
+          "planningMs": 0.07,
+          "rows": 0,
+          "sharedHit": 5,
+          "sharedRead": 0
+        },
+        {
+          "wallMs": 1.5284999999985303,
+          "serverExecMs": 0.067,
+          "planningMs": 0.048,
+          "rows": 0,
+          "sharedHit": 5,
+          "sharedRead": 0
+        },
+        {
+          "wallMs": 0.8984999999993306,
+          "serverExecMs": 0.088,
+          "planningMs": 0.061,
+          "rows": 0,
+          "sharedHit": 5,
+          "sharedRead": 0
+        }
+      ],
+      "timings": {
+        "startedAt": "2026-10-03T05:04:02.469Z",
+        "finishedAt": "2026-10-03T05:04:02.672Z",
+        "totalMs": 203
+      },
+      "environment": {
+        "postgresVersion": "16.15 (Debian 16.15-1.pgdg12+2)",
+        "settings": {
+          "shared_buffers": "768MB",
+          "work_mem": "16MB",
+          "effective_cache_size": "1536MB",
+          "max_parallel_workers_per_gather": "2",
+          "jit": "on",
+          "random_page_cost": "4",
+          "track_io_timing": "on",
+          "default_statistics_target": "100"
+        },
+        "limits": {
+          "cpus": 2,
+          "memoryMiB": 3072,
+          "memorySwapMiB": 3072,
+          "shmMiB": 256
+        }
+      }
+    },
+    {
+      "version": 1,
+      "kind": "query",
+      "status": "ok",
+      "shadow": {
+        "manifestId": "202ff9f5-0e3a-4e68-8ea2-da8f006b1cc6",
+        "sampled": false,
+        "mode": "full",
+        "totalRowRatio": 1,
+        "largestTableRatio": 1,
+        "scalingNote": "Full copy: every table has the same row count as the source. Timings still depend on the shadow container limits and settings recorded here, which may differ from production."
+      },
+      "statement": {
+        "sql": "UPDATE credit_balances SET balance = balance + 1 WHERE tenant_id = $1",
+        "paramCount": 1,
+        "class": "dml",
+        "strategy": "rollback-transaction"
+      },
+      "config": {
+        "warmupRuns": 3,
+        "measuredRuns": 20,
+        "statementTimeoutMs": 30000,
+        "maxTotalRuntimeMs": 300000
+      },
+      "cache": {
+        "mode": "warm",
+        "claim": "warm-after-warmup",
+        "restartedPostgres": false,
+        "droppedOsCache": false,
+        "notes": "3 warmup run(s) before the measured runs; shared_buffers and the OS cache hold what the statement touches."
+      },
+      "wallMs": {
+        "n": 20,
+        "min": 0.8215999999993073,
+        "max": 2.0403000000005704,
+        "mean": 1.1148950000002515,
+        "stddev": 0.3157048429601391,
+        "cvPercent": 28.3170023150223,
+        "p50": 1.0029500000009648,
+        "p95": 1.7798100000007255
+      },
+      "serverExecMs": {
+        "n": 20,
+        "min": 0.057,
+        "max": 0.118,
+        "mean": 0.0763,
+        "stddev": 0.017598145835345986,
+        "cvPercent": 23.064411317622522,
+        "p50": 0.069,
+        "p95": 0.11515
+      },
+      "planningMs": {
+        "n": 20,
+        "min": 0.038,
+        "max": 0.074,
+        "mean": 0.049600000000000005,
+        "stddev": 0.010530157193808447,
+        "cvPercent": 21.23015563267832,
+        "p50": 0.047,
+        "p95": 0.0721
+      },
+      "rows": 1,
+      "rowsKind": "affected",
+      "buffers": {
+        "sharedHit": 5,
+        "sharedRead": 0,
+        "sharedDirtied": 0,
+        "sharedWritten": 0,
+        "tempRead": 0,
+        "tempWritten": 0,
+        "ioReadMs": 0
+      },
+      "plans": {
+        "first": {
+          "runIndex": 0,
+          "json": [
+            {
+              "Plan": {
+                "Node Type": "ModifyTable",
+                "Operation": "Update",
+                "Parallel Aware": false,
+                "Async Capable": false,
+                "Relation Name": "credit_balances",
+                "Alias": "credit_balances",
+                "Startup Cost": 0,
+                "Total Cost": 5.13,
+                "Plan Rows": 0,
+                "Plan Width": 0,
+                "Actual Startup Time": 0.068,
+                "Actual Total Time": 0.068,
+                "Actual Rows": 0,
+                "Actual Loops": 1,
+                "Shared Hit Blocks": 5,
+                "Shared Read Blocks": 0,
+                "Shared Dirtied Blocks": 0,
+                "Shared Written Blocks": 0,
+                "Local Hit Blocks": 0,
+                "Local Read Blocks": 0,
+                "Local Dirtied Blocks": 0,
+                "Local Written Blocks": 0,
+                "Temp Read Blocks": 0,
+                "Temp Written Blocks": 0,
+                "I/O Read Time": 0,
+                "I/O Write Time": 0,
+                "Temp I/O Read Time": 0,
+                "Temp I/O Write Time": 0,
+                "Plans": [
+                  {
+                    "Node Type": "Seq Scan",
+                    "Parent Relationship": "Outer",
+                    "Parallel Aware": false,
+                    "Async Capable": false,
+                    "Relation Name": "credit_balances",
+                    "Alias": "credit_balances",
+                    "Startup Cost": 0,
+                    "Total Cost": 5.13,
+                    "Plan Rows": 1,
+                    "Plan Width": 14,
+                    "Actual Startup Time": 0.03,
+                    "Actual Total Time": 0.031,
+                    "Actual Rows": 1,
+                    "Actual Loops": 1,
+                    "Filter": "(tenant_id = '8641a01e-babb-4e44-d36d-f68e5233c7fb'::uuid)",
+                    "Rows Removed by Filter": 249,
+                    "Shared Hit Blocks": 2,
+                    "Shared Read Blocks": 0,
+                    "Shared Dirtied Blocks": 0,
+                    "Shared Written Blocks": 0,
+                    "Local Hit Blocks": 0,
+                    "Local Read Blocks": 0,
+                    "Local Dirtied Blocks": 0,
+                    "Local Written Blocks": 0,
+                    "Temp Read Blocks": 0,
+                    "Temp Written Blocks": 0,
+                    "I/O Read Time": 0,
+                    "I/O Write Time": 0,
+                    "Temp I/O Read Time": 0,
+                    "Temp I/O Write Time": 0
+                  }
+                ]
+              },
+              "Planning": {
+                "Shared Hit Blocks": 0,
+                "Shared Read Blocks": 0,
+                "Shared Dirtied Blocks": 0,
+                "Shared Written Blocks": 0,
+                "Local Hit Blocks": 0,
+                "Local Read Blocks": 0,
+                "Local Dirtied Blocks": 0,
+                "Local Written Blocks": 0,
+                "Temp Read Blocks": 0,
+                "Temp Written Blocks": 0,
+                "I/O Read Time": 0,
+                "I/O Write Time": 0,
+                "Temp I/O Read Time": 0,
+                "Temp I/O Write Time": 0
+              },
+              "Planning Time": 0.048,
+              "Triggers": [],
+              "Execution Time": 0.087
+            }
+          ],
+          "summary": {
+            "executionMs": 0.087,
+            "planningMs": 0.048,
+            "rows": 0,
+            "buffers": {
+              "sharedHit": 5,
+              "sharedRead": 0,
+              "sharedDirtied": 0,
+              "sharedWritten": 0,
+              "tempRead": 0,
+              "tempWritten": 0,
+              "ioReadMs": 0
+            },
+            "nodeTypes": [
+              "ModifyTable",
+              "Seq Scan"
+            ],
+            "scans": [
+              {
+                "nodeType": "Seq Scan",
+                "relation": "credit_balances",
+                "index": null
+              }
+            ],
+            "usesSeqScan": true,
+            "usesIndexScan": false,
+            "usesSort": false
+          }
+        },
+        "median": {
+          "runIndex": 11,
+          "json": [
+            {
+              "Plan": {
+                "Node Type": "ModifyTable",
+                "Operation": "Update",
+                "Parallel Aware": false,
+                "Async Capable": false,
+                "Relation Name": "credit_balances",
+                "Alias": "credit_balances",
+                "Startup Cost": 0,
+                "Total Cost": 5.13,
+                "Plan Rows": 0,
+                "Plan Width": 0,
+                "Actual Startup Time": 0.051,
+                "Actual Total Time": 0.052,
+                "Actual Rows": 0,
+                "Actual Loops": 1,
+                "Shared Hit Blocks": 5,
+                "Shared Read Blocks": 0,
+                "Shared Dirtied Blocks": 0,
+                "Shared Written Blocks": 0,
+                "Local Hit Blocks": 0,
+                "Local Read Blocks": 0,
+                "Local Dirtied Blocks": 0,
+                "Local Written Blocks": 0,
+                "Temp Read Blocks": 0,
+                "Temp Written Blocks": 0,
+                "I/O Read Time": 0,
+                "I/O Write Time": 0,
+                "Temp I/O Read Time": 0,
+                "Temp I/O Write Time": 0,
+                "Plans": [
+                  {
+                    "Node Type": "Seq Scan",
+                    "Parent Relationship": "Outer",
+                    "Parallel Aware": false,
+                    "Async Capable": false,
+                    "Relation Name": "credit_balances",
+                    "Alias": "credit_balances",
+                    "Startup Cost": 0,
+                    "Total Cost": 5.13,
+                    "Plan Rows": 1,
+                    "Plan Width": 14,
+                    "Actual Startup Time": 0.027,
+                    "Actual Total Time": 0.027,
+                    "Actual Rows": 1,
+                    "Actual Loops": 1,
+                    "Filter": "(tenant_id = '8641a01e-babb-4e44-d36d-f68e5233c7fb'::uuid)",
+                    "Rows Removed by Filter": 249,
+                    "Shared Hit Blocks": 2,
+                    "Shared Read Blocks": 0,
+                    "Shared Dirtied Blocks": 0,
+                    "Shared Written Blocks": 0,
+                    "Local Hit Blocks": 0,
+                    "Local Read Blocks": 0,
+                    "Local Dirtied Blocks": 0,
+                    "Local Written Blocks": 0,
+                    "Temp Read Blocks": 0,
+                    "Temp Written Blocks": 0,
+                    "I/O Read Time": 0,
+                    "I/O Write Time": 0,
+                    "Temp I/O Read Time": 0,
+                    "Temp I/O Write Time": 0
+                  }
+                ]
+              },
+              "Planning": {
+                "Shared Hit Blocks": 0,
+                "Shared Read Blocks": 0,
+                "Shared Dirtied Blocks": 0,
+                "Shared Written Blocks": 0,
+                "Local Hit Blocks": 0,
+                "Local Read Blocks": 0,
+                "Local Dirtied Blocks": 0,
+                "Local Written Blocks": 0,
+                "Temp Read Blocks": 0,
+                "Temp Written Blocks": 0,
+                "I/O Read Time": 0,
+                "I/O Write Time": 0,
+                "Temp I/O Read Time": 0,
+                "Temp I/O Write Time": 0
+              },
+              "Planning Time": 0.052,
+              "Triggers": [],
+              "Execution Time": 0.069
+            }
+          ],
+          "summary": {
+            "executionMs": 0.069,
+            "planningMs": 0.052,
+            "rows": 0,
+            "buffers": {
+              "sharedHit": 5,
+              "sharedRead": 0,
+              "sharedDirtied": 0,
+              "sharedWritten": 0,
+              "tempRead": 0,
+              "tempWritten": 0,
+              "ioReadMs": 0
+            },
+            "nodeTypes": [
+              "ModifyTable",
+              "Seq Scan"
+            ],
+            "scans": [
+              {
+                "nodeType": "Seq Scan",
+                "relation": "credit_balances",
+                "index": null
+              }
+            ],
+            "usesSeqScan": true,
+            "usesIndexScan": false,
+            "usesSort": false
+          }
+        }
+      },
+      "perRun": [
+        {
+          "wallMs": 0.9570000000003347,
+          "serverExecMs": 0.087,
+          "planningMs": 0.048,
+          "rows": 0,
+          "sharedHit": 5,
+          "sharedRead": 0
+        },
+        {
+          "wallMs": 1.0105000000003201,
+          "serverExecMs": 0.093,
+          "planningMs": 0.061,
+          "rows": 0,
+          "sharedHit": 5,
+          "sharedRead": 0
+        },
+        {
+          "wallMs": 0.9954000000016094,
+          "serverExecMs": 0.057,
+          "planningMs": 0.046,
+          "rows": 0,
+          "sharedHit": 5,
+          "sharedRead": 0
+        },
+        {
+          "wallMs": 0.9501000000000204,
+          "serverExecMs": 0.079,
+          "planningMs": 0.047,
+          "rows": 0,
+          "sharedHit": 5,
+          "sharedRead": 0
+        },
+        {
+          "wallMs": 1.0483000000003813,
+          "serverExecMs": 0.066,
+          "planningMs": 0.038,
+          "rows": 0,
+          "sharedHit": 5,
+          "sharedRead": 0
+        },
+        {
+          "wallMs": 0.9524000000001251,
+          "serverExecMs": 0.069,
+          "planningMs": 0.038,
+          "rows": 0,
+          "sharedHit": 5,
+          "sharedRead": 0
+        },
+        {
+          "wallMs": 0.8304000000007363,
+          "serverExecMs": 0.061,
+          "planningMs": 0.041,
+          "rows": 0,
+          "sharedHit": 5,
+          "sharedRead": 0
+        },
+        {
+          "wallMs": 1.0961000000006607,
+          "serverExecMs": 0.067,
+          "planningMs": 0.045,
+          "rows": 0,
+          "sharedHit": 5,
+          "sharedRead": 0
+        },
+        {
+          "wallMs": 0.9622999999992317,
+          "serverExecMs": 0.073,
+          "planningMs": 0.047,
+          "rows": 0,
+          "sharedHit": 5,
+          "sharedRead": 0
+        },
+        {
+          "wallMs": 1.1357000000007247,
+          "serverExecMs": 0.099,
+          "planningMs": 0.052,
+          "rows": 0,
+          "sharedHit": 5,
+          "sharedRead": 0
+        },
+        {
+          "wallMs": 1.7661000000007334,
+          "serverExecMs": 0.07,
+          "planningMs": 0.049,
+          "rows": 0,
+          "sharedHit": 5,
+          "sharedRead": 0
+        },
+        {
+          "wallMs": 2.0403000000005704,
+          "serverExecMs": 0.069,
+          "planningMs": 0.052,
+          "rows": 0,
+          "sharedHit": 5,
+          "sharedRead": 0
+        },
+        {
+          "wallMs": 1.3360000000011496,
+          "serverExecMs": 0.066,
+          "planningMs": 0.042,
+          "rows": 0,
+          "sharedHit": 5,
+          "sharedRead": 0
+        },
+        {
+          "wallMs": 0.8590000000003783,
+          "serverExecMs": 0.115,
+          "planningMs": 0.072,
+          "rows": 0,
+          "sharedHit": 5,
+          "sharedRead": 0
+        },
+        {
+          "wallMs": 1.1863999999986845,
+          "serverExecMs": 0.081,
+          "planningMs": 0.049,
+          "rows": 0,
+          "sharedHit": 5,
+          "sharedRead": 0
+        },
+        {
+          "wallMs": 1.4483999999993102,
+          "serverExecMs": 0.069,
+          "planningMs": 0.065,
+          "rows": 0,
+          "sharedHit": 5,
+          "sharedRead": 0
+        },
+        {
+          "wallMs": 1.0485000000007858,
+          "serverExecMs": 0.06,
+          "planningMs": 0.041,
+          "rows": 0,
+          "sharedHit": 5,
+          "sharedRead": 0
+        },
+        {
+          "wallMs": 0.862699999999677,
+          "serverExecMs": 0.118,
+          "planningMs": 0.074,
+          "rows": 0,
+          "sharedHit": 5,
+          "sharedRead": 0
+        },
+        {
+          "wallMs": 0.9907000000002881,
+          "serverExecMs": 0.063,
+          "planningMs": 0.044,
+          "rows": 0,
+          "sharedHit": 5,
+          "sharedRead": 0
+        },
+        {
+          "wallMs": 0.8215999999993073,
+          "serverExecMs": 0.064,
+          "planningMs": 0.041,
+          "rows": 0,
+          "sharedHit": 5,
+          "sharedRead": 0
+        }
+      ],
+      "timings": {
+        "startedAt": "2026-10-03T05:04:02.676Z",
+        "finishedAt": "2026-10-03T05:04:02.866Z",
+        "totalMs": 190
+      },
+      "environment": {
+        "postgresVersion": "16.15 (Debian 16.15-1.pgdg12+2)",
+        "settings": {
+          "shared_buffers": "768MB",
+          "work_mem": "16MB",
+          "effective_cache_size": "1536MB",
+          "max_parallel_workers_per_gather": "2",
+          "jit": "on",
+          "random_page_cost": "4",
+          "track_io_timing": "on",
+          "default_statistics_target": "100"
+        },
+        "limits": {
+          "cpus": 2,
+          "memoryMiB": 3072,
+          "memorySwapMiB": 3072,
+          "shmMiB": 256
+        }
+      }
+    },
+    {
+      "version": 1,
+      "kind": "query",
+      "status": "ok",
+      "shadow": {
+        "manifestId": "202ff9f5-0e3a-4e68-8ea2-da8f006b1cc6",
+        "sampled": false,
+        "mode": "full",
+        "totalRowRatio": 1,
+        "largestTableRatio": 1,
+        "scalingNote": "Full copy: every table has the same row count as the source. Timings still depend on the shadow container limits and settings recorded here, which may differ from production."
+      },
+      "statement": {
+        "sql": "UPDATE credit_balances SET balance = balance + 1 WHERE tenant_id = $1",
+        "paramCount": 1,
+        "class": "dml",
+        "strategy": "rollback-transaction"
+      },
+      "config": {
+        "warmupRuns": 3,
+        "measuredRuns": 20,
+        "statementTimeoutMs": 30000,
+        "maxTotalRuntimeMs": 300000
+      },
+      "cache": {
+        "mode": "warm",
+        "claim": "warm-after-warmup",
+        "restartedPostgres": false,
+        "droppedOsCache": false,
+        "notes": "3 warmup run(s) before the measured runs; shared_buffers and the OS cache hold what the statement touches."
+      },
+      "wallMs": {
+        "n": 20,
+        "min": 0.6576999999997497,
+        "max": 1.6067000000002736,
+        "mean": 0.9947849999997743,
+        "stddev": 0.3047424232037319,
+        "cvPercent": 30.633998623200092,
+        "p50": 0.835399999999936,
+        "p95": 1.5452349999995023
+      },
+      "serverExecMs": {
+        "n": 20,
+        "min": 0.052,
+        "max": 0.296,
+        "mean": 0.07920000000000002,
+        "stddev": 0.053371192702864674,
+        "cvPercent": 67.38786957432407,
+        "p50": 0.062,
+        "p95": 0.11740000000000013
+      },
+      "planningMs": {
+        "n": 20,
+        "min": 0.031,
+        "max": 0.091,
+        "mean": 0.045950000000000005,
+        "stddev": 0.014745115159015595,
+        "cvPercent": 32.08947803920695,
+        "p50": 0.0415,
+        "p95": 0.07485000000000001
+      },
+      "rows": 1,
+      "rowsKind": "affected",
+      "buffers": {
+        "sharedHit": 5,
+        "sharedRead": 0,
+        "sharedDirtied": 0,
+        "sharedWritten": 0,
+        "tempRead": 0,
+        "tempWritten": 0,
+        "ioReadMs": 0
+      },
+      "plans": {
+        "first": {
+          "runIndex": 0,
+          "json": [
+            {
+              "Plan": {
+                "Node Type": "ModifyTable",
+                "Operation": "Update",
+                "Parallel Aware": false,
+                "Async Capable": false,
+                "Relation Name": "credit_balances",
+                "Alias": "credit_balances",
+                "Startup Cost": 0,
+                "Total Cost": 5.13,
+                "Plan Rows": 0,
+                "Plan Width": 0,
+                "Actual Startup Time": 0.049,
+                "Actual Total Time": 0.049,
+                "Actual Rows": 0,
+                "Actual Loops": 1,
+                "Shared Hit Blocks": 5,
+                "Shared Read Blocks": 0,
+                "Shared Dirtied Blocks": 0,
+                "Shared Written Blocks": 0,
+                "Local Hit Blocks": 0,
+                "Local Read Blocks": 0,
+                "Local Dirtied Blocks": 0,
+                "Local Written Blocks": 0,
+                "Temp Read Blocks": 0,
+                "Temp Written Blocks": 0,
+                "I/O Read Time": 0,
+                "I/O Write Time": 0,
+                "Temp I/O Read Time": 0,
+                "Temp I/O Write Time": 0,
+                "Plans": [
+                  {
+                    "Node Type": "Seq Scan",
+                    "Parent Relationship": "Outer",
+                    "Parallel Aware": false,
+                    "Async Capable": false,
+                    "Relation Name": "credit_balances",
+                    "Alias": "credit_balances",
+                    "Startup Cost": 0,
+                    "Total Cost": 5.13,
+                    "Plan Rows": 1,
+                    "Plan Width": 14,
+                    "Actual Startup Time": 0.02,
+                    "Actual Total Time": 0.02,
+                    "Actual Rows": 1,
+                    "Actual Loops": 1,
+                    "Filter": "(tenant_id = '8641a01e-babb-4e44-d36d-f68e5233c7fb'::uuid)",
+                    "Rows Removed by Filter": 249,
+                    "Shared Hit Blocks": 2,
+                    "Shared Read Blocks": 0,
+                    "Shared Dirtied Blocks": 0,
+                    "Shared Written Blocks": 0,
+                    "Local Hit Blocks": 0,
+                    "Local Read Blocks": 0,
+                    "Local Dirtied Blocks": 0,
+                    "Local Written Blocks": 0,
+                    "Temp Read Blocks": 0,
+                    "Temp Written Blocks": 0,
+                    "I/O Read Time": 0,
+                    "I/O Write Time": 0,
+                    "Temp I/O Read Time": 0,
+                    "Temp I/O Write Time": 0
+                  }
+                ]
+              },
+              "Planning": {
+                "Shared Hit Blocks": 0,
+                "Shared Read Blocks": 0,
+                "Shared Dirtied Blocks": 0,
+                "Shared Written Blocks": 0,
+                "Local Hit Blocks": 0,
+                "Local Read Blocks": 0,
+                "Local Dirtied Blocks": 0,
+                "Local Written Blocks": 0,
+                "Temp Read Blocks": 0,
+                "Temp Written Blocks": 0,
+                "I/O Read Time": 0,
+                "I/O Write Time": 0,
+                "Temp I/O Read Time": 0,
+                "Temp I/O Write Time": 0
+              },
+              "Planning Time": 0.033,
+              "Triggers": [],
+              "Execution Time": 0.062
+            }
+          ],
+          "summary": {
+            "executionMs": 0.062,
+            "planningMs": 0.033,
+            "rows": 0,
+            "buffers": {
+              "sharedHit": 5,
+              "sharedRead": 0,
+              "sharedDirtied": 0,
+              "sharedWritten": 0,
+              "tempRead": 0,
+              "tempWritten": 0,
+              "ioReadMs": 0
+            },
+            "nodeTypes": [
+              "ModifyTable",
+              "Seq Scan"
+            ],
+            "scans": [
+              {
+                "nodeType": "Seq Scan",
+                "relation": "credit_balances",
+                "index": null
+              }
+            ],
+            "usesSeqScan": true,
+            "usesIndexScan": false,
+            "usesSort": false
+          }
+        },
+        "median": {
+          "runIndex": 16,
+          "json": [
+            {
+              "Plan": {
+                "Node Type": "ModifyTable",
+                "Operation": "Update",
+                "Parallel Aware": false,
+                "Async Capable": false,
+                "Relation Name": "credit_balances",
+                "Alias": "credit_balances",
+                "Startup Cost": 0,
+                "Total Cost": 5.13,
+                "Plan Rows": 0,
+                "Plan Width": 0,
+                "Actual Startup Time": 0.047,
+                "Actual Total Time": 0.047,
+                "Actual Rows": 0,
+                "Actual Loops": 1,
+                "Shared Hit Blocks": 5,
+                "Shared Read Blocks": 0,
+                "Shared Dirtied Blocks": 0,
+                "Shared Written Blocks": 0,
+                "Local Hit Blocks": 0,
+                "Local Read Blocks": 0,
+                "Local Dirtied Blocks": 0,
+                "Local Written Blocks": 0,
+                "Temp Read Blocks": 0,
+                "Temp Written Blocks": 0,
+                "I/O Read Time": 0,
+                "I/O Write Time": 0,
+                "Temp I/O Read Time": 0,
+                "Temp I/O Write Time": 0,
+                "Plans": [
+                  {
+                    "Node Type": "Seq Scan",
+                    "Parent Relationship": "Outer",
+                    "Parallel Aware": false,
+                    "Async Capable": false,
+                    "Relation Name": "credit_balances",
+                    "Alias": "credit_balances",
+                    "Startup Cost": 0,
+                    "Total Cost": 5.13,
+                    "Plan Rows": 1,
+                    "Plan Width": 14,
+                    "Actual Startup Time": 0.024,
+                    "Actual Total Time": 0.024,
+                    "Actual Rows": 1,
+                    "Actual Loops": 1,
+                    "Filter": "(tenant_id = '8641a01e-babb-4e44-d36d-f68e5233c7fb'::uuid)",
+                    "Rows Removed by Filter": 249,
+                    "Shared Hit Blocks": 2,
+                    "Shared Read Blocks": 0,
+                    "Shared Dirtied Blocks": 0,
+                    "Shared Written Blocks": 0,
+                    "Local Hit Blocks": 0,
+                    "Local Read Blocks": 0,
+                    "Local Dirtied Blocks": 0,
+                    "Local Written Blocks": 0,
+                    "Temp Read Blocks": 0,
+                    "Temp Written Blocks": 0,
+                    "I/O Read Time": 0,
+                    "I/O Write Time": 0,
+                    "Temp I/O Read Time": 0,
+                    "Temp I/O Write Time": 0
+                  }
+                ]
+              },
+              "Planning": {
+                "Shared Hit Blocks": 0,
+                "Shared Read Blocks": 0,
+                "Shared Dirtied Blocks": 0,
+                "Shared Written Blocks": 0,
+                "Local Hit Blocks": 0,
+                "Local Read Blocks": 0,
+                "Local Dirtied Blocks": 0,
+                "Local Written Blocks": 0,
+                "Temp Read Blocks": 0,
+                "Temp Written Blocks": 0,
+                "I/O Read Time": 0,
+                "I/O Write Time": 0,
+                "Temp I/O Read Time": 0,
+                "Temp I/O Write Time": 0
+              },
+              "Planning Time": 0.044,
+              "Triggers": [],
+              "Execution Time": 0.062
+            }
+          ],
+          "summary": {
+            "executionMs": 0.062,
+            "planningMs": 0.044,
+            "rows": 0,
+            "buffers": {
+              "sharedHit": 5,
+              "sharedRead": 0,
+              "sharedDirtied": 0,
+              "sharedWritten": 0,
+              "tempRead": 0,
+              "tempWritten": 0,
+              "ioReadMs": 0
+            },
+            "nodeTypes": [
+              "ModifyTable",
+              "Seq Scan"
+            ],
+            "scans": [
+              {
+                "nodeType": "Seq Scan",
+                "relation": "credit_balances",
+                "index": null
+              }
+            ],
+            "usesSeqScan": true,
+            "usesIndexScan": false,
+            "usesSort": false
+          }
+        }
+      },
+      "perRun": [
+        {
+          "wallMs": 0.6576999999997497,
+          "serverExecMs": 0.062,
+          "planningMs": 0.033,
+          "rows": 0,
+          "sharedHit": 5,
+          "sharedRead": 0
+        },
+        {
+          "wallMs": 1.5419999999994616,
+          "serverExecMs": 0.067,
+          "planningMs": 0.041,
+          "rows": 0,
+          "sharedHit": 5,
+          "sharedRead": 0
+        },
+        {
+          "wallMs": 0.8199000000004162,
+          "serverExecMs": 0.09,
+          "planningMs": 0.06,
+          "rows": 0,
+          "sharedHit": 5,
+          "sharedRead": 0
+        },
+        {
+          "wallMs": 1.1097000000008848,
+          "serverExecMs": 0.06,
+          "planningMs": 0.039,
+          "rows": 0,
+          "sharedHit": 5,
+          "sharedRead": 0
+        },
+        {
+          "wallMs": 0.7254999999986467,
+          "serverExecMs": 0.053,
+          "planningMs": 0.042,
+          "rows": 0,
+          "sharedHit": 5,
+          "sharedRead": 0
+        },
+        {
+          "wallMs": 1.3493999999991502,
+          "serverExecMs": 0.063,
+          "planningMs": 0.042,
+          "rows": 0,
+          "sharedHit": 5,
+          "sharedRead": 0
+        },
+        {
+          "wallMs": 0.7770999999993364,
+          "serverExecMs": 0.059,
+          "planningMs": 0.035,
+          "rows": 0,
+          "sharedHit": 5,
+          "sharedRead": 0
+        },
+        {
+          "wallMs": 0.6983000000000175,
+          "serverExecMs": 0.052,
+          "planningMs": 0.031,
+          "rows": 0,
+          "sharedHit": 5,
+          "sharedRead": 0
+        },
+        {
+          "wallMs": 1.4421999999995023,
+          "serverExecMs": 0.068,
+          "planningMs": 0.05,
+          "rows": 0,
+          "sharedHit": 5,
+          "sharedRead": 0
+        },
+        {
+          "wallMs": 0.7896999999993568,
+          "serverExecMs": 0.054,
+          "planningMs": 0.035,
+          "rows": 0,
+          "sharedHit": 5,
+          "sharedRead": 0
+        },
+        {
+          "wallMs": 0.8277999999991152,
+          "serverExecMs": 0.059,
+          "planningMs": 0.038,
+          "rows": 0,
+          "sharedHit": 5,
+          "sharedRead": 0
+        },
+        {
+          "wallMs": 0.8310999999994237,
+          "serverExecMs": 0.06,
+          "planningMs": 0.039,
+          "rows": 0,
+          "sharedHit": 5,
+          "sharedRead": 0
+        },
+        {
+          "wallMs": 1.098199999998542,
+          "serverExecMs": 0.108,
+          "planningMs": 0.052,
+          "rows": 0,
+          "sharedHit": 5,
+          "sharedRead": 0
+        },
+        {
+          "wallMs": 0.8092999999989843,
+          "serverExecMs": 0.102,
+          "planningMs": 0.074,
+          "rows": 0,
+          "sharedHit": 5,
+          "sharedRead": 0
+        },
+        {
+          "wallMs": 0.7363999999997759,
+          "serverExecMs": 0.055,
+          "planningMs": 0.036,
+          "rows": 0,
+          "sharedHit": 5,
+          "sharedRead": 0
+        },
+        {
+          "wallMs": 0.9314000000013039,
+          "serverExecMs": 0.074,
+          "planningMs": 0.049,
+          "rows": 0,
+          "sharedHit": 5,
+          "sharedRead": 0
+        },
+        {
+          "wallMs": 0.9135999999998603,
+          "serverExecMs": 0.062,
+          "planningMs": 0.044,
+          "rows": 0,
+          "sharedHit": 5,
+          "sharedRead": 0
+        },
+        {
+          "wallMs": 0.8397000000004482,
+          "serverExecMs": 0.062,
+          "planningMs": 0.037,
+          "rows": 0,
+          "sharedHit": 5,
+          "sharedRead": 0
+        },
+        {
+          "wallMs": 1.390000000001237,
+          "serverExecMs": 0.296,
+          "planningMs": 0.091,
+          "rows": 0,
+          "sharedHit": 5,
+          "sharedRead": 0
+        },
+        {
+          "wallMs": 1.6067000000002736,
+          "serverExecMs": 0.078,
+          "planningMs": 0.051,
+          "rows": 0,
+          "sharedHit": 5,
+          "sharedRead": 0
+        }
+      ],
+      "timings": {
+        "startedAt": "2026-10-03T05:04:02.869Z",
+        "finishedAt": "2026-10-03T05:04:03.038Z",
+        "totalMs": 170
+      },
+      "environment": {
+        "postgresVersion": "16.15 (Debian 16.15-1.pgdg12+2)",
+        "settings": {
+          "shared_buffers": "768MB",
+          "work_mem": "16MB",
+          "effective_cache_size": "1536MB",
+          "max_parallel_workers_per_gather": "2",
+          "jit": "on",
+          "random_page_cost": "4",
+          "track_io_timing": "on",
+          "default_statistics_target": "100"
+        },
+        "limits": {
+          "cpus": 2,
+          "memoryMiB": 3072,
+          "memorySwapMiB": 3072,
+          "shmMiB": 256
+        }
+      }
+    },
+    {
+      "version": 1,
+      "kind": "query",
+      "status": "ok",
+      "shadow": {
+        "manifestId": "202ff9f5-0e3a-4e68-8ea2-da8f006b1cc6",
+        "sampled": false,
+        "mode": "full",
+        "totalRowRatio": 1,
+        "largestTableRatio": 1,
+        "scalingNote": "Full copy: every table has the same row count as the source. Timings still depend on the shadow container limits and settings recorded here, which may differ from production."
+      },
+      "statement": {
+        "sql": "UPDATE credit_balances SET balance = balance + 1 WHERE tenant_id = $1",
+        "paramCount": 1,
+        "class": "dml",
+        "strategy": "rollback-transaction"
+      },
+      "config": {
+        "warmupRuns": 3,
+        "measuredRuns": 20,
+        "statementTimeoutMs": 30000,
+        "maxTotalRuntimeMs": 300000
+      },
+      "cache": {
+        "mode": "warm",
+        "claim": "warm-after-warmup",
+        "restartedPostgres": false,
+        "droppedOsCache": false,
+        "notes": "3 warmup run(s) before the measured runs; shared_buffers and the OS cache hold what the statement touches."
+      },
+      "wallMs": {
+        "n": 20,
+        "min": 0.7026999999998225,
+        "max": 1.6555000000007567,
+        "mean": 0.95554000000011,
+        "stddev": 0.2578189826012269,
+        "cvPercent": 26.981495552378465,
+        "p50": 0.8785499999994499,
+        "p95": 1.5713299999998527
+      },
+      "serverExecMs": {
+        "n": 20,
+        "min": 0.053,
+        "max": 0.11,
+        "mean": 0.07075000000000001,
+        "stddev": 0.01585086748414736,
+        "cvPercent": 22.404052981127005,
+        "p50": 0.064,
+        "p95": 0.10145000000000001
+      },
+      "planningMs": {
+        "n": 20,
+        "min": 0.035,
+        "max": 0.08,
+        "mean": 0.04855000000000002,
+        "stddev": 0.011170803109233607,
+        "cvPercent": 23.00886325279836,
+        "p50": 0.0465,
+        "p95": 0.06575000000000002
+      },
+      "rows": 1,
+      "rowsKind": "affected",
+      "buffers": {
+        "sharedHit": 5,
+        "sharedRead": 0,
+        "sharedDirtied": 0,
+        "sharedWritten": 0,
+        "tempRead": 0,
+        "tempWritten": 0,
+        "ioReadMs": 0
+      },
+      "plans": {
+        "first": {
+          "runIndex": 0,
+          "json": [
+            {
+              "Plan": {
+                "Node Type": "ModifyTable",
+                "Operation": "Update",
+                "Parallel Aware": false,
+                "Async Capable": false,
+                "Relation Name": "credit_balances",
+                "Alias": "credit_balances",
+                "Startup Cost": 0,
+                "Total Cost": 5.13,
+                "Plan Rows": 0,
+                "Plan Width": 0,
+                "Actual Startup Time": 0.059,
+                "Actual Total Time": 0.059,
+                "Actual Rows": 0,
+                "Actual Loops": 1,
+                "Shared Hit Blocks": 5,
+                "Shared Read Blocks": 0,
+                "Shared Dirtied Blocks": 0,
+                "Shared Written Blocks": 0,
+                "Local Hit Blocks": 0,
+                "Local Read Blocks": 0,
+                "Local Dirtied Blocks": 0,
+                "Local Written Blocks": 0,
+                "Temp Read Blocks": 0,
+                "Temp Written Blocks": 0,
+                "I/O Read Time": 0,
+                "I/O Write Time": 0,
+                "Temp I/O Read Time": 0,
+                "Temp I/O Write Time": 0,
+                "Plans": [
+                  {
+                    "Node Type": "Seq Scan",
+                    "Parent Relationship": "Outer",
+                    "Parallel Aware": false,
+                    "Async Capable": false,
+                    "Relation Name": "credit_balances",
+                    "Alias": "credit_balances",
+                    "Startup Cost": 0,
+                    "Total Cost": 5.13,
+                    "Plan Rows": 1,
+                    "Plan Width": 14,
+                    "Actual Startup Time": 0.024,
+                    "Actual Total Time": 0.025,
+                    "Actual Rows": 1,
+                    "Actual Loops": 1,
+                    "Filter": "(tenant_id = '8641a01e-babb-4e44-d36d-f68e5233c7fb'::uuid)",
+                    "Rows Removed by Filter": 249,
+                    "Shared Hit Blocks": 2,
+                    "Shared Read Blocks": 0,
+                    "Shared Dirtied Blocks": 0,
+                    "Shared Written Blocks": 0,
+                    "Local Hit Blocks": 0,
+                    "Local Read Blocks": 0,
+                    "Local Dirtied Blocks": 0,
+                    "Local Written Blocks": 0,
+                    "Temp Read Blocks": 0,
+                    "Temp Written Blocks": 0,
+                    "I/O Read Time": 0,
+                    "I/O Write Time": 0,
+                    "Temp I/O Read Time": 0,
+                    "Temp I/O Write Time": 0
+                  }
+                ]
+              },
+              "Planning": {
+                "Shared Hit Blocks": 0,
+                "Shared Read Blocks": 0,
+                "Shared Dirtied Blocks": 0,
+                "Shared Written Blocks": 0,
+                "Local Hit Blocks": 0,
+                "Local Read Blocks": 0,
+                "Local Dirtied Blocks": 0,
+                "Local Written Blocks": 0,
+                "Temp Read Blocks": 0,
+                "Temp Written Blocks": 0,
+                "I/O Read Time": 0,
+                "I/O Write Time": 0,
+                "Temp I/O Read Time": 0,
+                "Temp I/O Write Time": 0
+              },
+              "Planning Time": 0.051,
+              "Triggers": [],
+              "Execution Time": 0.084
+            }
+          ],
+          "summary": {
+            "executionMs": 0.084,
+            "planningMs": 0.051,
+            "rows": 0,
+            "buffers": {
+              "sharedHit": 5,
+              "sharedRead": 0,
+              "sharedDirtied": 0,
+              "sharedWritten": 0,
+              "tempRead": 0,
+              "tempWritten": 0,
+              "ioReadMs": 0
+            },
+            "nodeTypes": [
+              "ModifyTable",
+              "Seq Scan"
+            ],
+            "scans": [
+              {
+                "nodeType": "Seq Scan",
+                "relation": "credit_balances",
+                "index": null
+              }
+            ],
+            "usesSeqScan": true,
+            "usesIndexScan": false,
+            "usesSort": false
+          }
+        },
+        "median": {
+          "runIndex": 5,
+          "json": [
+            {
+              "Plan": {
+                "Node Type": "ModifyTable",
+                "Operation": "Update",
+                "Parallel Aware": false,
+                "Async Capable": false,
+                "Relation Name": "credit_balances",
+                "Alias": "credit_balances",
+                "Startup Cost": 0,
+                "Total Cost": 5.13,
+                "Plan Rows": 0,
+                "Plan Width": 0,
+                "Actual Startup Time": 0.049,
+                "Actual Total Time": 0.05,
+                "Actual Rows": 0,
+                "Actual Loops": 1,
+                "Shared Hit Blocks": 5,
+                "Shared Read Blocks": 0,
+                "Shared Dirtied Blocks": 0,
+                "Shared Written Blocks": 0,
+                "Local Hit Blocks": 0,
+                "Local Read Blocks": 0,
+                "Local Dirtied Blocks": 0,
+                "Local Written Blocks": 0,
+                "Temp Read Blocks": 0,
+                "Temp Written Blocks": 0,
+                "I/O Read Time": 0,
+                "I/O Write Time": 0,
+                "Temp I/O Read Time": 0,
+                "Temp I/O Write Time": 0,
+                "Plans": [
+                  {
+                    "Node Type": "Seq Scan",
+                    "Parent Relationship": "Outer",
+                    "Parallel Aware": false,
+                    "Async Capable": false,
+                    "Relation Name": "credit_balances",
+                    "Alias": "credit_balances",
+                    "Startup Cost": 0,
+                    "Total Cost": 5.13,
+                    "Plan Rows": 1,
+                    "Plan Width": 14,
+                    "Actual Startup Time": 0.027,
+                    "Actual Total Time": 0.027,
+                    "Actual Rows": 1,
+                    "Actual Loops": 1,
+                    "Filter": "(tenant_id = '8641a01e-babb-4e44-d36d-f68e5233c7fb'::uuid)",
+                    "Rows Removed by Filter": 249,
+                    "Shared Hit Blocks": 2,
+                    "Shared Read Blocks": 0,
+                    "Shared Dirtied Blocks": 0,
+                    "Shared Written Blocks": 0,
+                    "Local Hit Blocks": 0,
+                    "Local Read Blocks": 0,
+                    "Local Dirtied Blocks": 0,
+                    "Local Written Blocks": 0,
+                    "Temp Read Blocks": 0,
+                    "Temp Written Blocks": 0,
+                    "I/O Read Time": 0,
+                    "I/O Write Time": 0,
+                    "Temp I/O Read Time": 0,
+                    "Temp I/O Write Time": 0
+                  }
+                ]
+              },
+              "Planning": {
+                "Shared Hit Blocks": 0,
+                "Shared Read Blocks": 0,
+                "Shared Dirtied Blocks": 0,
+                "Shared Written Blocks": 0,
+                "Local Hit Blocks": 0,
+                "Local Read Blocks": 0,
+                "Local Dirtied Blocks": 0,
+                "Local Written Blocks": 0,
+                "Temp Read Blocks": 0,
+                "Temp Written Blocks": 0,
+                "I/O Read Time": 0,
+                "I/O Write Time": 0,
+                "Temp I/O Read Time": 0,
+                "Temp I/O Write Time": 0
+              },
+              "Planning Time": 0.046,
+              "Triggers": [],
+              "Execution Time": 0.064
+            }
+          ],
+          "summary": {
+            "executionMs": 0.064,
+            "planningMs": 0.046,
+            "rows": 0,
+            "buffers": {
+              "sharedHit": 5,
+              "sharedRead": 0,
+              "sharedDirtied": 0,
+              "sharedWritten": 0,
+              "tempRead": 0,
+              "tempWritten": 0,
+              "ioReadMs": 0
+            },
+            "nodeTypes": [
+              "ModifyTable",
+              "Seq Scan"
+            ],
+            "scans": [
+              {
+                "nodeType": "Seq Scan",
+                "relation": "credit_balances",
+                "index": null
+              }
+            ],
+            "usesSeqScan": true,
+            "usesIndexScan": false,
+            "usesSort": false
+          }
+        }
+      },
+      "perRun": [
+        {
+          "wallMs": 1.566899999999805,
+          "serverExecMs": 0.084,
+          "planningMs": 0.051,
+          "rows": 0,
+          "sharedHit": 5,
+          "sharedRead": 0
+        },
+        {
+          "wallMs": 1.0262999999995372,
+          "serverExecMs": 0.08,
+          "planningMs": 0.065,
+          "rows": 0,
+          "sharedHit": 5,
+          "sharedRead": 0
+        },
+        {
+          "wallMs": 0.7441999999991822,
+          "serverExecMs": 0.079,
+          "planningMs": 0.052,
+          "rows": 0,
+          "sharedHit": 5,
+          "sharedRead": 0
+        },
+        {
+          "wallMs": 0.782999999999447,
+          "serverExecMs": 0.053,
+          "planningMs": 0.036,
+          "rows": 0,
+          "sharedHit": 5,
+          "sharedRead": 0
+        },
+        {
+          "wallMs": 0.8822000000000116,
+          "serverExecMs": 0.057,
+          "planningMs": 0.038,
+          "rows": 0,
+          "sharedHit": 5,
+          "sharedRead": 0
+        },
+        {
+          "wallMs": 1.1367000000009284,
+          "serverExecMs": 0.064,
+          "planningMs": 0.046,
+          "rows": 0,
+          "sharedHit": 5,
+          "sharedRead": 0
+        },
+        {
+          "wallMs": 1.017600000001039,
+          "serverExecMs": 0.075,
+          "planningMs": 0.052,
+          "rows": 0,
+          "sharedHit": 5,
+          "sharedRead": 0
+        },
+        {
+          "wallMs": 0.744300000000294,
+          "serverExecMs": 0.101,
+          "planningMs": 0.08,
+          "rows": 0,
+          "sharedHit": 5,
+          "sharedRead": 0
+        },
+        {
+          "wallMs": 0.8304000000007363,
+          "serverExecMs": 0.062,
+          "planningMs": 0.042,
+          "rows": 0,
+          "sharedHit": 5,
+          "sharedRead": 0
+        },
+        {
+          "wallMs": 0.7856999999985419,
+          "serverExecMs": 0.058,
+          "planningMs": 0.044,
+          "rows": 0,
+          "sharedHit": 5,
+          "sharedRead": 0
+        },
+        {
+          "wallMs": 1.6555000000007567,
+          "serverExecMs": 0.089,
+          "planningMs": 0.043,
+          "rows": 0,
+          "sharedHit": 5,
+          "sharedRead": 0
+        },
+        {
+          "wallMs": 0.8681000000015047,
+          "serverExecMs": 0.054,
+          "planningMs": 0.035,
+          "rows": 0,
+          "sharedHit": 5,
+          "sharedRead": 0
+        },
+        {
+          "wallMs": 0.9742000000005646,
+          "serverExecMs": 0.061,
+          "planningMs": 0.055,
+          "rows": 0,
+          "sharedHit": 5,
+          "sharedRead": 0
+        },
+        {
+          "wallMs": 0.7497000000003027,
+          "serverExecMs": 0.076,
+          "planningMs": 0.039,
+          "rows": 0,
+          "sharedHit": 5,
+          "sharedRead": 0
+        },
+        {
+          "wallMs": 1.1379999999990105,
+          "serverExecMs": 0.061,
+          "planningMs": 0.047,
+          "rows": 0,
+          "sharedHit": 5,
+          "sharedRead": 0
+        },
+        {
+          "wallMs": 0.7813000000005559,
+          "serverExecMs": 0.11,
+          "planningMs": 0.064,
+          "rows": 0,
+          "sharedHit": 5,
+          "sharedRead": 0
+        },
+        {
+          "wallMs": 0.9580999999998312,
+          "serverExecMs": 0.07,
+          "planningMs": 0.044,
+          "rows": 0,
+          "sharedHit": 5,
+          "sharedRead": 0
+        },
+        {
+          "wallMs": 0.8910000000014406,
+          "serverExecMs": 0.064,
+          "planningMs": 0.047,
+          "rows": 0,
+          "sharedHit": 5,
+          "sharedRead": 0
+        },
+        {
+          "wallMs": 0.8748999999988882,
+          "serverExecMs": 0.057,
+          "planningMs": 0.053,
+          "rows": 0,
+          "sharedHit": 5,
+          "sharedRead": 0
+        },
+        {
+          "wallMs": 0.7026999999998225,
+          "serverExecMs": 0.06,
+          "planningMs": 0.038,
+          "rows": 0,
+          "sharedHit": 5,
+          "sharedRead": 0
+        }
+      ],
+      "timings": {
+        "startedAt": "2026-10-03T05:04:03.041Z",
+        "finishedAt": "2026-10-03T05:04:03.209Z",
+        "totalMs": 168
+      },
+      "environment": {
+        "postgresVersion": "16.15 (Debian 16.15-1.pgdg12+2)",
+        "settings": {
+          "shared_buffers": "768MB",
+          "work_mem": "16MB",
+          "effective_cache_size": "1536MB",
+          "max_parallel_workers_per_gather": "2",
+          "jit": "on",
+          "random_page_cost": "4",
+          "track_io_timing": "on",
+          "default_statistics_target": "100"
+        },
+        "limits": {
+          "cpus": 2,
+          "memoryMiB": 3072,
+          "memorySwapMiB": 3072,
+          "shmMiB": 256
+        }
+      }
+    },
+    {
+      "version": 1,
+      "kind": "query",
+      "status": "ok",
+      "shadow": {
+        "manifestId": "202ff9f5-0e3a-4e68-8ea2-da8f006b1cc6",
+        "sampled": false,
+        "mode": "full",
+        "totalRowRatio": 1,
+        "largestTableRatio": 1,
+        "scalingNote": "Full copy: every table has the same row count as the source. Timings still depend on the shadow container limits and settings recorded here, which may differ from production."
+      },
+      "statement": {
+        "sql": "UPDATE credit_balances SET balance = balance + 1 WHERE tenant_id = $1",
+        "paramCount": 1,
+        "class": "dml",
+        "strategy": "rollback-transaction"
+      },
+      "config": {
+        "warmupRuns": 3,
+        "measuredRuns": 20,
+        "statementTimeoutMs": 30000,
+        "maxTotalRuntimeMs": 300000
+      },
+      "cache": {
+        "mode": "warm",
+        "claim": "warm-after-warmup",
+        "restartedPostgres": false,
+        "droppedOsCache": false,
+        "notes": "3 warmup run(s) before the measured runs; shared_buffers and the OS cache hold what the statement touches."
+      },
+      "wallMs": {
+        "n": 20,
+        "min": 0.6898000000001048,
+        "max": 2.1515999999992346,
+        "mean": 0.9549050000000534,
+        "stddev": 0.30118003092206264,
+        "cvPercent": 31.540313530879594,
+        "p50": 0.8714500000005501,
+        "p95": 1.1084999999992768
+      },
+      "serverExecMs": {
+        "n": 20,
+        "min": 0.053,
+        "max": 0.126,
+        "mean": 0.07205000000000002,
+        "stddev": 0.01807724652996864,
+        "cvPercent": 25.08986333097659,
+        "p50": 0.068,
+        "p95": 0.10605
+      },
+      "planningMs": {
+        "n": 20,
+        "min": 0.034,
+        "max": 0.098,
+        "mean": 0.04960000000000002,
+        "stddev": 0.015852610610176947,
+        "cvPercent": 31.96090848825996,
+        "p50": 0.0445,
+        "p95": 0.07520000000000002
+      },
+      "rows": 1,
+      "rowsKind": "affected",
+      "buffers": {
+        "sharedHit": 5,
+        "sharedRead": 0,
+        "sharedDirtied": 0,
+        "sharedWritten": 0,
+        "tempRead": 0,
+        "tempWritten": 0,
+        "ioReadMs": 0
+      },
+      "plans": {
+        "first": {
+          "runIndex": 0,
+          "json": [
+            {
+              "Plan": {
+                "Node Type": "ModifyTable",
+                "Operation": "Update",
+                "Parallel Aware": false,
+                "Async Capable": false,
+                "Relation Name": "credit_balances",
+                "Alias": "credit_balances",
+                "Startup Cost": 0,
+                "Total Cost": 5.13,
+                "Plan Rows": 0,
+                "Plan Width": 0,
+                "Actual Startup Time": 0.092,
+                "Actual Total Time": 0.092,
+                "Actual Rows": 0,
+                "Actual Loops": 1,
+                "Shared Hit Blocks": 5,
+                "Shared Read Blocks": 0,
+                "Shared Dirtied Blocks": 0,
+                "Shared Written Blocks": 0,
+                "Local Hit Blocks": 0,
+                "Local Read Blocks": 0,
+                "Local Dirtied Blocks": 0,
+                "Local Written Blocks": 0,
+                "Temp Read Blocks": 0,
+                "Temp Written Blocks": 0,
+                "I/O Read Time": 0,
+                "I/O Write Time": 0,
+                "Temp I/O Read Time": 0,
+                "Temp I/O Write Time": 0,
+                "Plans": [
+                  {
+                    "Node Type": "Seq Scan",
+                    "Parent Relationship": "Outer",
+                    "Parallel Aware": false,
+                    "Async Capable": false,
+                    "Relation Name": "credit_balances",
+                    "Alias": "credit_balances",
+                    "Startup Cost": 0,
+                    "Total Cost": 5.13,
+                    "Plan Rows": 1,
+                    "Plan Width": 14,
+                    "Actual Startup Time": 0.039,
+                    "Actual Total Time": 0.04,
+                    "Actual Rows": 1,
+                    "Actual Loops": 1,
+                    "Filter": "(tenant_id = '8641a01e-babb-4e44-d36d-f68e5233c7fb'::uuid)",
+                    "Rows Removed by Filter": 249,
+                    "Shared Hit Blocks": 2,
+                    "Shared Read Blocks": 0,
+                    "Shared Dirtied Blocks": 0,
+                    "Shared Written Blocks": 0,
+                    "Local Hit Blocks": 0,
+                    "Local Read Blocks": 0,
+                    "Local Dirtied Blocks": 0,
+                    "Local Written Blocks": 0,
+                    "Temp Read Blocks": 0,
+                    "Temp Written Blocks": 0,
+                    "I/O Read Time": 0,
+                    "I/O Write Time": 0,
+                    "Temp I/O Read Time": 0,
+                    "Temp I/O Write Time": 0
+                  }
+                ]
+              },
+              "Planning": {
+                "Shared Hit Blocks": 0,
+                "Shared Read Blocks": 0,
+                "Shared Dirtied Blocks": 0,
+                "Shared Written Blocks": 0,
+                "Local Hit Blocks": 0,
+                "Local Read Blocks": 0,
+                "Local Dirtied Blocks": 0,
+                "Local Written Blocks": 0,
+                "Temp Read Blocks": 0,
+                "Temp Written Blocks": 0,
+                "I/O Read Time": 0,
+                "I/O Write Time": 0,
+                "Temp I/O Read Time": 0,
+                "Temp I/O Write Time": 0
+              },
+              "Planning Time": 0.074,
+              "Triggers": [],
+              "Execution Time": 0.126
+            }
+          ],
+          "summary": {
+            "executionMs": 0.126,
+            "planningMs": 0.074,
+            "rows": 0,
+            "buffers": {
+              "sharedHit": 5,
+              "sharedRead": 0,
+              "sharedDirtied": 0,
+              "sharedWritten": 0,
+              "tempRead": 0,
+              "tempWritten": 0,
+              "ioReadMs": 0
+            },
+            "nodeTypes": [
+              "ModifyTable",
+              "Seq Scan"
+            ],
+            "scans": [
+              {
+                "nodeType": "Seq Scan",
+                "relation": "credit_balances",
+                "index": null
+              }
+            ],
+            "usesSeqScan": true,
+            "usesIndexScan": false,
+            "usesSort": false
+          }
+        },
+        "median": {
+          "runIndex": 5,
+          "json": [
+            {
+              "Plan": {
+                "Node Type": "ModifyTable",
+                "Operation": "Update",
+                "Parallel Aware": false,
+                "Async Capable": false,
+                "Relation Name": "credit_balances",
+                "Alias": "credit_balances",
+                "Startup Cost": 0,
+                "Total Cost": 5.13,
+                "Plan Rows": 0,
+                "Plan Width": 0,
+                "Actual Startup Time": 0.051,
+                "Actual Total Time": 0.051,
+                "Actual Rows": 0,
+                "Actual Loops": 1,
+                "Shared Hit Blocks": 5,
+                "Shared Read Blocks": 0,
+                "Shared Dirtied Blocks": 0,
+                "Shared Written Blocks": 0,
+                "Local Hit Blocks": 0,
+                "Local Read Blocks": 0,
+                "Local Dirtied Blocks": 0,
+                "Local Written Blocks": 0,
+                "Temp Read Blocks": 0,
+                "Temp Written Blocks": 0,
+                "I/O Read Time": 0,
+                "I/O Write Time": 0,
+                "Temp I/O Read Time": 0,
+                "Temp I/O Write Time": 0,
+                "Plans": [
+                  {
+                    "Node Type": "Seq Scan",
+                    "Parent Relationship": "Outer",
+                    "Parallel Aware": false,
+                    "Async Capable": false,
+                    "Relation Name": "credit_balances",
+                    "Alias": "credit_balances",
+                    "Startup Cost": 0,
+                    "Total Cost": 5.13,
+                    "Plan Rows": 1,
+                    "Plan Width": 14,
+                    "Actual Startup Time": 0.026,
+                    "Actual Total Time": 0.027,
+                    "Actual Rows": 1,
+                    "Actual Loops": 1,
+                    "Filter": "(tenant_id = '8641a01e-babb-4e44-d36d-f68e5233c7fb'::uuid)",
+                    "Rows Removed by Filter": 249,
+                    "Shared Hit Blocks": 2,
+                    "Shared Read Blocks": 0,
+                    "Shared Dirtied Blocks": 0,
+                    "Shared Written Blocks": 0,
+                    "Local Hit Blocks": 0,
+                    "Local Read Blocks": 0,
+                    "Local Dirtied Blocks": 0,
+                    "Local Written Blocks": 0,
+                    "Temp Read Blocks": 0,
+                    "Temp Written Blocks": 0,
+                    "I/O Read Time": 0,
+                    "I/O Write Time": 0,
+                    "Temp I/O Read Time": 0,
+                    "Temp I/O Write Time": 0
+                  }
+                ]
+              },
+              "Planning": {
+                "Shared Hit Blocks": 0,
+                "Shared Read Blocks": 0,
+                "Shared Dirtied Blocks": 0,
+                "Shared Written Blocks": 0,
+                "Local Hit Blocks": 0,
+                "Local Read Blocks": 0,
+                "Local Dirtied Blocks": 0,
+                "Local Written Blocks": 0,
+                "Temp Read Blocks": 0,
+                "Temp Written Blocks": 0,
+                "I/O Read Time": 0,
+                "I/O Write Time": 0,
+                "Temp I/O Read Time": 0,
+                "Temp I/O Write Time": 0
+              },
+              "Planning Time": 0.047,
+              "Triggers": [],
+              "Execution Time": 0.068
+            }
+          ],
+          "summary": {
+            "executionMs": 0.068,
+            "planningMs": 0.047,
+            "rows": 0,
+            "buffers": {
+              "sharedHit": 5,
+              "sharedRead": 0,
+              "sharedDirtied": 0,
+              "sharedWritten": 0,
+              "tempRead": 0,
+              "tempWritten": 0,
+              "ioReadMs": 0
+            },
+            "nodeTypes": [
+              "ModifyTable",
+              "Seq Scan"
+            ],
+            "scans": [
+              {
+                "nodeType": "Seq Scan",
+                "relation": "credit_balances",
+                "index": null
+              }
+            ],
+            "usesSeqScan": true,
+            "usesIndexScan": false,
+            "usesSort": false
+          }
+        }
+      },
+      "perRun": [
+        {
+          "wallMs": 0.6898000000001048,
+          "serverExecMs": 0.126,
+          "planningMs": 0.074,
+          "rows": 0,
+          "sharedHit": 5,
+          "sharedRead": 0
+        },
+        {
+          "wallMs": 0.8652000000001863,
+          "serverExecMs": 0.073,
+          "planningMs": 0.041,
+          "rows": 0,
+          "sharedHit": 5,
+          "sharedRead": 0
+        },
+        {
+          "wallMs": 0.7892999999985477,
+          "serverExecMs": 0.059,
+          "planningMs": 0.038,
+          "rows": 0,
+          "sharedHit": 5,
+          "sharedRead": 0
+        },
+        {
+          "wallMs": 0.8665000000000873,
+          "serverExecMs": 0.053,
+          "planningMs": 0.035,
+          "rows": 0,
+          "sharedHit": 5,
+          "sharedRead": 0
+        },
+        {
+          "wallMs": 1.0248000000010506,
+          "serverExecMs": 0.079,
+          "planningMs": 0.049,
+          "rows": 0,
+          "sharedHit": 5,
+          "sharedRead": 0
+        },
+        {
+          "wallMs": 0.9465000000000146,
+          "serverExecMs": 0.068,
+          "planningMs": 0.047,
+          "rows": 0,
+          "sharedHit": 5,
+          "sharedRead": 0
+        },
+        {
+          "wallMs": 1.0535999999992782,
+          "serverExecMs": 0.063,
+          "planningMs": 0.042,
+          "rows": 0,
+          "sharedHit": 5,
+          "sharedRead": 0
+        },
+        {
+          "wallMs": 0.8042000000004919,
+          "serverExecMs": 0.069,
+          "planningMs": 0.067,
+          "rows": 0,
+          "sharedHit": 5,
+          "sharedRead": 0
+        },
+        {
+          "wallMs": 1.0468999999993684,
+          "serverExecMs": 0.062,
+          "planningMs": 0.04,
+          "rows": 0,
+          "sharedHit": 5,
+          "sharedRead": 0
+        },
+        {
+          "wallMs": 0.7749999999996362,
+          "serverExecMs": 0.053,
+          "planningMs": 0.034,
+          "rows": 0,
+          "sharedHit": 5,
+          "sharedRead": 0
+        },
+        {
+          "wallMs": 1.037400000001071,
+          "serverExecMs": 0.057,
+          "planningMs": 0.037,
+          "rows": 0,
+          "sharedHit": 5,
+          "sharedRead": 0
+        },
+        {
+          "wallMs": 0.9940999999998894,
+          "serverExecMs": 0.105,
+          "planningMs": 0.098,
+          "rows": 0,
+          "sharedHit": 5,
+          "sharedRead": 0
+        },
+        {
+          "wallMs": 0.9931999999989785,
+          "serverExecMs": 0.064,
+          "planningMs": 0.043,
+          "rows": 0,
+          "sharedHit": 5,
+          "sharedRead": 0
+        },
+        {
+          "wallMs": 0.7677999999996246,
+          "serverExecMs": 0.068,
+          "planningMs": 0.046,
+          "rows": 0,
+          "sharedHit": 5,
+          "sharedRead": 0
+        },
+        {
+          "wallMs": 0.8127000000004045,
+          "serverExecMs": 0.073,
+          "planningMs": 0.053,
+          "rows": 0,
+          "sharedHit": 5,
+          "sharedRead": 0
+        },
+        {
+          "wallMs": 0.8764000000010128,
+          "serverExecMs": 0.077,
+          "planningMs": 0.054,
+          "rows": 0,
+          "sharedHit": 5,
+          "sharedRead": 0
+        },
+        {
+          "wallMs": 2.1515999999992346,
+          "serverExecMs": 0.077,
+          "planningMs": 0.053,
+          "rows": 0,
+          "sharedHit": 5,
+          "sharedRead": 0
+        },
+        {
+          "wallMs": 0.8400000000001455,
+          "serverExecMs": 0.064,
+          "planningMs": 0.038,
+          "rows": 0,
+          "sharedHit": 5,
+          "sharedRead": 0
+        },
+        {
+          "wallMs": 0.9286000000010972,
+          "serverExecMs": 0.093,
+          "planningMs": 0.064,
+          "rows": 0,
+          "sharedHit": 5,
+          "sharedRead": 0
+        },
+        {
+          "wallMs": 0.834500000000844,
+          "serverExecMs": 0.058,
+          "planningMs": 0.039,
+          "rows": 0,
+          "sharedHit": 5,
+          "sharedRead": 0
+        }
+      ],
+      "timings": {
+        "startedAt": "2026-10-03T05:04:03.212Z",
+        "finishedAt": "2026-10-03T05:04:03.374Z",
+        "totalMs": 162
+      },
+      "environment": {
+        "postgresVersion": "16.15 (Debian 16.15-1.pgdg12+2)",
+        "settings": {
+          "shared_buffers": "768MB",
+          "work_mem": "16MB",
+          "effective_cache_size": "1536MB",
+          "max_parallel_workers_per_gather": "2",
+          "jit": "on",
+          "random_page_cost": "4",
+          "track_io_timing": "on",
+          "default_statistics_target": "100"
+        },
+        "limits": {
+          "cpus": 2,
+          "memoryMiB": 3072,
+          "memorySwapMiB": 3072,
+          "shmMiB": 256
+        }
+      }
+    }
+  ]
+}
