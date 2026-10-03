@@ -49,3 +49,23 @@ export function maskKey(key: string | undefined): string {
   if (!key) return '(none)';
   return key.length <= 8 ? '••••' : `••••${key.slice(-4)}`;
 }
+
+export interface LogSink {
+  (
+    level: 'debug' | 'info' | 'warn' | 'error',
+    message: string,
+    fields?: Record<string, unknown>,
+  ): void;
+}
+
+/**
+ * Wraps a log sink so that every message and every field value passes through redaction first.
+ * Use it for every logger that can see provider configs, URLs, headers or errors.
+ */
+export function redactingLogger(
+  sink: LogSink,
+  secrets: readonly (string | undefined)[] = [],
+): LogSink {
+  return (level, message, fields) =>
+    sink(level, redactText(message, secrets), fields ? redactDeep(fields, secrets) : undefined);
+}

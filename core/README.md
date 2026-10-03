@@ -275,3 +275,29 @@ const report = await testConnection(groq); // reachable, auth, model exists, str
 - **Falls over** after `rate_limited`, `server_error`, `timeout`, `network`; **surfaces** `bad_request`, `auth_failed`, `content_filtered` (and `context_length`, `invalid_response`, `cancelled`). All down: one `LLMError` with `causes` listing each provider's reason.
 - **Circuit breaker** (open after N consecutive failures, one trial request when half-open after a cooldown, injectable clock) and **quota tracker** (requests and tokens per minute and day; updated from rate-limit headers and Retry-After; an exhausted provider is skipped without a request).
 - **Probe report** (`ProbeReport`): `reachable`, `authOk`, `modelExists`, `streaming`, `tools` (a forced tool call whose arguments must validate), `jsonMode`, `latencyMs`, per-check `evidence`, and `capabilities` labelled `probed` with a timestamp. A feature is `false` only on evidence; a timeout leaves it unknown. Agents that need tools refuse to start (`capability_unsupported`) on a provider probed as not supporting them.
+
+### Bring-your-own-key safety (`src/security/`, C2.7)
+
+```ts
+// built once, by server code. The dev flag is never read from a request or a stored config.
+const safeFetch = createSafeFetch({
+  allowInsecureLocalhost: process.env.NODE_ENV === 'development',
+  maxRedirects: 0,
+  hostDenylist,
+});
+const provider = new OpenAICompatibleProvider({
+  baseURL: userSuppliedUrl,
+  apiKey,
+  model,
+  fetch: safeFetch,
+});
+
+const ring = Keyring.fromEnv(process.env); // LEDGERWORKS_SECRET_KEYS, LEDGERWORKS_SECRET_KEY_ID
+const stored = encryptSecret(ring, apiKey, configId); // AES-256-GCM, random nonce, key id inside the value
+const key = decryptSecret(ring, stored, configId);
+```
+
+- **URLs:** HTTPS only (HTTP to localhost only with the server-side dev flag), no credentials, no fragment, a maximum length, internal names and special-purpose IP literals refused (decimal, hex, octal and short encodings of 127.0.0.1, `localhost` variants, trailing dots, IPv4-mapped IPv6 all covered), host allow and deny hooks.
+- **SSRF:** the host is resolved by us, every answer must be public, and the connection goes to the validated IP with the original Host header and TLS server name (DNS rebinding cannot swap the address); no automatic redirects (re-validated hops if enabled); connect and total timeouts; maximum response size, also for streams.
+- **Keys:** AES-256-GCM with a key id for rotation, keys only in the environment; redaction in every error, trace, log and the smoke output; only the last 4 characters are ever displayed (`maskKey`).
+- The test matrix (about 170 cases) and the list of remaining risks are in `src/security/security.test.ts` and DECISIONS.md D41.

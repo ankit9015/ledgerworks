@@ -118,7 +118,7 @@ Purpose: a realistic, data-heavy, multi-tenant backend that is fast, correct und
   - **Done when:** tests cover valid calls, invalid arguments with repair, unknown tool names, step-limit stop, and provider 429 handling.
 - [x] **C2.6** Fallback chain (provider A, then B, then C) with per-provider quota tracking, plus a "test connection" check that reports tool and streaming support.
   - **Done when:** a test simulates provider A failing and verifies B is used.
-- [ ] **C2.7** Bring-your-own-key safety: base URLs must be HTTPS (localhost only in an explicit dev mode), block private and internal IP ranges, enforce timeouts and response-size limits, never log keys, show only the last 4 characters.
+- [x] **C2.7** Bring-your-own-key safety: base URLs must be HTTPS (localhost only in an explicit dev mode), block private and internal IP ranges, enforce timeouts and response-size limits, never log keys, show only the last 4 characters.
   - **Done when:** SSRF tests for private ranges, link-local, and redirects to private ranges all pass.
 
 ### Tools and MCP

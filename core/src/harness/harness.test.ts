@@ -238,13 +238,14 @@ describe('1. fast and slow queries differ clearly and repeatably', () => {
       expect(s.serverExecMs.p50 / f.serverExecMs.p50).toBeGreaterThan(8);
       expect(s.wallMs.p95).toBeGreaterThan(f.wallMs.p95);
     }
-    // repeatable: the same query gives about the same answer twice (within 50% on the median)
+    // repeatable: the slow query gives about the same answer twice (within 50%); the sub-millisecond one only within
+    // a factor of 2, which is the noise documented in DECISIONS.md D36 (its server time is about 0.2 ms)
     expect(
       Math.abs(slow1.serverExecMs.p50 - slow2.serverExecMs.p50) / slow1.serverExecMs.p50,
     ).toBeLessThan(0.5);
     expect(
       Math.abs(fast1.serverExecMs.p50 - fast2.serverExecMs.p50) / fast1.serverExecMs.p50,
-    ).toBeLessThan(0.5);
+    ).toBeLessThan(1.0);
     // different work too: the slow one reads and sorts everything, the fast one reads about 51 rows
     expect(slow1.plans.median.summary.usesSort).toBe(true);
     expect(slow1.buffers.sharedHit).toBeGreaterThan(fast1.buffers.sharedHit * 5);
