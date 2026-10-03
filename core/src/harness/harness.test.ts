@@ -509,11 +509,16 @@ describe('4. DDL: lock modes, rewrite, sizes (against known PostgreSQL behaviour
         freshShadow: async () => {
           const s = await createShadow({ sourceUrl: readerUrlFor(DEMO_DB), mode: 'full' });
           created.push(s);
-          await withClient(s.connectionString(), async (c) => {
-            await c.query(
-              `CREATE TABLE harness_ddl AS SELECT g AS id, g % 5000 AS a, md5(g::text) AS b, 'v' AS c, repeat('x', 200) AS d FROM generate_series(1, 300000) g`,
-            );
-          });
+          try {
+            await withClient(s.connectionString(), async (c) => {
+              await c.query(
+                `CREATE TABLE harness_ddl AS SELECT g AS id, g % 5000 AS a, md5(g::text) AS b, 'v' AS c, repeat('x', 200) AS d FROM generate_series(1, 300000) g`,
+              );
+            });
+          } catch (e) {
+            await s.destroy(); // never leak a shadow when the setup fails
+            throw e;
+          }
           return { target: s, dispose: () => s.destroy() };
         },
       },

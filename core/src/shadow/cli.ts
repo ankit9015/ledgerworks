@@ -38,6 +38,7 @@ async function main(): Promise<void> {
       'memory-mib': { type: 'string' },
       'source-container': { type: 'string' },
       'allow-writable-source': { type: 'boolean', default: false },
+      'no-settle': { type: 'boolean', default: false },
       'older-than': { type: 'string', default: '24h' },
       'dry-run': { type: 'boolean', default: false },
     },
@@ -70,6 +71,7 @@ async function main(): Promise<void> {
         },
         sourceContainer: values['source-container'],
         allowWritableSource: values['allow-writable-source'],
+        settle: !values['no-settle'],
         log: (m) => console.error(m),
       });
       console.log(

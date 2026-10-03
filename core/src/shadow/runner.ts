@@ -23,6 +23,7 @@ import {
   type ShadowManifest,
   type TableManifest,
 } from './manifest.js';
+import { settleClient, type SettleResult } from './settle.js';
 import { MARKER_SCHEMA, MARKER_TABLE, SHADOW_GUC, assertShadow } from './marker.js';
 import { DEFAULT_RULE, planFull, planSampling, type TablePlan } from './sampling.js';
 import {
@@ -77,6 +78,11 @@ export interface CreateShadowOptions {
   /** Statement timeout of every source session, in ms. Default 30 minutes (a COPY of one table is one statement). */
   sourceStatementTimeoutMs?: number;
   allowWritableSource?: boolean;
+  /**
+   * Make the shadow quiet before returning it: wait for autovacuum, VACUUM (ANALYZE), CHECKPOINT
+   * (the 'settle' stage, recorded separately in the manifest). Default true; pass false to opt out.
+   */
+  settle?: boolean;
   /** Overrides of the shadow's postgres settings (name to value), applied after the defaults. */
   postgresSettings?: Record<string, string>;
   imageTag?: string;
@@ -736,6 +742,14 @@ export async function createShadow(opts: CreateShadowOptions): Promise<ShadowHan
         }
       });
 
+      // ---- settle: quiet the shadow (default), as its own stage, so clone and settle times stay separate
+      let settleResult: SettleResult | null = null;
+      if (opts.settle !== false) {
+        await stage('settle', async () => {
+          settleResult = await settleClient(shadow);
+        });
+      }
+
       // ---- 11. marker (last: a half-finished clone never looks like a shadow) ------------------
       await stage('marker', async () => {
         await shadow.query(`CREATE SCHEMA ${qi(MARKER_SCHEMA)}`);
@@ -863,6 +877,12 @@ export async function createShadow(opts: CreateShadowOptions): Promise<ShadowHan
         },
         stages: [...stages],
         totalDurationMs: Math.round(performance.now() - t0),
+        cloneDurationMs: Math.round(
+          performance.now() - t0 - (stages.find((s) => s.name === 'settle')?.durationMs ?? 0),
+        ),
+        settle: settleResult
+          ? { performed: true, ...(settleResult as SettleResult) }
+          : { performed: false, waitedForAutovacuumMs: 0, vacuumAnalyzeMs: 0, checkpointMs: 0 },
         memory: {
           shadowPeakSampledMiB: mem.peaks.has(containerName)
             ? Math.round(mem.peaks.get(containerName)!)

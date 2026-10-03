@@ -109,7 +109,19 @@ export const ShadowManifestSchema = z.object({
     sourceStatementTimeoutMs: z.number(),
   }),
   stages: z.array(StageSchema),
+  /** everything, including the settle stage */
   totalDurationMs: z.number().nonnegative(),
+  /** totalDurationMs without the settle stage (absent in manifests written before settling became the default) */
+  cloneDurationMs: z.number().nonnegative().optional(),
+  /** the settle stage: wait for autovacuum, VACUUM (ANALYZE), CHECKPOINT (absent in older manifests) */
+  settle: z
+    .object({
+      performed: z.boolean(),
+      waitedForAutovacuumMs: z.number(),
+      vacuumAnalyzeMs: z.number(),
+      checkpointMs: z.number(),
+    })
+    .optional(),
   memory: z.object({
     /** highest value seen by polling `docker stats` of the shadow container (working set) */
     shadowPeakSampledMiB: z.number().nullable(),

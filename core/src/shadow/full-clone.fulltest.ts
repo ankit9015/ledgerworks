@@ -135,7 +135,7 @@ describe('clone of the 10M-row benchmark database', () => {
         m.sourceContainerHealth!.startedAtBefore,
       );
 
-      const file = await save('c2.1-full-clone', {
+      const file = await save('c2.1-full-clone-settle-default', {
         description:
           'C2.1 test 2: full clone of the synthetic 10M-row Ledgerline benchmark database into a shadow container.',
         data: 'synthetic (pnpm seed --yes, seed 20251001)',
@@ -178,7 +178,7 @@ describe('clone of the 10M-row benchmark database', () => {
       expect(report.filter((r) => r.orphans > 0)).toEqual([]);
       const after = await sourceFingerprint(admin);
       expect(diffFingerprints(before, after)).toEqual([]);
-      const file = await save('c2.1-sampled-clone', {
+      const file = await save('c2.1-sampled-clone-settle-default', {
         description:
           'C2.1: sampled clone (10% of tenants, seed 20251001) of the synthetic 10M-row Ledgerline benchmark database.',
         data: 'synthetic (pnpm seed --yes, seed 20251001)',

@@ -54,7 +54,7 @@ pnpm --filter @ledgerworks/core shadow cleanup --older-than 24h --dry-run
 - `pnpm test` runs `src/shadow/shadow.small.test.ts` (real Docker and Postgres, about 1 minute): clone of the small Ledgerline demo database (created on first use as `ledgerline_demo`), schema equality, counts and checksums, sampled integrity for every foreign key, source-unchanged proof, read-only role and refusal tests, failure and orphan cleanup, marker. Needs Docker; the first run builds the shadow image.
 - `pnpm test:shadow-full` clones the 10M-row benchmark database (needs `pnpm seed --yes` first), once in full and once sampled, and writes timestamped raw files to `docs/benchmarks/raw/`. Minutes; not part of `pnpm test` or CI.
 
-After `createShadow`, call `settleShadow(shadow)` before timing anything: a freshly loaded shadow keeps running autovacuum and a checkpoint in the background for minutes (seen on the 10M-row clone), which disturbs the first measurements (below). `createShadow` does not do it by itself, so the published clone times stay what they were measured as (DECISIONS.md D34).
+`createShadow` **settles** the shadow before returning it (wait for autovacuum, `VACUUM (ANALYZE)`, `CHECKPOINT`; its own `settle` stage in the manifest, separate from the clone stages; opt out with `settle: false`), because a freshly loaded shadow keeps running autovacuum and a checkpoint in the background for minutes, which disturbs the first measurements (D36, D37). `settleShadow(target)` does the same for a shadow created without it.
 
 ## Measurement harness (C2.2)
 
@@ -68,7 +68,6 @@ import {
 } from '@ledgerworks/core';
 
 const shadow = await createShadow({ sourceUrl, mode: 'full' });
-await settleShadow(shadow);
 try {
   const q = await measureQuery(shadow, {
     sql: 'SELECT ... WHERE tenant_id = $1',

@@ -30,29 +30,34 @@ export async function settleShadow(
   await c.connect();
   try {
     await assertShadow(c);
-    const deadline = Date.now() + (o.timeoutMs ?? 600_000);
-    const t0 = performance.now();
-    for (;;) {
-      const r = await c.query<{ n: string }>(
-        `SELECT count(*)::text AS n FROM pg_stat_activity WHERE backend_type = 'autovacuum worker'`,
-      );
-      if (Number(r.rows[0]!.n) === 0) break;
-      if (Date.now() > deadline)
-        throw new Error('autovacuum workers still running after the timeout');
-      await new Promise((resolve) => setTimeout(resolve, 500));
-    }
-    const waited = performance.now() - t0;
-    const t1 = performance.now();
-    await c.query('VACUUM (ANALYZE)');
-    const t2 = performance.now();
-    await c.query('CHECKPOINT');
-    const t3 = performance.now();
-    return {
-      waitedForAutovacuumMs: Math.round(waited),
-      vacuumAnalyzeMs: Math.round(t2 - t1),
-      checkpointMs: Math.round(t3 - t2),
-    };
+    return await settleClient(c, o.timeoutMs);
   } finally {
     await c.end();
   }
+}
+
+/** The settle steps on a connection the caller already knows belongs to a shadow (createShadow uses it before the marker exists). */
+export async function settleClient(c: pg.ClientBase, timeoutMs = 600_000): Promise<SettleResult> {
+  const deadline = Date.now() + timeoutMs;
+  const t0 = performance.now();
+  for (;;) {
+    const r = await c.query<{ n: string }>(
+      `SELECT count(*)::text AS n FROM pg_stat_activity WHERE backend_type = 'autovacuum worker'`,
+    );
+    if (Number(r.rows[0]!.n) === 0) break;
+    if (Date.now() > deadline)
+      throw new Error('autovacuum workers still running after the timeout');
+    await new Promise((resolve) => setTimeout(resolve, 500));
+  }
+  const waited = performance.now() - t0;
+  const t1 = performance.now();
+  await c.query('VACUUM (ANALYZE)');
+  const t2 = performance.now();
+  await c.query('CHECKPOINT');
+  const t3 = performance.now();
+  return {
+    waitedForAutovacuumMs: Math.round(waited),
+    vacuumAnalyzeMs: Math.round(t2 - t1),
+    checkpointMs: Math.round(t3 - t2),
+  };
 }

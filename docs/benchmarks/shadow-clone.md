@@ -48,3 +48,21 @@ All data is **synthetic** (`pnpm seed --yes`, seed `20251001`, the same fingerpr
 ## Small clone (the `ledgerline_demo` database, 30,600 usage events)
 
 Raw: `raw/c2.1-small-clone-results-20261003T042500Z.json` (written by the core test suite, which CI runs). Full clone 5.4 s in total; 870 structural lines compared, 0 differences; row counts and md5 checksums of all 58 tables equal; sampled clone, failure cleanup, orphan cleanup and "source unchanged" results are in the same file.
+
+## Re-measurement with settling as the default (additional full clone)
+
+Raw: `raw/c2.1-full-clone-settle-default-20261003T083804Z.json`, `raw/c2.1-sampled-clone-settle-default-20261003T083804Z.json` (one full and one sampled clone, run once). Same source, shadow limits and machine as above; `createShadow` now ends with a **settle** stage (wait for autovacuum, `VACUUM (ANALYZE)`, `CHECKPOINT`), recorded separately in the manifest (`stages`, `settle`, `cloneDurationMs`).
+
+|                                  | earlier run (no settle)                    | this run                                                                                |
+| -------------------------------- | ------------------------------------------ | --------------------------------------------------------------------------------------- |
+| clone stages (`cloneDurationMs`) | 97.8 s                                     | **142.8 s**                                                                             |
+| copy data                        | 34.7 s                                     | 61.2 s                                                                                  |
+| restore post-data                | 51.7 s                                     | 65.8 s                                                                                  |
+| `ANALYZE`                        | 3.5 s                                      | 6.8 s                                                                                   |
+| **settle stage**                 | -                                          | **13.5 s** (waited for autovacuum 0.02 s, `VACUUM (ANALYZE)` 7.0 s, `CHECKPOINT` 6.6 s) |
+| total                            | 97.8 s                                     | 156.4 s                                                                                 |
+| shadow peak memory               | 1,739 MiB sampled, cgroup 3,072 MiB        | 1,756 MiB sampled (52 samples), cgroup 3,072 MiB                                        |
+| source container                 | not OOM-killed, 0 restarts, peak 1,128 MiB | not OOM-killed, 0 restarts, peak 1,087 MiB                                              |
+
+- **The clone itself was 45 s slower in this run than in the first, with nothing changed in that part of the code**: every stage that does real work (copy, indexes, `ANALYZE`) was slower, so the difference is the machine (a laptop that was not otherwise controlled), not settling. Treat the two clone times as one measurement each and their difference as noise of that size; the settle stage cost, 13.5 s, is the figure this run adds. Settle found no autovacuum to wait for because the explicit `VACUUM` of a clone that had just been analysed started first.
+- Row counts, schema equality (873 lines), the source-unchanged fingerprint and the sampled integrity check (10 foreign keys, 0 orphans) held again. Sampled clone: 20.0 s clone stages + 2.7 s settle.

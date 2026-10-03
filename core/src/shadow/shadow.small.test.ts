@@ -197,6 +197,7 @@ describe('1. full clone of the small Ledgerline database', () => {
       'extensions',
       'analyze',
       'verify',
+      'settle',
       'marker',
     ]);
     expect(m.image.postgresVersion).toMatch(/^16\./);
@@ -844,6 +845,46 @@ describe('marker', () => {
       await withClient(full.connectionString(), (c) =>
         c.query('DROP DATABASE marker_probe WITH (FORCE)'),
       );
+    }
+  });
+});
+
+describe('settling is the default, with an explicit opt-out', () => {
+  it('the default clone has a separate settle stage and is quiet afterwards', async () => {
+    const m = full.manifest;
+    const settle = m.stages.find((s) => s.name === 'settle');
+    expect(settle).toBeDefined();
+    expect(m.settle).toMatchObject({ performed: true });
+    expect(m.settle!.vacuumAnalyzeMs).toBeGreaterThan(0);
+    // the clone time excludes the settle stage; the total includes it
+    expect(m.cloneDurationMs! + settle!.durationMs).toBeCloseTo(m.totalDurationMs, -1);
+    expect(m.cloneDurationMs!).toBeLessThan(m.totalDurationMs);
+    await withClient(full.connectionString(), async (c) => {
+      const r = await c.query<{ n: string }>(
+        `SELECT count(*)::text AS n FROM pg_stat_activity WHERE backend_type = 'autovacuum worker'`,
+      );
+      expect(Number(r.rows[0]!.n)).toBe(0);
+      // VACUUM ran: the loaded partitions have their visibility map set
+      const v = await c.query<{ n: string }>(
+        `SELECT count(*)::text AS n FROM pg_stat_user_tables WHERE relname LIKE 'usage_events_20%' AND last_vacuum IS NOT NULL`,
+      );
+      expect(Number(v.rows[0]!.n)).toBeGreaterThan(0);
+    });
+    results.settleDefault = {
+      settle: m.settle,
+      cloneDurationMs: m.cloneDurationMs,
+      totalDurationMs: m.totalDurationMs,
+    };
+  });
+
+  it('settle: false skips the stage and says so in the manifest', async () => {
+    const h = await createShadow({ sourceUrl: reader, mode: 'full', settle: false });
+    try {
+      expect(h.manifest.stages.map((s) => s.name)).not.toContain('settle');
+      expect(h.manifest.settle).toMatchObject({ performed: false });
+      expect(h.manifest.cloneDurationMs).toBe(h.manifest.totalDurationMs);
+    } finally {
+      await h.destroy();
     }
   });
 });
