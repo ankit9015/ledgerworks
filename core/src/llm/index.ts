@@ -12,3 +12,5 @@ export {
   saveReport,
   sanitizeReport,
 } from './smoke.js';
+export * from './chain.js';
+export * from './probe.js';

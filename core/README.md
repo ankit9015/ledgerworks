@@ -255,3 +255,23 @@ run.trace;
 - **Approval:** tools with `requiresApproval` go through `approve` first; denied (or no approver) returns "denied by user".
 - **Trace:** `run.trace` lists every model call (latency, usage, routing) and tool call (arguments hash, latency, outcome, repair, truncation, approval); arguments and results appear only with `debug: true`; no key ever (tested).
 - **Injection tests check the loop's mechanics, not any model's resistance to injection** (D39).
+
+### Fallback chain and "test connection" (`src/llm/chain.ts`, `src/llm/probe.ts`, C2.6)
+
+```ts
+const chain = new FallbackProvider({
+  members: [
+    { provider: groq, quota: { requestsPerMinute: 30 } },
+    { provider: openrouter },
+    { provider: local },
+  ],
+  breaker: { failureThreshold: 3, cooldownMs: 30_000 },
+});
+const r = await chain.chat({ messages, conversationId }); // r.routing: which provider answered, why the others were skipped
+chain.health(); // circuit state and quota usage per provider
+const report = await testConnection(groq); // reachable, auth, model exists, streaming, tools, JSON mode, latency
+```
+
+- **Falls over** after `rate_limited`, `server_error`, `timeout`, `network`; **surfaces** `bad_request`, `auth_failed`, `content_filtered` (and `context_length`, `invalid_response`, `cancelled`). All down: one `LLMError` with `causes` listing each provider's reason.
+- **Circuit breaker** (open after N consecutive failures, one trial request when half-open after a cooldown, injectable clock) and **quota tracker** (requests and tokens per minute and day; updated from rate-limit headers and Retry-After; an exhausted provider is skipped without a request).
+- **Probe report** (`ProbeReport`): `reachable`, `authOk`, `modelExists`, `streaming`, `tools` (a forced tool call whose arguments must validate), `jsonMode`, `latencyMs`, per-check `evidence`, and `capabilities` labelled `probed` with a timestamp. A feature is `false` only on evidence; a timeout leaves it unknown. Agents that need tools refuse to start (`capability_unsupported`) on a provider probed as not supporting them.
