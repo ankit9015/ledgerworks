@@ -219,3 +219,39 @@ Plain `fetch` (injectable: the safe fetch of C2.7 has the same shape), the OpenA
 | tool call without a name                                                                                              | `invalid_response`                                                                                                                              |
 
 **Manual real-provider check:** `LLM_BASE_URL=... LLM_API_KEY=... LLM_MODEL=... pnpm llm:smoke` runs a plain chat, a streaming chat and one tool-call round trip, prints a summary with the key masked (last 4 characters), and saves the sanitised raw report to `docs/benchmarks/raw/llm-smoke-<host>-<time>.json` (never overwritten). It exits with code 2 and makes no request when a variable is missing. Nothing in the automated tests or CI needs a key.
+
+### Agent loop (`src/agent/`, C2.5)
+
+```ts
+import { runAgent, defineTool } from '@ledgerworks/core';
+import { z } from 'zod';
+
+const weather = defineTool({
+  name: 'get_weather',
+  description: 'Current weather for a city',
+  parameters: z.object({ city: z.string() }).strict(), // validated before execute runs; also the JSON Schema offered to the model
+  execute: async ({ city }, { signal }) => lookup(city, signal),
+});
+const run = await runAgent({
+  provider,
+  system,
+  prompt: 'weather in Pune?',
+  tools: [weather],
+  maxSteps: 8,
+  tokenBudget: 20_000,
+  wallClockMs: 60_000,
+  toolConcurrency: 4,
+  maxToolResultBytes: 16_384,
+  approve: async (req) => askTheHuman(req),
+});
+run.stopReason;
+run.finalAnswer;
+run.trace;
+```
+
+- **Stop reasons** (typed): `final_answer`, `step_limit`, `token_budget`, `wall_clock`, `cancelled`, `provider_error` (with the `LLMError` kind), `tool_failure`, `capability_unsupported` (tools offered to a model probed or declared as not supporting them).
+- **Arguments** are validated with zod before a tool runs; invalid arguments get **one** repair attempt (the validation error goes back as a tool result), then a typed failure for that call; `onToolFailure: 'continue' | 'stop'`. Unknown tool names, thrown errors, hangs (timeout) and oversized results (`[truncated: N bytes omitted]`) are tool results, never crashes. Parallel calls run under `toolConcurrency`.
+- **Tool results are data:** each is a `tool` message inside `<<<DATA-<random token> ... DATA-<token>>>>` markers, never part of the system prompt.
+- **Approval:** tools with `requiresApproval` go through `approve` first; denied (or no approver) returns "denied by user".
+- **Trace:** `run.trace` lists every model call (latency, usage, routing) and tool call (arguments hash, latency, outcome, repair, truncation, approval); arguments and results appear only with `debug: true`; no key ever (tested).
+- **Injection tests check the loop's mechanics, not any model's resistance to injection** (D39).

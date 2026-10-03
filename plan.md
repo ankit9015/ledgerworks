@@ -114,7 +114,7 @@ Purpose: a realistic, data-heavy, multi-tenant backend that is fast, correct und
   - **Done when:** interface and types are documented, with a fake provider used in tests.
 - [x] **C2.4** Generic OpenAI-compatible adapter (`baseURL`, `apiKey`, `model`) with 429/5xx retry and backoff, request timeout, and normalization of streaming and tool-call formats.
   - **Done when:** contract tests pass against the fake provider, and a manual script works against at least one real free-tier provider (Groq or OpenRouter) and Ollama if installed. Record which were tested in `DECISIONS.md`.
-- [ ] **C2.5** Hand-written agent loop: send messages and tool schemas, execute tool calls, feed results back, stop on final answer or step limit. Schema-validate tool arguments; on invalid arguments, allow **one** repair retry, then fail safely. Count tool errors.
+- [x] **C2.5** Hand-written agent loop: send messages and tool schemas, execute tool calls, feed results back, stop on final answer or step limit. Schema-validate tool arguments; on invalid arguments, allow **one** repair retry, then fail safely. Count tool errors.
   - **Done when:** tests cover valid calls, invalid arguments with repair, unknown tool names, step-limit stop, and provider 429 handling.
 - [ ] **C2.6** Fallback chain (provider A, then B, then C) with per-provider quota tracking, plus a "test connection" check that reports tool and streaming support.
   - **Done when:** a test simulates provider A failing and verifies B is used.
