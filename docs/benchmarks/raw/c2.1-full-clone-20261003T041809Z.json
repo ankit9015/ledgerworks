@@ -1,0 +1,989 @@
+{
+  "description": "C2.1 test 2: full clone of the synthetic 10M-row Ledgerline benchmark database into a shadow container.",
+  "data": "synthetic (pnpm seed --yes, seed 20251001)",
+  "machine": {
+    "cpuModel": "11th Gen Intel(R) Core(TM) i5-1135G7 @ 2.40GHz",
+    "logicalCores": 8,
+    "ramGiB": 19.8,
+    "platform": "win32 10.0.26200",
+    "node": "v22.13.1"
+  },
+  "wallClockMs": 97873,
+  "manifest": {
+    "manifestVersion": 1,
+    "id": "07f26d8d-2836-48a7-8c0d-3f84ebc69d35",
+    "createdAt": "2026-10-03T04:18:17.439Z",
+    "finishedAt": "2026-10-03T04:19:55.253Z",
+    "source": {
+      "database": "ledgerworks",
+      "serverVersion": "16.15 (Debian 16.15-1.pgdg13+2)",
+      "readOnlyCheck": {
+        "canWrite": false,
+        "overrideUsed": false,
+        "reasons": []
+      }
+    },
+    "mode": "full",
+    "sampling": null,
+    "scaling": {
+      "sampled": false,
+      "totalRowRatio": 1,
+      "largestTableRatio": 1,
+      "note": "Full copy: every table has the same row count as the source. Timings still depend on the shadow container limits and settings recorded here, which may differ from production."
+    },
+    "tables": [
+      {
+        "schema": "public",
+        "name": "api_keys",
+        "kind": "table",
+        "sourceRows": 250,
+        "shadowRows": 250,
+        "ratio": 1,
+        "selection": "all",
+        "predicate": null
+      },
+      {
+        "schema": "public",
+        "name": "credit_balances",
+        "kind": "table",
+        "sourceRows": 250,
+        "shadowRows": 250,
+        "ratio": 1,
+        "selection": "all",
+        "predicate": null
+      },
+      {
+        "schema": "public",
+        "name": "credit_ledger",
+        "kind": "table",
+        "sourceRows": 6053,
+        "shadowRows": 6053,
+        "ratio": 1,
+        "selection": "all",
+        "predicate": null
+      },
+      {
+        "schema": "public",
+        "name": "dead_letters",
+        "kind": "table",
+        "sourceRows": 0,
+        "shadowRows": 0,
+        "ratio": 1,
+        "selection": "all",
+        "predicate": null
+      },
+      {
+        "schema": "public",
+        "name": "job_attempts",
+        "kind": "table",
+        "sourceRows": 0,
+        "shadowRows": 0,
+        "ratio": 1,
+        "selection": "all",
+        "predicate": null
+      },
+      {
+        "schema": "public",
+        "name": "jobs",
+        "kind": "table",
+        "sourceRows": 0,
+        "shadowRows": 0,
+        "ratio": 1,
+        "selection": "all",
+        "predicate": null
+      },
+      {
+        "schema": "public",
+        "name": "memberships",
+        "kind": "table",
+        "sourceRows": 1543,
+        "shadowRows": 1543,
+        "ratio": 1,
+        "selection": "all",
+        "predicate": null
+      },
+      {
+        "schema": "public",
+        "name": "schema_migrations",
+        "kind": "table",
+        "sourceRows": 11,
+        "shadowRows": 11,
+        "ratio": 1,
+        "selection": "all",
+        "predicate": null
+      },
+      {
+        "schema": "public",
+        "name": "tenants",
+        "kind": "table",
+        "sourceRows": 250,
+        "shadowRows": 250,
+        "ratio": 1,
+        "selection": "all",
+        "predicate": null
+      },
+      {
+        "schema": "public",
+        "name": "usage_events",
+        "kind": "partitioned-table",
+        "sourceRows": 10000000,
+        "shadowRows": 10000000,
+        "ratio": 1,
+        "selection": "all",
+        "predicate": null
+      },
+      {
+        "schema": "public",
+        "name": "usage_events_2024_01",
+        "kind": "partition",
+        "sourceRows": 0,
+        "shadowRows": 0,
+        "ratio": 1,
+        "selection": "all",
+        "predicate": null
+      },
+      {
+        "schema": "public",
+        "name": "usage_events_2024_02",
+        "kind": "partition",
+        "sourceRows": 0,
+        "shadowRows": 0,
+        "ratio": 1,
+        "selection": "all",
+        "predicate": null
+      },
+      {
+        "schema": "public",
+        "name": "usage_events_2024_03",
+        "kind": "partition",
+        "sourceRows": 0,
+        "shadowRows": 0,
+        "ratio": 1,
+        "selection": "all",
+        "predicate": null
+      },
+      {
+        "schema": "public",
+        "name": "usage_events_2024_04",
+        "kind": "partition",
+        "sourceRows": 0,
+        "shadowRows": 0,
+        "ratio": 1,
+        "selection": "all",
+        "predicate": null
+      },
+      {
+        "schema": "public",
+        "name": "usage_events_2024_05",
+        "kind": "partition",
+        "sourceRows": 0,
+        "shadowRows": 0,
+        "ratio": 1,
+        "selection": "all",
+        "predicate": null
+      },
+      {
+        "schema": "public",
+        "name": "usage_events_2024_06",
+        "kind": "partition",
+        "sourceRows": 0,
+        "shadowRows": 0,
+        "ratio": 1,
+        "selection": "all",
+        "predicate": null
+      },
+      {
+        "schema": "public",
+        "name": "usage_events_2024_07",
+        "kind": "partition",
+        "sourceRows": 0,
+        "shadowRows": 0,
+        "ratio": 1,
+        "selection": "all",
+        "predicate": null
+      },
+      {
+        "schema": "public",
+        "name": "usage_events_2024_08",
+        "kind": "partition",
+        "sourceRows": 0,
+        "shadowRows": 0,
+        "ratio": 1,
+        "selection": "all",
+        "predicate": null
+      },
+      {
+        "schema": "public",
+        "name": "usage_events_2024_09",
+        "kind": "partition",
+        "sourceRows": 0,
+        "shadowRows": 0,
+        "ratio": 1,
+        "selection": "all",
+        "predicate": null
+      },
+      {
+        "schema": "public",
+        "name": "usage_events_2024_10",
+        "kind": "partition",
+        "sourceRows": 0,
+        "shadowRows": 0,
+        "ratio": 1,
+        "selection": "all",
+        "predicate": null
+      },
+      {
+        "schema": "public",
+        "name": "usage_events_2024_11",
+        "kind": "partition",
+        "sourceRows": 0,
+        "shadowRows": 0,
+        "ratio": 1,
+        "selection": "all",
+        "predicate": null
+      },
+      {
+        "schema": "public",
+        "name": "usage_events_2024_12",
+        "kind": "partition",
+        "sourceRows": 0,
+        "shadowRows": 0,
+        "ratio": 1,
+        "selection": "all",
+        "predicate": null
+      },
+      {
+        "schema": "public",
+        "name": "usage_events_2025_01",
+        "kind": "partition",
+        "sourceRows": 0,
+        "shadowRows": 0,
+        "ratio": 1,
+        "selection": "all",
+        "predicate": null
+      },
+      {
+        "schema": "public",
+        "name": "usage_events_2025_02",
+        "kind": "partition",
+        "sourceRows": 0,
+        "shadowRows": 0,
+        "ratio": 1,
+        "selection": "all",
+        "predicate": null
+      },
+      {
+        "schema": "public",
+        "name": "usage_events_2025_03",
+        "kind": "partition",
+        "sourceRows": 0,
+        "shadowRows": 0,
+        "ratio": 1,
+        "selection": "all",
+        "predicate": null
+      },
+      {
+        "schema": "public",
+        "name": "usage_events_2025_04",
+        "kind": "partition",
+        "sourceRows": 0,
+        "shadowRows": 0,
+        "ratio": 1,
+        "selection": "all",
+        "predicate": null
+      },
+      {
+        "schema": "public",
+        "name": "usage_events_2025_05",
+        "kind": "partition",
+        "sourceRows": 0,
+        "shadowRows": 0,
+        "ratio": 1,
+        "selection": "all",
+        "predicate": null
+      },
+      {
+        "schema": "public",
+        "name": "usage_events_2025_06",
+        "kind": "partition",
+        "sourceRows": 0,
+        "shadowRows": 0,
+        "ratio": 1,
+        "selection": "all",
+        "predicate": null
+      },
+      {
+        "schema": "public",
+        "name": "usage_events_2025_07",
+        "kind": "partition",
+        "sourceRows": 0,
+        "shadowRows": 0,
+        "ratio": 1,
+        "selection": "all",
+        "predicate": null
+      },
+      {
+        "schema": "public",
+        "name": "usage_events_2025_08",
+        "kind": "partition",
+        "sourceRows": 0,
+        "shadowRows": 0,
+        "ratio": 1,
+        "selection": "all",
+        "predicate": null
+      },
+      {
+        "schema": "public",
+        "name": "usage_events_2025_09",
+        "kind": "partition",
+        "sourceRows": 0,
+        "shadowRows": 0,
+        "ratio": 1,
+        "selection": "all",
+        "predicate": null
+      },
+      {
+        "schema": "public",
+        "name": "usage_events_2025_10",
+        "kind": "partition",
+        "sourceRows": 547332,
+        "shadowRows": 547332,
+        "ratio": 1,
+        "selection": "all",
+        "predicate": null
+      },
+      {
+        "schema": "public",
+        "name": "usage_events_2025_11",
+        "kind": "partition",
+        "sourceRows": 557174,
+        "shadowRows": 557174,
+        "ratio": 1,
+        "selection": "all",
+        "predicate": null
+      },
+      {
+        "schema": "public",
+        "name": "usage_events_2025_12",
+        "kind": "partition",
+        "sourceRows": 662550,
+        "shadowRows": 662550,
+        "ratio": 1,
+        "selection": "all",
+        "predicate": null
+      },
+      {
+        "schema": "public",
+        "name": "usage_events_2026_01",
+        "kind": "partition",
+        "sourceRows": 706864,
+        "shadowRows": 706864,
+        "ratio": 1,
+        "selection": "all",
+        "predicate": null
+      },
+      {
+        "schema": "public",
+        "name": "usage_events_2026_02",
+        "kind": "partition",
+        "sourceRows": 690058,
+        "shadowRows": 690058,
+        "ratio": 1,
+        "selection": "all",
+        "predicate": null
+      },
+      {
+        "schema": "public",
+        "name": "usage_events_2026_03",
+        "kind": "partition",
+        "sourceRows": 816525,
+        "shadowRows": 816525,
+        "ratio": 1,
+        "selection": "all",
+        "predicate": null
+      },
+      {
+        "schema": "public",
+        "name": "usage_events_2026_04",
+        "kind": "partition",
+        "sourceRows": 858363,
+        "shadowRows": 858363,
+        "ratio": 1,
+        "selection": "all",
+        "predicate": null
+      },
+      {
+        "schema": "public",
+        "name": "usage_events_2026_05",
+        "kind": "partition",
+        "sourceRows": 910208,
+        "shadowRows": 910208,
+        "ratio": 1,
+        "selection": "all",
+        "predicate": null
+      },
+      {
+        "schema": "public",
+        "name": "usage_events_2026_06",
+        "kind": "partition",
+        "sourceRows": 969252,
+        "shadowRows": 969252,
+        "ratio": 1,
+        "selection": "all",
+        "predicate": null
+      },
+      {
+        "schema": "public",
+        "name": "usage_events_2026_07",
+        "kind": "partition",
+        "sourceRows": 1065841,
+        "shadowRows": 1065841,
+        "ratio": 1,
+        "selection": "all",
+        "predicate": null
+      },
+      {
+        "schema": "public",
+        "name": "usage_events_2026_08",
+        "kind": "partition",
+        "sourceRows": 1078102,
+        "shadowRows": 1078102,
+        "ratio": 1,
+        "selection": "all",
+        "predicate": null
+      },
+      {
+        "schema": "public",
+        "name": "usage_events_2026_09",
+        "kind": "partition",
+        "sourceRows": 1137731,
+        "shadowRows": 1137731,
+        "ratio": 1,
+        "selection": "all",
+        "predicate": null
+      },
+      {
+        "schema": "public",
+        "name": "usage_events_2026_10",
+        "kind": "partition",
+        "sourceRows": 0,
+        "shadowRows": 0,
+        "ratio": 1,
+        "selection": "all",
+        "predicate": null
+      },
+      {
+        "schema": "public",
+        "name": "usage_events_2026_11",
+        "kind": "partition",
+        "sourceRows": 0,
+        "shadowRows": 0,
+        "ratio": 1,
+        "selection": "all",
+        "predicate": null
+      },
+      {
+        "schema": "public",
+        "name": "usage_events_2026_12",
+        "kind": "partition",
+        "sourceRows": 0,
+        "shadowRows": 0,
+        "ratio": 1,
+        "selection": "all",
+        "predicate": null
+      },
+      {
+        "schema": "public",
+        "name": "usage_events_2027_01",
+        "kind": "partition",
+        "sourceRows": 0,
+        "shadowRows": 0,
+        "ratio": 1,
+        "selection": "all",
+        "predicate": null
+      },
+      {
+        "schema": "public",
+        "name": "usage_events_2027_02",
+        "kind": "partition",
+        "sourceRows": 0,
+        "shadowRows": 0,
+        "ratio": 1,
+        "selection": "all",
+        "predicate": null
+      },
+      {
+        "schema": "public",
+        "name": "usage_events_2027_03",
+        "kind": "partition",
+        "sourceRows": 0,
+        "shadowRows": 0,
+        "ratio": 1,
+        "selection": "all",
+        "predicate": null
+      },
+      {
+        "schema": "public",
+        "name": "usage_events_2027_04",
+        "kind": "partition",
+        "sourceRows": 0,
+        "shadowRows": 0,
+        "ratio": 1,
+        "selection": "all",
+        "predicate": null
+      },
+      {
+        "schema": "public",
+        "name": "usage_events_2027_05",
+        "kind": "partition",
+        "sourceRows": 0,
+        "shadowRows": 0,
+        "ratio": 1,
+        "selection": "all",
+        "predicate": null
+      },
+      {
+        "schema": "public",
+        "name": "usage_events_2027_06",
+        "kind": "partition",
+        "sourceRows": 0,
+        "shadowRows": 0,
+        "ratio": 1,
+        "selection": "all",
+        "predicate": null
+      },
+      {
+        "schema": "public",
+        "name": "usage_events_2027_07",
+        "kind": "partition",
+        "sourceRows": 0,
+        "shadowRows": 0,
+        "ratio": 1,
+        "selection": "all",
+        "predicate": null
+      },
+      {
+        "schema": "public",
+        "name": "usage_events_2027_08",
+        "kind": "partition",
+        "sourceRows": 0,
+        "shadowRows": 0,
+        "ratio": 1,
+        "selection": "all",
+        "predicate": null
+      },
+      {
+        "schema": "public",
+        "name": "usage_events_2027_09",
+        "kind": "partition",
+        "sourceRows": 0,
+        "shadowRows": 0,
+        "ratio": 1,
+        "selection": "all",
+        "predicate": null
+      },
+      {
+        "schema": "public",
+        "name": "usage_events_2027_10",
+        "kind": "partition",
+        "sourceRows": 0,
+        "shadowRows": 0,
+        "ratio": 1,
+        "selection": "all",
+        "predicate": null
+      },
+      {
+        "schema": "public",
+        "name": "usage_events_2027_11",
+        "kind": "partition",
+        "sourceRows": 0,
+        "shadowRows": 0,
+        "ratio": 1,
+        "selection": "all",
+        "predicate": null
+      },
+      {
+        "schema": "public",
+        "name": "usage_events_2027_12",
+        "kind": "partition",
+        "sourceRows": 0,
+        "shadowRows": 0,
+        "ratio": 1,
+        "selection": "all",
+        "predicate": null
+      },
+      {
+        "schema": "public",
+        "name": "users",
+        "kind": "table",
+        "sourceRows": 1543,
+        "shadowRows": 1543,
+        "ratio": 1,
+        "selection": "all",
+        "predicate": null
+      }
+    ],
+    "container": {
+      "name": "lw-shadow-07f26d8d",
+      "volume": "lw-shadow-07f26d8d-data",
+      "limits": {
+        "cpus": 2,
+        "memoryMiB": 3072,
+        "memorySwapMiB": 3072,
+        "shmMiB": 256,
+        "pidsLimit": 512
+      },
+      "host": {
+        "cpus": 8,
+        "memoryMiB": 9838,
+        "dockerVersion": "28.0.4"
+      },
+      "sourceReserve": {
+        "cpus": 2,
+        "memoryMiB": 2048
+      }
+    },
+    "image": {
+      "tag": "ledgerworks/shadow-postgres:16.15-hypopg1.4.3",
+      "id": "sha256:af9fe3cbcd8fc101e7878bbd4c712f7a54335df3520adc9449ebb48298d2c4a6",
+      "postgresVersion": "16.15 (Debian 16.15-1.pgdg12+2)",
+      "hypopgVersion": "1.4.3",
+      "pgStatStatementsVersion": "1.10"
+    },
+    "extensions": {
+      "source": [
+        "pg_stat_statements",
+        "plpgsql"
+      ],
+      "shadow": [
+        "hypopg",
+        "pg_stat_statements",
+        "plpgsql"
+      ]
+    },
+    "roles": [
+      {
+        "name": "ledgerline_app",
+        "bypassRls": false,
+        "wasSuperuser": false
+      },
+      {
+        "name": "ledgerline_definer",
+        "bypassRls": false,
+        "wasSuperuser": false
+      },
+      {
+        "name": "ledgerline_ledger",
+        "bypassRls": false,
+        "wasSuperuser": false
+      },
+      {
+        "name": "ledgerline_metrics",
+        "bypassRls": false,
+        "wasSuperuser": false
+      },
+      {
+        "name": "ledgerline_owner",
+        "bypassRls": false,
+        "wasSuperuser": false
+      },
+      {
+        "name": "ledgerline_test_noprivs",
+        "bypassRls": false,
+        "wasSuperuser": false
+      },
+      {
+        "name": "ledgerline_worker",
+        "bypassRls": false,
+        "wasSuperuser": false
+      },
+      {
+        "name": "ledgerworks",
+        "bypassRls": true,
+        "wasSuperuser": true
+      },
+      {
+        "name": "shadow_reader",
+        "bypassRls": true,
+        "wasSuperuser": false
+      }
+    ],
+    "settings": [
+      {
+        "name": "seq_page_cost",
+        "source": "1",
+        "shadow": "1"
+      },
+      {
+        "name": "random_page_cost",
+        "source": "4",
+        "shadow": "4"
+      },
+      {
+        "name": "cpu_tuple_cost",
+        "source": "0.01",
+        "shadow": "0.01"
+      },
+      {
+        "name": "cpu_index_tuple_cost",
+        "source": "0.005",
+        "shadow": "0.005"
+      },
+      {
+        "name": "cpu_operator_cost",
+        "source": "0.0025",
+        "shadow": "0.0025"
+      },
+      {
+        "name": "parallel_setup_cost",
+        "source": "1000",
+        "shadow": "1000"
+      },
+      {
+        "name": "parallel_tuple_cost",
+        "source": "0.1",
+        "shadow": "0.1"
+      },
+      {
+        "name": "effective_cache_size",
+        "source": "1536MB",
+        "shadow": "1536MB"
+      },
+      {
+        "name": "effective_io_concurrency",
+        "source": "1",
+        "shadow": "1"
+      },
+      {
+        "name": "default_statistics_target",
+        "source": "100",
+        "shadow": "100"
+      },
+      {
+        "name": "jit",
+        "source": "on",
+        "shadow": "on"
+      },
+      {
+        "name": "work_mem",
+        "source": "16MB",
+        "shadow": "16MB"
+      },
+      {
+        "name": "max_parallel_workers_per_gather",
+        "source": "2",
+        "shadow": "2"
+      },
+      {
+        "name": "shared_buffers",
+        "source": "512MB",
+        "shadow": "768MB"
+      },
+      {
+        "name": "maintenance_work_mem",
+        "source": "128MB",
+        "shadow": "184MB"
+      },
+      {
+        "name": "max_wal_size",
+        "source": "1GB",
+        "shadow": "2GB"
+      }
+    ],
+    "copy": {
+      "method": "schema-dump+copy-stream",
+      "parallelism": 2,
+      "maxSourceMBps": null,
+      "snapshot": "exported-repeatable-read",
+      "sourceStatementTimeoutMs": 1800000
+    },
+    "stages": [
+      {
+        "name": "preflight",
+        "durationMs": 490
+      },
+      {
+        "name": "image",
+        "durationMs": 90
+      },
+      {
+        "name": "container",
+        "durationMs": 2170
+      },
+      {
+        "name": "extension-check",
+        "durationMs": 7
+      },
+      {
+        "name": "roles",
+        "durationMs": 39
+      },
+      {
+        "name": "schema-dump",
+        "durationMs": 541
+      },
+      {
+        "name": "restore-pre",
+        "durationMs": 428
+      },
+      {
+        "name": "copy-data",
+        "durationMs": 34726
+      },
+      {
+        "name": "sequences",
+        "durationMs": 10
+      },
+      {
+        "name": "restore-post",
+        "durationMs": 51679
+      },
+      {
+        "name": "matviews",
+        "durationMs": 0
+      },
+      {
+        "name": "extensions",
+        "durationMs": 46
+      },
+      {
+        "name": "analyze",
+        "durationMs": 3529
+      },
+      {
+        "name": "verify",
+        "durationMs": 887
+      },
+      {
+        "name": "marker",
+        "durationMs": 16
+      }
+    ],
+    "totalDurationMs": 97814,
+    "memory": {
+      "shadowPeakSampledMiB": 1739,
+      "shadowCgroupPeakMiB": 3072,
+      "sourcePeakSampledMiB": 1128,
+      "samples": 32
+    },
+    "sourceContainerHealth": {
+      "name": "ledgerworks-postgres",
+      "oomKilledBefore": false,
+      "oomKilledAfter": false,
+      "restartCountBefore": 0,
+      "restartCountAfter": 0,
+      "startedAtBefore": "2026-10-03T03:31:17.203738234Z",
+      "startedAtAfter": "2026-10-03T03:31:17.203738234Z"
+    },
+    "warnings": []
+  },
+  "schemaLinesCompared": 873,
+  "schemaDifferences": {
+    "missing": [],
+    "extra": []
+  },
+  "sourceFingerprint": {
+    "before": {
+      "statDatabase": {
+        "tup_inserted": 10016816,
+        "tup_updated": 1040,
+        "tup_deleted": 296
+      },
+      "statTables": {
+        "n_tup_ins": 10009889,
+        "n_tup_upd": 0,
+        "n_tup_del": 0,
+        "n_tup_hot_upd": 0
+      }
+    },
+    "after": {
+      "statDatabase": {
+        "tup_inserted": 10016816,
+        "tup_updated": 1040,
+        "tup_deleted": 296
+      },
+      "statTables": {
+        "n_tup_ins": 10009889,
+        "n_tup_upd": 0,
+        "n_tup_del": 0,
+        "n_tup_hot_upd": 0
+      }
+    },
+    "differences": []
+  },
+  "log": [
+    "2026-10-03T04:18:17.439Z stage preflight",
+    "2026-10-03T04:18:17.930Z stage image",
+    "2026-10-03T04:18:18.019Z stage container",
+    "2026-10-03T04:18:20.207Z stage extension-check",
+    "2026-10-03T04:18:20.213Z stage roles",
+    "2026-10-03T04:18:20.252Z stage schema-dump",
+    "2026-10-03T04:18:20.793Z stage restore-pre",
+    "2026-10-03T04:18:21.221Z stage copy-data",
+    "2026-10-03T04:18:28.065Z   copied public.usage_events_2026_08: 1078102 of 1078102 rows",
+    "2026-10-03T04:18:28.426Z   copied public.usage_events_2026_09: 1137731 of 1137731 rows",
+    "2026-10-03T04:18:34.519Z   copied public.usage_events_2026_06: 969252 of 969252 rows",
+    "2026-10-03T04:18:34.613Z   copied public.usage_events_2026_07: 1065841 of 1065841 rows",
+    "2026-10-03T04:18:39.783Z   copied public.usage_events_2026_04: 858363 of 858363 rows",
+    "2026-10-03T04:18:39.812Z   copied public.usage_events_2026_05: 910208 of 910208 rows",
+    "2026-10-03T04:18:44.951Z   copied public.usage_events_2026_01: 706864 of 706864 rows",
+    "2026-10-03T04:18:45.835Z   copied public.usage_events_2026_03: 816525 of 816525 rows",
+    "2026-10-03T04:18:50.481Z   copied public.usage_events_2026_02: 690058 of 690058 rows",
+    "2026-10-03T04:18:51.219Z   copied public.usage_events_2025_12: 662550 of 662550 rows",
+    "2026-10-03T04:18:55.479Z   copied public.usage_events_2025_11: 557174 of 557174 rows",
+    "2026-10-03T04:18:55.591Z   copied public.credit_ledger: 6053 of 6053 rows",
+    "2026-10-03T04:18:55.622Z   copied public.memberships: 1543 of 1543 rows",
+    "2026-10-03T04:18:55.640Z   copied public.users: 1543 of 1543 rows",
+    "2026-10-03T04:18:55.673Z   copied public.api_keys: 250 of 250 rows",
+    "2026-10-03T04:18:55.683Z   copied public.tenants: 250 of 250 rows",
+    "2026-10-03T04:18:55.718Z   copied public.credit_balances: 250 of 250 rows",
+    "2026-10-03T04:18:55.733Z   copied public.jobs: 0 of 0 rows",
+    "2026-10-03T04:18:55.743Z   copied public.dead_letters: 0 of 0 rows",
+    "2026-10-03T04:18:55.763Z   copied public.schema_migrations: 11 of 11 rows",
+    "2026-10-03T04:18:55.785Z   copied public.job_attempts: 0 of 0 rows",
+    "2026-10-03T04:18:55.791Z   copied public.usage_events_2024_01: 0 of 0 rows",
+    "2026-10-03T04:18:55.796Z   copied public.usage_events_2024_02: 0 of 0 rows",
+    "2026-10-03T04:18:55.800Z   copied public.usage_events_2024_03: 0 of 0 rows",
+    "2026-10-03T04:18:55.803Z   copied public.usage_events_2024_04: 0 of 0 rows",
+    "2026-10-03T04:18:55.807Z   copied public.usage_events_2024_05: 0 of 0 rows",
+    "2026-10-03T04:18:55.810Z   copied public.usage_events_2024_06: 0 of 0 rows",
+    "2026-10-03T04:18:55.813Z   copied public.usage_events_2024_07: 0 of 0 rows",
+    "2026-10-03T04:18:55.816Z   copied public.usage_events_2024_08: 0 of 0 rows",
+    "2026-10-03T04:18:55.819Z   copied public.usage_events_2024_09: 0 of 0 rows",
+    "2026-10-03T04:18:55.822Z   copied public.usage_events_2024_10: 0 of 0 rows",
+    "2026-10-03T04:18:55.826Z   copied public.usage_events_2024_11: 0 of 0 rows",
+    "2026-10-03T04:18:55.829Z   copied public.usage_events_2024_12: 0 of 0 rows",
+    "2026-10-03T04:18:55.832Z   copied public.usage_events_2025_01: 0 of 0 rows",
+    "2026-10-03T04:18:55.835Z   copied public.usage_events_2025_02: 0 of 0 rows",
+    "2026-10-03T04:18:55.839Z   copied public.usage_events_2025_03: 0 of 0 rows",
+    "2026-10-03T04:18:55.842Z   copied public.usage_events_2025_04: 0 of 0 rows",
+    "2026-10-03T04:18:55.846Z   copied public.usage_events_2025_05: 0 of 0 rows",
+    "2026-10-03T04:18:55.850Z   copied public.usage_events_2025_06: 0 of 0 rows",
+    "2026-10-03T04:18:55.855Z   copied public.usage_events_2025_07: 0 of 0 rows",
+    "2026-10-03T04:18:55.862Z   copied public.usage_events_2025_08: 0 of 0 rows",
+    "2026-10-03T04:18:55.865Z   copied public.usage_events_2025_09: 0 of 0 rows",
+    "2026-10-03T04:18:55.871Z   copied public.usage_events_2026_10: 0 of 0 rows",
+    "2026-10-03T04:18:55.877Z   copied public.usage_events_2026_11: 0 of 0 rows",
+    "2026-10-03T04:18:55.881Z   copied public.usage_events_2026_12: 0 of 0 rows",
+    "2026-10-03T04:18:55.884Z   copied public.usage_events_2027_01: 0 of 0 rows",
+    "2026-10-03T04:18:55.887Z   copied public.usage_events_2027_02: 0 of 0 rows",
+    "2026-10-03T04:18:55.890Z   copied public.usage_events_2027_03: 0 of 0 rows",
+    "2026-10-03T04:18:55.893Z   copied public.usage_events_2027_04: 0 of 0 rows",
+    "2026-10-03T04:18:55.896Z   copied public.usage_events_2027_05: 0 of 0 rows",
+    "2026-10-03T04:18:55.899Z   copied public.usage_events_2027_06: 0 of 0 rows",
+    "2026-10-03T04:18:55.902Z   copied public.usage_events_2027_07: 0 of 0 rows",
+    "2026-10-03T04:18:55.904Z   copied public.usage_events_2027_08: 0 of 0 rows",
+    "2026-10-03T04:18:55.907Z   copied public.usage_events_2027_09: 0 of 0 rows",
+    "2026-10-03T04:18:55.910Z   copied public.usage_events_2027_10: 0 of 0 rows",
+    "2026-10-03T04:18:55.914Z   copied public.usage_events_2027_11: 0 of 0 rows",
+    "2026-10-03T04:18:55.916Z   copied public.usage_events_2027_12: 0 of 0 rows",
+    "2026-10-03T04:18:55.938Z   copied public.usage_events_2025_10: 547332 of 547332 rows",
+    "2026-10-03T04:18:55.947Z stage sequences",
+    "2026-10-03T04:18:55.981Z stage restore-post",
+    "2026-10-03T04:19:47.660Z stage matviews",
+    "2026-10-03T04:19:47.660Z stage extensions",
+    "2026-10-03T04:19:47.706Z stage analyze",
+    "2026-10-03T04:19:51.235Z stage verify",
+    "2026-10-03T04:19:52.122Z stage marker"
+  ]
+}

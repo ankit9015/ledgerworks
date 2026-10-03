@@ -16,7 +16,8 @@
     "test:concurrency": "node scripts/test-concurrency.mjs",
     "migrate": "pnpm --filter @ledgerworks/ledgerline migrate",
     "seed": "pnpm --filter @ledgerworks/ledgerline seed",
-    "seed:demo": "pnpm --filter @ledgerworks/ledgerline seed:demo"
+    "seed:demo": "pnpm --filter @ledgerworks/ledgerline seed:demo",
+    "test:shadow-full": "node scripts/test-shadow-full.mjs"
   },
   "devDependencies": {
     "@eslint/js": "^9.0.0",

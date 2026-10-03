@@ -1,0 +1,1147 @@
+{
+  "schemaEquality": {
+    "linesCompared": 870,
+    "relations": 62,
+    "columns": 412,
+    "indexes": 122,
+    "constraints": 233,
+    "policies": 21,
+    "functions": 14,
+    "triggers": 2,
+    "sequences": 3,
+    "differences": 0
+  },
+  "fullManifestSummary": {
+    "rows": 30600,
+    "totalMs": 5433
+  },
+  "smallFullManifest": {
+    "manifestVersion": 1,
+    "id": "3e30d85e-2f05-426c-a744-072bc796436e",
+    "createdAt": "2026-10-03T04:24:05.659Z",
+    "finishedAt": "2026-10-03T04:24:11.091Z",
+    "source": {
+      "database": "ledgerline_demo",
+      "serverVersion": "16.15 (Debian 16.15-1.pgdg13+2)",
+      "readOnlyCheck": {
+        "canWrite": false,
+        "overrideUsed": false,
+        "reasons": []
+      }
+    },
+    "mode": "full",
+    "sampling": null,
+    "scaling": {
+      "sampled": false,
+      "totalRowRatio": 1,
+      "largestTableRatio": 1,
+      "note": "Full copy: every table has the same row count as the source. Timings still depend on the shadow container limits and settings recorded here, which may differ from production."
+    },
+    "tables": [
+      {
+        "schema": "public",
+        "name": "api_keys",
+        "kind": "table",
+        "sourceRows": 4,
+        "shadowRows": 4,
+        "ratio": 1,
+        "selection": "all",
+        "predicate": null
+      },
+      {
+        "schema": "public",
+        "name": "credit_balances",
+        "kind": "table",
+        "sourceRows": 4,
+        "shadowRows": 4,
+        "ratio": 1,
+        "selection": "all",
+        "predicate": null
+      },
+      {
+        "schema": "public",
+        "name": "credit_ledger",
+        "kind": "table",
+        "sourceRows": 12,
+        "shadowRows": 12,
+        "ratio": 1,
+        "selection": "all",
+        "predicate": null
+      },
+      {
+        "schema": "public",
+        "name": "dead_letters",
+        "kind": "table",
+        "sourceRows": 4,
+        "shadowRows": 4,
+        "ratio": 1,
+        "selection": "all",
+        "predicate": null
+      },
+      {
+        "schema": "public",
+        "name": "job_attempts",
+        "kind": "table",
+        "sourceRows": 0,
+        "shadowRows": 0,
+        "ratio": 1,
+        "selection": "all",
+        "predicate": null
+      },
+      {
+        "schema": "public",
+        "name": "jobs",
+        "kind": "table",
+        "sourceRows": 18,
+        "shadowRows": 18,
+        "ratio": 1,
+        "selection": "all",
+        "predicate": null
+      },
+      {
+        "schema": "public",
+        "name": "memberships",
+        "kind": "table",
+        "sourceRows": 4,
+        "shadowRows": 4,
+        "ratio": 1,
+        "selection": "all",
+        "predicate": null
+      },
+      {
+        "schema": "public",
+        "name": "schema_migrations",
+        "kind": "table",
+        "sourceRows": 11,
+        "shadowRows": 11,
+        "ratio": 1,
+        "selection": "all",
+        "predicate": null
+      },
+      {
+        "schema": "public",
+        "name": "tenants",
+        "kind": "table",
+        "sourceRows": 4,
+        "shadowRows": 4,
+        "ratio": 1,
+        "selection": "all",
+        "predicate": null
+      },
+      {
+        "schema": "public",
+        "name": "usage_events",
+        "kind": "partitioned-table",
+        "sourceRows": 30600,
+        "shadowRows": 30600,
+        "ratio": 1,
+        "selection": "all",
+        "predicate": null
+      },
+      {
+        "schema": "public",
+        "name": "usage_events_2024_01",
+        "kind": "partition",
+        "sourceRows": 0,
+        "shadowRows": 0,
+        "ratio": 1,
+        "selection": "all",
+        "predicate": null
+      },
+      {
+        "schema": "public",
+        "name": "usage_events_2024_02",
+        "kind": "partition",
+        "sourceRows": 0,
+        "shadowRows": 0,
+        "ratio": 1,
+        "selection": "all",
+        "predicate": null
+      },
+      {
+        "schema": "public",
+        "name": "usage_events_2024_03",
+        "kind": "partition",
+        "sourceRows": 0,
+        "shadowRows": 0,
+        "ratio": 1,
+        "selection": "all",
+        "predicate": null
+      },
+      {
+        "schema": "public",
+        "name": "usage_events_2024_04",
+        "kind": "partition",
+        "sourceRows": 0,
+        "shadowRows": 0,
+        "ratio": 1,
+        "selection": "all",
+        "predicate": null
+      },
+      {
+        "schema": "public",
+        "name": "usage_events_2024_05",
+        "kind": "partition",
+        "sourceRows": 0,
+        "shadowRows": 0,
+        "ratio": 1,
+        "selection": "all",
+        "predicate": null
+      },
+      {
+        "schema": "public",
+        "name": "usage_events_2024_06",
+        "kind": "partition",
+        "sourceRows": 0,
+        "shadowRows": 0,
+        "ratio": 1,
+        "selection": "all",
+        "predicate": null
+      },
+      {
+        "schema": "public",
+        "name": "usage_events_2024_07",
+        "kind": "partition",
+        "sourceRows": 0,
+        "shadowRows": 0,
+        "ratio": 1,
+        "selection": "all",
+        "predicate": null
+      },
+      {
+        "schema": "public",
+        "name": "usage_events_2024_08",
+        "kind": "partition",
+        "sourceRows": 0,
+        "shadowRows": 0,
+        "ratio": 1,
+        "selection": "all",
+        "predicate": null
+      },
+      {
+        "schema": "public",
+        "name": "usage_events_2024_09",
+        "kind": "partition",
+        "sourceRows": 0,
+        "shadowRows": 0,
+        "ratio": 1,
+        "selection": "all",
+        "predicate": null
+      },
+      {
+        "schema": "public",
+        "name": "usage_events_2024_10",
+        "kind": "partition",
+        "sourceRows": 0,
+        "shadowRows": 0,
+        "ratio": 1,
+        "selection": "all",
+        "predicate": null
+      },
+      {
+        "schema": "public",
+        "name": "usage_events_2024_11",
+        "kind": "partition",
+        "sourceRows": 0,
+        "shadowRows": 0,
+        "ratio": 1,
+        "selection": "all",
+        "predicate": null
+      },
+      {
+        "schema": "public",
+        "name": "usage_events_2024_12",
+        "kind": "partition",
+        "sourceRows": 0,
+        "shadowRows": 0,
+        "ratio": 1,
+        "selection": "all",
+        "predicate": null
+      },
+      {
+        "schema": "public",
+        "name": "usage_events_2025_01",
+        "kind": "partition",
+        "sourceRows": 0,
+        "shadowRows": 0,
+        "ratio": 1,
+        "selection": "all",
+        "predicate": null
+      },
+      {
+        "schema": "public",
+        "name": "usage_events_2025_02",
+        "kind": "partition",
+        "sourceRows": 0,
+        "shadowRows": 0,
+        "ratio": 1,
+        "selection": "all",
+        "predicate": null
+      },
+      {
+        "schema": "public",
+        "name": "usage_events_2025_03",
+        "kind": "partition",
+        "sourceRows": 0,
+        "shadowRows": 0,
+        "ratio": 1,
+        "selection": "all",
+        "predicate": null
+      },
+      {
+        "schema": "public",
+        "name": "usage_events_2025_04",
+        "kind": "partition",
+        "sourceRows": 0,
+        "shadowRows": 0,
+        "ratio": 1,
+        "selection": "all",
+        "predicate": null
+      },
+      {
+        "schema": "public",
+        "name": "usage_events_2025_05",
+        "kind": "partition",
+        "sourceRows": 0,
+        "shadowRows": 0,
+        "ratio": 1,
+        "selection": "all",
+        "predicate": null
+      },
+      {
+        "schema": "public",
+        "name": "usage_events_2025_06",
+        "kind": "partition",
+        "sourceRows": 0,
+        "shadowRows": 0,
+        "ratio": 1,
+        "selection": "all",
+        "predicate": null
+      },
+      {
+        "schema": "public",
+        "name": "usage_events_2025_07",
+        "kind": "partition",
+        "sourceRows": 0,
+        "shadowRows": 0,
+        "ratio": 1,
+        "selection": "all",
+        "predicate": null
+      },
+      {
+        "schema": "public",
+        "name": "usage_events_2025_08",
+        "kind": "partition",
+        "sourceRows": 0,
+        "shadowRows": 0,
+        "ratio": 1,
+        "selection": "all",
+        "predicate": null
+      },
+      {
+        "schema": "public",
+        "name": "usage_events_2025_09",
+        "kind": "partition",
+        "sourceRows": 0,
+        "shadowRows": 0,
+        "ratio": 1,
+        "selection": "all",
+        "predicate": null
+      },
+      {
+        "schema": "public",
+        "name": "usage_events_2025_10",
+        "kind": "partition",
+        "sourceRows": 0,
+        "shadowRows": 0,
+        "ratio": 1,
+        "selection": "all",
+        "predicate": null
+      },
+      {
+        "schema": "public",
+        "name": "usage_events_2025_11",
+        "kind": "partition",
+        "sourceRows": 0,
+        "shadowRows": 0,
+        "ratio": 1,
+        "selection": "all",
+        "predicate": null
+      },
+      {
+        "schema": "public",
+        "name": "usage_events_2025_12",
+        "kind": "partition",
+        "sourceRows": 0,
+        "shadowRows": 0,
+        "ratio": 1,
+        "selection": "all",
+        "predicate": null
+      },
+      {
+        "schema": "public",
+        "name": "usage_events_2026_01",
+        "kind": "partition",
+        "sourceRows": 0,
+        "shadowRows": 0,
+        "ratio": 1,
+        "selection": "all",
+        "predicate": null
+      },
+      {
+        "schema": "public",
+        "name": "usage_events_2026_02",
+        "kind": "partition",
+        "sourceRows": 0,
+        "shadowRows": 0,
+        "ratio": 1,
+        "selection": "all",
+        "predicate": null
+      },
+      {
+        "schema": "public",
+        "name": "usage_events_2026_03",
+        "kind": "partition",
+        "sourceRows": 0,
+        "shadowRows": 0,
+        "ratio": 1,
+        "selection": "all",
+        "predicate": null
+      },
+      {
+        "schema": "public",
+        "name": "usage_events_2026_04",
+        "kind": "partition",
+        "sourceRows": 0,
+        "shadowRows": 0,
+        "ratio": 1,
+        "selection": "all",
+        "predicate": null
+      },
+      {
+        "schema": "public",
+        "name": "usage_events_2026_05",
+        "kind": "partition",
+        "sourceRows": 0,
+        "shadowRows": 0,
+        "ratio": 1,
+        "selection": "all",
+        "predicate": null
+      },
+      {
+        "schema": "public",
+        "name": "usage_events_2026_06",
+        "kind": "partition",
+        "sourceRows": 0,
+        "shadowRows": 0,
+        "ratio": 1,
+        "selection": "all",
+        "predicate": null
+      },
+      {
+        "schema": "public",
+        "name": "usage_events_2026_07",
+        "kind": "partition",
+        "sourceRows": 0,
+        "shadowRows": 0,
+        "ratio": 1,
+        "selection": "all",
+        "predicate": null
+      },
+      {
+        "schema": "public",
+        "name": "usage_events_2026_08",
+        "kind": "partition",
+        "sourceRows": 14355,
+        "shadowRows": 14355,
+        "ratio": 1,
+        "selection": "all",
+        "predicate": null
+      },
+      {
+        "schema": "public",
+        "name": "usage_events_2026_09",
+        "kind": "partition",
+        "sourceRows": 15298,
+        "shadowRows": 15298,
+        "ratio": 1,
+        "selection": "all",
+        "predicate": null
+      },
+      {
+        "schema": "public",
+        "name": "usage_events_2026_10",
+        "kind": "partition",
+        "sourceRows": 947,
+        "shadowRows": 947,
+        "ratio": 1,
+        "selection": "all",
+        "predicate": null
+      },
+      {
+        "schema": "public",
+        "name": "usage_events_2026_11",
+        "kind": "partition",
+        "sourceRows": 0,
+        "shadowRows": 0,
+        "ratio": 1,
+        "selection": "all",
+        "predicate": null
+      },
+      {
+        "schema": "public",
+        "name": "usage_events_2026_12",
+        "kind": "partition",
+        "sourceRows": 0,
+        "shadowRows": 0,
+        "ratio": 1,
+        "selection": "all",
+        "predicate": null
+      },
+      {
+        "schema": "public",
+        "name": "usage_events_2027_01",
+        "kind": "partition",
+        "sourceRows": 0,
+        "shadowRows": 0,
+        "ratio": 1,
+        "selection": "all",
+        "predicate": null
+      },
+      {
+        "schema": "public",
+        "name": "usage_events_2027_02",
+        "kind": "partition",
+        "sourceRows": 0,
+        "shadowRows": 0,
+        "ratio": 1,
+        "selection": "all",
+        "predicate": null
+      },
+      {
+        "schema": "public",
+        "name": "usage_events_2027_03",
+        "kind": "partition",
+        "sourceRows": 0,
+        "shadowRows": 0,
+        "ratio": 1,
+        "selection": "all",
+        "predicate": null
+      },
+      {
+        "schema": "public",
+        "name": "usage_events_2027_04",
+        "kind": "partition",
+        "sourceRows": 0,
+        "shadowRows": 0,
+        "ratio": 1,
+        "selection": "all",
+        "predicate": null
+      },
+      {
+        "schema": "public",
+        "name": "usage_events_2027_05",
+        "kind": "partition",
+        "sourceRows": 0,
+        "shadowRows": 0,
+        "ratio": 1,
+        "selection": "all",
+        "predicate": null
+      },
+      {
+        "schema": "public",
+        "name": "usage_events_2027_06",
+        "kind": "partition",
+        "sourceRows": 0,
+        "shadowRows": 0,
+        "ratio": 1,
+        "selection": "all",
+        "predicate": null
+      },
+      {
+        "schema": "public",
+        "name": "usage_events_2027_07",
+        "kind": "partition",
+        "sourceRows": 0,
+        "shadowRows": 0,
+        "ratio": 1,
+        "selection": "all",
+        "predicate": null
+      },
+      {
+        "schema": "public",
+        "name": "usage_events_2027_08",
+        "kind": "partition",
+        "sourceRows": 0,
+        "shadowRows": 0,
+        "ratio": 1,
+        "selection": "all",
+        "predicate": null
+      },
+      {
+        "schema": "public",
+        "name": "usage_events_2027_09",
+        "kind": "partition",
+        "sourceRows": 0,
+        "shadowRows": 0,
+        "ratio": 1,
+        "selection": "all",
+        "predicate": null
+      },
+      {
+        "schema": "public",
+        "name": "usage_events_2027_10",
+        "kind": "partition",
+        "sourceRows": 0,
+        "shadowRows": 0,
+        "ratio": 1,
+        "selection": "all",
+        "predicate": null
+      },
+      {
+        "schema": "public",
+        "name": "usage_events_2027_11",
+        "kind": "partition",
+        "sourceRows": 0,
+        "shadowRows": 0,
+        "ratio": 1,
+        "selection": "all",
+        "predicate": null
+      },
+      {
+        "schema": "public",
+        "name": "usage_events_2027_12",
+        "kind": "partition",
+        "sourceRows": 0,
+        "shadowRows": 0,
+        "ratio": 1,
+        "selection": "all",
+        "predicate": null
+      },
+      {
+        "schema": "public",
+        "name": "users",
+        "kind": "table",
+        "sourceRows": 4,
+        "shadowRows": 4,
+        "ratio": 1,
+        "selection": "all",
+        "predicate": null
+      }
+    ],
+    "container": {
+      "name": "lw-shadow-3e30d85e",
+      "volume": "lw-shadow-3e30d85e-data",
+      "limits": {
+        "cpus": 2,
+        "memoryMiB": 3072,
+        "memorySwapMiB": 3072,
+        "shmMiB": 256,
+        "pidsLimit": 512
+      },
+      "host": {
+        "cpus": 8,
+        "memoryMiB": 9838,
+        "dockerVersion": "28.0.4"
+      },
+      "sourceReserve": {
+        "cpus": 2,
+        "memoryMiB": 2048
+      }
+    },
+    "image": {
+      "tag": "ledgerworks/shadow-postgres:16.15-hypopg1.4.3",
+      "id": "sha256:af9fe3cbcd8fc101e7878bbd4c712f7a54335df3520adc9449ebb48298d2c4a6",
+      "postgresVersion": "16.15 (Debian 16.15-1.pgdg12+2)",
+      "hypopgVersion": "1.4.3",
+      "pgStatStatementsVersion": "1.10"
+    },
+    "extensions": {
+      "source": [
+        "plpgsql"
+      ],
+      "shadow": [
+        "hypopg",
+        "pg_stat_statements",
+        "plpgsql"
+      ]
+    },
+    "roles": [
+      {
+        "name": "ledgerline_app",
+        "bypassRls": false,
+        "wasSuperuser": false
+      },
+      {
+        "name": "ledgerline_definer",
+        "bypassRls": false,
+        "wasSuperuser": false
+      },
+      {
+        "name": "ledgerline_ledger",
+        "bypassRls": false,
+        "wasSuperuser": false
+      },
+      {
+        "name": "ledgerline_metrics",
+        "bypassRls": false,
+        "wasSuperuser": false
+      },
+      {
+        "name": "ledgerline_owner",
+        "bypassRls": false,
+        "wasSuperuser": false
+      },
+      {
+        "name": "ledgerline_test_noprivs",
+        "bypassRls": false,
+        "wasSuperuser": false
+      },
+      {
+        "name": "ledgerline_worker",
+        "bypassRls": false,
+        "wasSuperuser": false
+      },
+      {
+        "name": "ledgerworks",
+        "bypassRls": true,
+        "wasSuperuser": true
+      },
+      {
+        "name": "shadow_reader",
+        "bypassRls": true,
+        "wasSuperuser": false
+      }
+    ],
+    "settings": [
+      {
+        "name": "seq_page_cost",
+        "source": "1",
+        "shadow": "1"
+      },
+      {
+        "name": "random_page_cost",
+        "source": "4",
+        "shadow": "4"
+      },
+      {
+        "name": "cpu_tuple_cost",
+        "source": "0.01",
+        "shadow": "0.01"
+      },
+      {
+        "name": "cpu_index_tuple_cost",
+        "source": "0.005",
+        "shadow": "0.005"
+      },
+      {
+        "name": "cpu_operator_cost",
+        "source": "0.0025",
+        "shadow": "0.0025"
+      },
+      {
+        "name": "parallel_setup_cost",
+        "source": "1000",
+        "shadow": "1000"
+      },
+      {
+        "name": "parallel_tuple_cost",
+        "source": "0.1",
+        "shadow": "0.1"
+      },
+      {
+        "name": "effective_cache_size",
+        "source": "1536MB",
+        "shadow": "1536MB"
+      },
+      {
+        "name": "effective_io_concurrency",
+        "source": "1",
+        "shadow": "1"
+      },
+      {
+        "name": "default_statistics_target",
+        "source": "100",
+        "shadow": "100"
+      },
+      {
+        "name": "jit",
+        "source": "on",
+        "shadow": "on"
+      },
+      {
+        "name": "work_mem",
+        "source": "16MB",
+        "shadow": "16MB"
+      },
+      {
+        "name": "max_parallel_workers_per_gather",
+        "source": "2",
+        "shadow": "2"
+      },
+      {
+        "name": "shared_buffers",
+        "source": "512MB",
+        "shadow": "768MB"
+      },
+      {
+        "name": "maintenance_work_mem",
+        "source": "128MB",
+        "shadow": "184MB"
+      },
+      {
+        "name": "max_wal_size",
+        "source": "1GB",
+        "shadow": "2GB"
+      }
+    ],
+    "copy": {
+      "method": "schema-dump+copy-stream",
+      "parallelism": 2,
+      "maxSourceMBps": null,
+      "snapshot": "exported-repeatable-read",
+      "sourceStatementTimeoutMs": 1800000
+    },
+    "stages": [
+      {
+        "name": "preflight",
+        "durationMs": 395
+      },
+      {
+        "name": "image",
+        "durationMs": 87
+      },
+      {
+        "name": "container",
+        "durationMs": 2136
+      },
+      {
+        "name": "extension-check",
+        "durationMs": 7
+      },
+      {
+        "name": "roles",
+        "durationMs": 43
+      },
+      {
+        "name": "schema-dump",
+        "durationMs": 559
+      },
+      {
+        "name": "restore-pre",
+        "durationMs": 381
+      },
+      {
+        "name": "copy-data",
+        "durationMs": 311
+      },
+      {
+        "name": "sequences",
+        "durationMs": 8
+      },
+      {
+        "name": "restore-post",
+        "durationMs": 446
+      },
+      {
+        "name": "matviews",
+        "durationMs": 0
+      },
+      {
+        "name": "extensions",
+        "durationMs": 25
+      },
+      {
+        "name": "analyze",
+        "durationMs": 209
+      },
+      {
+        "name": "verify",
+        "durationMs": 95
+      },
+      {
+        "name": "marker",
+        "durationMs": 21
+      }
+    ],
+    "totalDurationMs": 5433,
+    "memory": {
+      "shadowPeakSampledMiB": 70,
+      "shadowCgroupPeakMiB": 139,
+      "sourcePeakSampledMiB": null,
+      "samples": 2
+    },
+    "sourceContainerHealth": null,
+    "warnings": []
+  },
+  "hypopg": {
+    "usesHypotheticalIndex": true,
+    "planNodeWith": "<13561>btree_usage_events_quantity"
+  },
+  "sampledIntegrityReport": {
+    "seed": 3,
+    "ratio": 0.5,
+    "foreignKeysChecked": 10,
+    "totalOrphans": 0,
+    "report": [
+      {
+        "constraint": "api_keys_tenant_id_fkey",
+        "child": "api_keys",
+        "parent": "tenants",
+        "orphans": 0
+      },
+      {
+        "constraint": "credit_balances_tenant_id_fkey",
+        "child": "credit_balances",
+        "parent": "tenants",
+        "orphans": 0
+      },
+      {
+        "constraint": "credit_ledger_refund_of_fkey",
+        "child": "credit_ledger",
+        "parent": "credit_ledger",
+        "orphans": 0
+      },
+      {
+        "constraint": "credit_ledger_tenant_id_fkey",
+        "child": "credit_ledger",
+        "parent": "tenants",
+        "orphans": 0
+      },
+      {
+        "constraint": "dead_letters_tenant_id_job_id_fkey",
+        "child": "dead_letters",
+        "parent": "jobs",
+        "orphans": 0
+      },
+      {
+        "constraint": "job_attempts_tenant_id_job_id_fkey",
+        "child": "job_attempts",
+        "parent": "jobs",
+        "orphans": 0
+      },
+      {
+        "constraint": "jobs_tenant_id_fkey",
+        "child": "jobs",
+        "parent": "tenants",
+        "orphans": 0
+      },
+      {
+        "constraint": "memberships_tenant_id_fkey",
+        "child": "memberships",
+        "parent": "tenants",
+        "orphans": 0
+      },
+      {
+        "constraint": "memberships_user_id_fkey",
+        "child": "memberships",
+        "parent": "users",
+        "orphans": 0
+      },
+      {
+        "constraint": "usage_events_tenant_id_fkey",
+        "child": "usage_events",
+        "parent": "tenants",
+        "orphans": 0
+      }
+    ]
+  },
+  "sampledManifest": {
+    "seed": 3,
+    "scaling": {
+      "sampled": true,
+      "totalRowRatio": 0.979553236588945,
+      "largestTableRatio": 0.9803921568627451,
+      "note": "SAMPLED COPY: this shadow holds only part of the data (see per-table ratios). Timings, plan shapes and sizes measured here are NOT full-scale and must be reported as measured on a sample."
+    },
+    "tables": [
+      {
+        "t": "api_keys",
+        "source": 4,
+        "shadow": 2,
+        "ratio": 0.5,
+        "selection": "child"
+      },
+      {
+        "t": "credit_balances",
+        "source": 4,
+        "shadow": 2,
+        "ratio": 0.5,
+        "selection": "child"
+      },
+      {
+        "t": "credit_ledger",
+        "source": 12,
+        "shadow": 6,
+        "ratio": 0.5,
+        "selection": "child"
+      },
+      {
+        "t": "dead_letters",
+        "source": 4,
+        "shadow": 2,
+        "ratio": 0.5,
+        "selection": "child"
+      },
+      {
+        "t": "jobs",
+        "source": 18,
+        "shadow": 9,
+        "ratio": 0.5,
+        "selection": "child"
+      },
+      {
+        "t": "memberships",
+        "source": 4,
+        "shadow": 2,
+        "ratio": 0.5,
+        "selection": "child"
+      },
+      {
+        "t": "schema_migrations",
+        "source": 11,
+        "shadow": 11,
+        "ratio": 1,
+        "selection": "isolated-full"
+      },
+      {
+        "t": "tenants",
+        "source": 4,
+        "shadow": 2,
+        "ratio": 0.5,
+        "selection": "root"
+      },
+      {
+        "t": "usage_events",
+        "source": 30600,
+        "shadow": 30000,
+        "ratio": 0.9804,
+        "selection": "child"
+      },
+      {
+        "t": "usage_events_2026_08",
+        "source": 14355,
+        "shadow": 14073,
+        "ratio": 0.9804,
+        "selection": "child"
+      },
+      {
+        "t": "usage_events_2026_09",
+        "source": 15298,
+        "shadow": 14998,
+        "ratio": 0.9804,
+        "selection": "child"
+      },
+      {
+        "t": "usage_events_2026_10",
+        "source": 947,
+        "shadow": 929,
+        "ratio": 0.981,
+        "selection": "child"
+      },
+      {
+        "t": "users",
+        "source": 4,
+        "shadow": 2,
+        "ratio": 0.5,
+        "selection": "referenced"
+      }
+    ]
+  },
+  "orphanCleanup": {
+    "dryRunSelected": [
+      "container:lw-shadow-orphan1",
+      "volume:lw-shadow-orphan1-data"
+    ],
+    "removed": [
+      "container:lw-shadow-orphan1",
+      "volume:lw-shadow-orphan1-data"
+    ],
+    "untouched": [
+      "lw-shadow-unlabelled1",
+      "lw-shadow-unlabelled1-data",
+      "someone-elses-container (label, wrong name)",
+      "lw-shadow-3e30d85e (younger than the age)"
+    ]
+  },
+  "sourceUnchanged": {
+    "clonesRunInBetween": "full, sampled, full (override), 3 failed clones, 1 killed clone",
+    "before": {
+      "statDatabase": {
+        "tup_inserted": 14,
+        "tup_updated": 49,
+        "tup_deleted": 0
+      },
+      "statTables": {
+        "n_tup_ins": 0,
+        "n_tup_upd": 0,
+        "n_tup_del": 0,
+        "n_tup_hot_upd": 0
+      },
+      "tablesCounted": 58,
+      "smallTablesChecksummed": 58
+    },
+    "after": {
+      "statDatabase": {
+        "tup_inserted": 14,
+        "tup_updated": 49,
+        "tup_deleted": 0
+      },
+      "statTables": {
+        "n_tup_ins": 0,
+        "n_tup_upd": 0,
+        "n_tup_del": 0,
+        "n_tup_hot_upd": 0
+      }
+    },
+    "differences": []
+  },
+  "writeAttemptsAsReadOnlyRole": [
+    "session: INSERT INTO public.tenants -> 25006",
+    "session: UPDATE public.tenants SET -> 25006",
+    "session: DELETE FROM public.tenants -> 25006",
+    "session: TRUNCATE public.tenants -> 25006",
+    "session: CREATE TABLE public.shadow_probe -> 25006",
+    "session: DROP TABLE public.tenants -> 25006",
+    "session: CREATE SCHEMA probe -> 25006",
+    "privilege: INSERT INTO public.tenants -> 42501",
+    "privilege: UPDATE public.tenants SET -> 42501",
+    "privilege: DELETE FROM public.tenants -> 42501",
+    "privilege: TRUNCATE public.tenants -> 42501",
+    "privilege: CREATE TABLE public.shadow_probe -> 42501",
+    "privilege: DROP TABLE public.tenants -> 42501",
+    "privilege: CREATE SCHEMA probe -> 42501",
+    "privilege: SELECT setval(c.oid::regclass, 1) -> 42501",
+    "privilege: SELECT nextval(c.oid::regclass) FROM -> 42501"
+  ],
+  "readinessCheckReadOnlyRole": {
+    "canWrite": false,
+    "reasons": [],
+    "role": "shadow_reader",
+    "probes": [
+      {
+        "name": "create-schema",
+        "outcome": "denied",
+        "detail": "42501"
+      },
+      {
+        "name": "delete-no-rows",
+        "outcome": "denied",
+        "detail": "42501"
+      }
+    ],
+    "roleAttributes": {
+      "superuser": false,
+      "bypassRls": true,
+      "createRole": false,
+      "createDb": false,
+      "replication": false
+    }
+  },
+  "writableRoleRefused": {
+    "reasons": [
+      "INSERT/UPDATE/DELETE/TRUNCATE privilege on 6 relation(s)",
+      "USAGE/UPDATE privilege on 3 sequence(s)"
+    ]
+  }
+}

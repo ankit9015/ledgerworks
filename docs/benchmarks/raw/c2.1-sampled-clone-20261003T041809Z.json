@@ -1,0 +1,1008 @@
+{
+  "description": "C2.1: sampled clone (10% of tenants, seed 20251001) of the synthetic 10M-row Ledgerline benchmark database.",
+  "data": "synthetic (pnpm seed --yes, seed 20251001)",
+  "machine": {
+    "cpuModel": "11th Gen Intel(R) Core(TM) i5-1135G7 @ 2.40GHz",
+    "logicalCores": 8,
+    "ramGiB": 19.8,
+    "platform": "win32 10.0.26200",
+    "node": "v22.13.1"
+  },
+  "wallClockMs": 16250,
+  "manifest": {
+    "manifestVersion": 1,
+    "id": "fb6155b8-01fa-4331-8e3d-10c244358107",
+    "createdAt": "2026-10-03T04:20:05.384Z",
+    "finishedAt": "2026-10-03T04:20:21.603Z",
+    "source": {
+      "database": "ledgerworks",
+      "serverVersion": "16.15 (Debian 16.15-1.pgdg13+2)",
+      "readOnlyCheck": {
+        "canWrite": false,
+        "overrideUsed": false,
+        "reasons": []
+      }
+    },
+    "mode": "sampled",
+    "sampling": {
+      "rootTable": "public.tenants",
+      "ratio": 0.1,
+      "seed": 20251001,
+      "uncovered": "referenced",
+      "isolated": "full",
+      "fullTables": []
+    },
+    "scaling": {
+      "sampled": true,
+      "totalRowRatio": 0.029030859449145345,
+      "largestTableRatio": 0.0289749,
+      "note": "SAMPLED COPY: this shadow holds only part of the data (see per-table ratios). Timings, plan shapes and sizes measured here are NOT full-scale and must be reported as measured on a sample."
+    },
+    "tables": [
+      {
+        "schema": "public",
+        "name": "api_keys",
+        "kind": "table",
+        "sourceRows": 250,
+        "shadowRows": 22,
+        "ratio": 0.088,
+        "selection": "child",
+        "predicate": "(t.\"tenant_id\" IS NULL OR ((hashtextextended((t.\"tenant_id\")::text, 20251001) & 9223372036854775807) % 1000000) < 100000)"
+      },
+      {
+        "schema": "public",
+        "name": "credit_balances",
+        "kind": "table",
+        "sourceRows": 250,
+        "shadowRows": 22,
+        "ratio": 0.088,
+        "selection": "child",
+        "predicate": "(t.\"tenant_id\" IS NULL OR ((hashtextextended((t.\"tenant_id\")::text, 20251001) & 9223372036854775807) % 1000000) < 100000)"
+      },
+      {
+        "schema": "public",
+        "name": "credit_ledger",
+        "kind": "table",
+        "sourceRows": 6053,
+        "shadowRows": 530,
+        "ratio": 0.08755988765901206,
+        "selection": "child",
+        "predicate": "(t.\"tenant_id\" IS NULL OR ((hashtextextended((t.\"tenant_id\")::text, 20251001) & 9223372036854775807) % 1000000) < 100000)"
+      },
+      {
+        "schema": "public",
+        "name": "dead_letters",
+        "kind": "table",
+        "sourceRows": 0,
+        "shadowRows": 0,
+        "ratio": 1,
+        "selection": "child",
+        "predicate": "(t.\"tenant_id\" IS NULL OR t.\"job_id\" IS NULL OR EXISTS (SELECT 1 FROM \"public\".\"jobs\" s1 WHERE s1.\"tenant_id\" = t.\"tenant_id\" AND s1.\"id\" = t.\"job_id\" AND (s1.\"tenant_id\" IS NULL OR ((hashtextextended((s1.\"tenant_id\")::text, 20251001) & 9223372036854775807) % 1000000) < 100000)))"
+      },
+      {
+        "schema": "public",
+        "name": "job_attempts",
+        "kind": "table",
+        "sourceRows": 0,
+        "shadowRows": 0,
+        "ratio": 1,
+        "selection": "child",
+        "predicate": "(t.\"tenant_id\" IS NULL OR t.\"job_id\" IS NULL OR EXISTS (SELECT 1 FROM \"public\".\"jobs\" s2 WHERE s2.\"tenant_id\" = t.\"tenant_id\" AND s2.\"id\" = t.\"job_id\" AND (s2.\"tenant_id\" IS NULL OR ((hashtextextended((s2.\"tenant_id\")::text, 20251001) & 9223372036854775807) % 1000000) < 100000)))"
+      },
+      {
+        "schema": "public",
+        "name": "jobs",
+        "kind": "table",
+        "sourceRows": 0,
+        "shadowRows": 0,
+        "ratio": 1,
+        "selection": "child",
+        "predicate": "(t.\"tenant_id\" IS NULL OR ((hashtextextended((t.\"tenant_id\")::text, 20251001) & 9223372036854775807) % 1000000) < 100000)"
+      },
+      {
+        "schema": "public",
+        "name": "memberships",
+        "kind": "table",
+        "sourceRows": 1543,
+        "shadowRows": 120,
+        "ratio": 0.07777057679844458,
+        "selection": "child",
+        "predicate": "(t.\"tenant_id\" IS NULL OR ((hashtextextended((t.\"tenant_id\")::text, 20251001) & 9223372036854775807) % 1000000) < 100000)"
+      },
+      {
+        "schema": "public",
+        "name": "schema_migrations",
+        "kind": "table",
+        "sourceRows": 11,
+        "shadowRows": 11,
+        "ratio": 1,
+        "selection": "isolated-full",
+        "predicate": null
+      },
+      {
+        "schema": "public",
+        "name": "tenants",
+        "kind": "table",
+        "sourceRows": 250,
+        "shadowRows": 22,
+        "ratio": 0.088,
+        "selection": "root",
+        "predicate": "((hashtextextended((t.\"id\")::text, 20251001) & 9223372036854775807) % 1000000) < 100000"
+      },
+      {
+        "schema": "public",
+        "name": "usage_events",
+        "kind": "partitioned-table",
+        "sourceRows": 10000000,
+        "shadowRows": 289749,
+        "ratio": 0.0289749,
+        "selection": "child",
+        "predicate": "(t.\"tenant_id\" IS NULL OR ((hashtextextended((t.\"tenant_id\")::text, 20251001) & 9223372036854775807) % 1000000) < 100000)"
+      },
+      {
+        "schema": "public",
+        "name": "usage_events_2024_01",
+        "kind": "partition",
+        "sourceRows": 0,
+        "shadowRows": 0,
+        "ratio": 1,
+        "selection": "child",
+        "predicate": "(t.\"tenant_id\" IS NULL OR ((hashtextextended((t.\"tenant_id\")::text, 20251001) & 9223372036854775807) % 1000000) < 100000)"
+      },
+      {
+        "schema": "public",
+        "name": "usage_events_2024_02",
+        "kind": "partition",
+        "sourceRows": 0,
+        "shadowRows": 0,
+        "ratio": 1,
+        "selection": "child",
+        "predicate": "(t.\"tenant_id\" IS NULL OR ((hashtextextended((t.\"tenant_id\")::text, 20251001) & 9223372036854775807) % 1000000) < 100000)"
+      },
+      {
+        "schema": "public",
+        "name": "usage_events_2024_03",
+        "kind": "partition",
+        "sourceRows": 0,
+        "shadowRows": 0,
+        "ratio": 1,
+        "selection": "child",
+        "predicate": "(t.\"tenant_id\" IS NULL OR ((hashtextextended((t.\"tenant_id\")::text, 20251001) & 9223372036854775807) % 1000000) < 100000)"
+      },
+      {
+        "schema": "public",
+        "name": "usage_events_2024_04",
+        "kind": "partition",
+        "sourceRows": 0,
+        "shadowRows": 0,
+        "ratio": 1,
+        "selection": "child",
+        "predicate": "(t.\"tenant_id\" IS NULL OR ((hashtextextended((t.\"tenant_id\")::text, 20251001) & 9223372036854775807) % 1000000) < 100000)"
+      },
+      {
+        "schema": "public",
+        "name": "usage_events_2024_05",
+        "kind": "partition",
+        "sourceRows": 0,
+        "shadowRows": 0,
+        "ratio": 1,
+        "selection": "child",
+        "predicate": "(t.\"tenant_id\" IS NULL OR ((hashtextextended((t.\"tenant_id\")::text, 20251001) & 9223372036854775807) % 1000000) < 100000)"
+      },
+      {
+        "schema": "public",
+        "name": "usage_events_2024_06",
+        "kind": "partition",
+        "sourceRows": 0,
+        "shadowRows": 0,
+        "ratio": 1,
+        "selection": "child",
+        "predicate": "(t.\"tenant_id\" IS NULL OR ((hashtextextended((t.\"tenant_id\")::text, 20251001) & 9223372036854775807) % 1000000) < 100000)"
+      },
+      {
+        "schema": "public",
+        "name": "usage_events_2024_07",
+        "kind": "partition",
+        "sourceRows": 0,
+        "shadowRows": 0,
+        "ratio": 1,
+        "selection": "child",
+        "predicate": "(t.\"tenant_id\" IS NULL OR ((hashtextextended((t.\"tenant_id\")::text, 20251001) & 9223372036854775807) % 1000000) < 100000)"
+      },
+      {
+        "schema": "public",
+        "name": "usage_events_2024_08",
+        "kind": "partition",
+        "sourceRows": 0,
+        "shadowRows": 0,
+        "ratio": 1,
+        "selection": "child",
+        "predicate": "(t.\"tenant_id\" IS NULL OR ((hashtextextended((t.\"tenant_id\")::text, 20251001) & 9223372036854775807) % 1000000) < 100000)"
+      },
+      {
+        "schema": "public",
+        "name": "usage_events_2024_09",
+        "kind": "partition",
+        "sourceRows": 0,
+        "shadowRows": 0,
+        "ratio": 1,
+        "selection": "child",
+        "predicate": "(t.\"tenant_id\" IS NULL OR ((hashtextextended((t.\"tenant_id\")::text, 20251001) & 9223372036854775807) % 1000000) < 100000)"
+      },
+      {
+        "schema": "public",
+        "name": "usage_events_2024_10",
+        "kind": "partition",
+        "sourceRows": 0,
+        "shadowRows": 0,
+        "ratio": 1,
+        "selection": "child",
+        "predicate": "(t.\"tenant_id\" IS NULL OR ((hashtextextended((t.\"tenant_id\")::text, 20251001) & 9223372036854775807) % 1000000) < 100000)"
+      },
+      {
+        "schema": "public",
+        "name": "usage_events_2024_11",
+        "kind": "partition",
+        "sourceRows": 0,
+        "shadowRows": 0,
+        "ratio": 1,
+        "selection": "child",
+        "predicate": "(t.\"tenant_id\" IS NULL OR ((hashtextextended((t.\"tenant_id\")::text, 20251001) & 9223372036854775807) % 1000000) < 100000)"
+      },
+      {
+        "schema": "public",
+        "name": "usage_events_2024_12",
+        "kind": "partition",
+        "sourceRows": 0,
+        "shadowRows": 0,
+        "ratio": 1,
+        "selection": "child",
+        "predicate": "(t.\"tenant_id\" IS NULL OR ((hashtextextended((t.\"tenant_id\")::text, 20251001) & 9223372036854775807) % 1000000) < 100000)"
+      },
+      {
+        "schema": "public",
+        "name": "usage_events_2025_01",
+        "kind": "partition",
+        "sourceRows": 0,
+        "shadowRows": 0,
+        "ratio": 1,
+        "selection": "child",
+        "predicate": "(t.\"tenant_id\" IS NULL OR ((hashtextextended((t.\"tenant_id\")::text, 20251001) & 9223372036854775807) % 1000000) < 100000)"
+      },
+      {
+        "schema": "public",
+        "name": "usage_events_2025_02",
+        "kind": "partition",
+        "sourceRows": 0,
+        "shadowRows": 0,
+        "ratio": 1,
+        "selection": "child",
+        "predicate": "(t.\"tenant_id\" IS NULL OR ((hashtextextended((t.\"tenant_id\")::text, 20251001) & 9223372036854775807) % 1000000) < 100000)"
+      },
+      {
+        "schema": "public",
+        "name": "usage_events_2025_03",
+        "kind": "partition",
+        "sourceRows": 0,
+        "shadowRows": 0,
+        "ratio": 1,
+        "selection": "child",
+        "predicate": "(t.\"tenant_id\" IS NULL OR ((hashtextextended((t.\"tenant_id\")::text, 20251001) & 9223372036854775807) % 1000000) < 100000)"
+      },
+      {
+        "schema": "public",
+        "name": "usage_events_2025_04",
+        "kind": "partition",
+        "sourceRows": 0,
+        "shadowRows": 0,
+        "ratio": 1,
+        "selection": "child",
+        "predicate": "(t.\"tenant_id\" IS NULL OR ((hashtextextended((t.\"tenant_id\")::text, 20251001) & 9223372036854775807) % 1000000) < 100000)"
+      },
+      {
+        "schema": "public",
+        "name": "usage_events_2025_05",
+        "kind": "partition",
+        "sourceRows": 0,
+        "shadowRows": 0,
+        "ratio": 1,
+        "selection": "child",
+        "predicate": "(t.\"tenant_id\" IS NULL OR ((hashtextextended((t.\"tenant_id\")::text, 20251001) & 9223372036854775807) % 1000000) < 100000)"
+      },
+      {
+        "schema": "public",
+        "name": "usage_events_2025_06",
+        "kind": "partition",
+        "sourceRows": 0,
+        "shadowRows": 0,
+        "ratio": 1,
+        "selection": "child",
+        "predicate": "(t.\"tenant_id\" IS NULL OR ((hashtextextended((t.\"tenant_id\")::text, 20251001) & 9223372036854775807) % 1000000) < 100000)"
+      },
+      {
+        "schema": "public",
+        "name": "usage_events_2025_07",
+        "kind": "partition",
+        "sourceRows": 0,
+        "shadowRows": 0,
+        "ratio": 1,
+        "selection": "child",
+        "predicate": "(t.\"tenant_id\" IS NULL OR ((hashtextextended((t.\"tenant_id\")::text, 20251001) & 9223372036854775807) % 1000000) < 100000)"
+      },
+      {
+        "schema": "public",
+        "name": "usage_events_2025_08",
+        "kind": "partition",
+        "sourceRows": 0,
+        "shadowRows": 0,
+        "ratio": 1,
+        "selection": "child",
+        "predicate": "(t.\"tenant_id\" IS NULL OR ((hashtextextended((t.\"tenant_id\")::text, 20251001) & 9223372036854775807) % 1000000) < 100000)"
+      },
+      {
+        "schema": "public",
+        "name": "usage_events_2025_09",
+        "kind": "partition",
+        "sourceRows": 0,
+        "shadowRows": 0,
+        "ratio": 1,
+        "selection": "child",
+        "predicate": "(t.\"tenant_id\" IS NULL OR ((hashtextextended((t.\"tenant_id\")::text, 20251001) & 9223372036854775807) % 1000000) < 100000)"
+      },
+      {
+        "schema": "public",
+        "name": "usage_events_2025_10",
+        "kind": "partition",
+        "sourceRows": 547332,
+        "shadowRows": 15860,
+        "ratio": 0.028976928080214567,
+        "selection": "child",
+        "predicate": "(t.\"tenant_id\" IS NULL OR ((hashtextextended((t.\"tenant_id\")::text, 20251001) & 9223372036854775807) % 1000000) < 100000)"
+      },
+      {
+        "schema": "public",
+        "name": "usage_events_2025_11",
+        "kind": "partition",
+        "sourceRows": 557174,
+        "shadowRows": 16143,
+        "ratio": 0.02897299586843607,
+        "selection": "child",
+        "predicate": "(t.\"tenant_id\" IS NULL OR ((hashtextextended((t.\"tenant_id\")::text, 20251001) & 9223372036854775807) % 1000000) < 100000)"
+      },
+      {
+        "schema": "public",
+        "name": "usage_events_2025_12",
+        "kind": "partition",
+        "sourceRows": 662550,
+        "shadowRows": 19198,
+        "ratio": 0.028975926345181497,
+        "selection": "child",
+        "predicate": "(t.\"tenant_id\" IS NULL OR ((hashtextextended((t.\"tenant_id\")::text, 20251001) & 9223372036854775807) % 1000000) < 100000)"
+      },
+      {
+        "schema": "public",
+        "name": "usage_events_2026_01",
+        "kind": "partition",
+        "sourceRows": 706864,
+        "shadowRows": 20480,
+        "ratio": 0.028973041490300822,
+        "selection": "child",
+        "predicate": "(t.\"tenant_id\" IS NULL OR ((hashtextextended((t.\"tenant_id\")::text, 20251001) & 9223372036854775807) % 1000000) < 100000)"
+      },
+      {
+        "schema": "public",
+        "name": "usage_events_2026_02",
+        "kind": "partition",
+        "sourceRows": 690058,
+        "shadowRows": 19993,
+        "ratio": 0.028972926913389888,
+        "selection": "child",
+        "predicate": "(t.\"tenant_id\" IS NULL OR ((hashtextextended((t.\"tenant_id\")::text, 20251001) & 9223372036854775807) % 1000000) < 100000)"
+      },
+      {
+        "schema": "public",
+        "name": "usage_events_2026_03",
+        "kind": "partition",
+        "sourceRows": 816525,
+        "shadowRows": 23657,
+        "ratio": 0.02897278099262117,
+        "selection": "child",
+        "predicate": "(t.\"tenant_id\" IS NULL OR ((hashtextextended((t.\"tenant_id\")::text, 20251001) & 9223372036854775807) % 1000000) < 100000)"
+      },
+      {
+        "schema": "public",
+        "name": "usage_events_2026_04",
+        "kind": "partition",
+        "sourceRows": 858363,
+        "shadowRows": 24874,
+        "ratio": 0.02897841589164491,
+        "selection": "child",
+        "predicate": "(t.\"tenant_id\" IS NULL OR ((hashtextextended((t.\"tenant_id\")::text, 20251001) & 9223372036854775807) % 1000000) < 100000)"
+      },
+      {
+        "schema": "public",
+        "name": "usage_events_2026_05",
+        "kind": "partition",
+        "sourceRows": 910208,
+        "shadowRows": 26374,
+        "ratio": 0.028975794543664744,
+        "selection": "child",
+        "predicate": "(t.\"tenant_id\" IS NULL OR ((hashtextextended((t.\"tenant_id\")::text, 20251001) & 9223372036854775807) % 1000000) < 100000)"
+      },
+      {
+        "schema": "public",
+        "name": "usage_events_2026_06",
+        "kind": "partition",
+        "sourceRows": 969252,
+        "shadowRows": 28083,
+        "ratio": 0.028973889143380668,
+        "selection": "child",
+        "predicate": "(t.\"tenant_id\" IS NULL OR ((hashtextextended((t.\"tenant_id\")::text, 20251001) & 9223372036854775807) % 1000000) < 100000)"
+      },
+      {
+        "schema": "public",
+        "name": "usage_events_2026_07",
+        "kind": "partition",
+        "sourceRows": 1065841,
+        "shadowRows": 30883,
+        "ratio": 0.028975241147600816,
+        "selection": "child",
+        "predicate": "(t.\"tenant_id\" IS NULL OR ((hashtextextended((t.\"tenant_id\")::text, 20251001) & 9223372036854775807) % 1000000) < 100000)"
+      },
+      {
+        "schema": "public",
+        "name": "usage_events_2026_08",
+        "kind": "partition",
+        "sourceRows": 1078102,
+        "shadowRows": 31238,
+        "ratio": 0.02897499494481969,
+        "selection": "child",
+        "predicate": "(t.\"tenant_id\" IS NULL OR ((hashtextextended((t.\"tenant_id\")::text, 20251001) & 9223372036854775807) % 1000000) < 100000)"
+      },
+      {
+        "schema": "public",
+        "name": "usage_events_2026_09",
+        "kind": "partition",
+        "sourceRows": 1137731,
+        "shadowRows": 32966,
+        "ratio": 0.02897521470365139,
+        "selection": "child",
+        "predicate": "(t.\"tenant_id\" IS NULL OR ((hashtextextended((t.\"tenant_id\")::text, 20251001) & 9223372036854775807) % 1000000) < 100000)"
+      },
+      {
+        "schema": "public",
+        "name": "usage_events_2026_10",
+        "kind": "partition",
+        "sourceRows": 0,
+        "shadowRows": 0,
+        "ratio": 1,
+        "selection": "child",
+        "predicate": "(t.\"tenant_id\" IS NULL OR ((hashtextextended((t.\"tenant_id\")::text, 20251001) & 9223372036854775807) % 1000000) < 100000)"
+      },
+      {
+        "schema": "public",
+        "name": "usage_events_2026_11",
+        "kind": "partition",
+        "sourceRows": 0,
+        "shadowRows": 0,
+        "ratio": 1,
+        "selection": "child",
+        "predicate": "(t.\"tenant_id\" IS NULL OR ((hashtextextended((t.\"tenant_id\")::text, 20251001) & 9223372036854775807) % 1000000) < 100000)"
+      },
+      {
+        "schema": "public",
+        "name": "usage_events_2026_12",
+        "kind": "partition",
+        "sourceRows": 0,
+        "shadowRows": 0,
+        "ratio": 1,
+        "selection": "child",
+        "predicate": "(t.\"tenant_id\" IS NULL OR ((hashtextextended((t.\"tenant_id\")::text, 20251001) & 9223372036854775807) % 1000000) < 100000)"
+      },
+      {
+        "schema": "public",
+        "name": "usage_events_2027_01",
+        "kind": "partition",
+        "sourceRows": 0,
+        "shadowRows": 0,
+        "ratio": 1,
+        "selection": "child",
+        "predicate": "(t.\"tenant_id\" IS NULL OR ((hashtextextended((t.\"tenant_id\")::text, 20251001) & 9223372036854775807) % 1000000) < 100000)"
+      },
+      {
+        "schema": "public",
+        "name": "usage_events_2027_02",
+        "kind": "partition",
+        "sourceRows": 0,
+        "shadowRows": 0,
+        "ratio": 1,
+        "selection": "child",
+        "predicate": "(t.\"tenant_id\" IS NULL OR ((hashtextextended((t.\"tenant_id\")::text, 20251001) & 9223372036854775807) % 1000000) < 100000)"
+      },
+      {
+        "schema": "public",
+        "name": "usage_events_2027_03",
+        "kind": "partition",
+        "sourceRows": 0,
+        "shadowRows": 0,
+        "ratio": 1,
+        "selection": "child",
+        "predicate": "(t.\"tenant_id\" IS NULL OR ((hashtextextended((t.\"tenant_id\")::text, 20251001) & 9223372036854775807) % 1000000) < 100000)"
+      },
+      {
+        "schema": "public",
+        "name": "usage_events_2027_04",
+        "kind": "partition",
+        "sourceRows": 0,
+        "shadowRows": 0,
+        "ratio": 1,
+        "selection": "child",
+        "predicate": "(t.\"tenant_id\" IS NULL OR ((hashtextextended((t.\"tenant_id\")::text, 20251001) & 9223372036854775807) % 1000000) < 100000)"
+      },
+      {
+        "schema": "public",
+        "name": "usage_events_2027_05",
+        "kind": "partition",
+        "sourceRows": 0,
+        "shadowRows": 0,
+        "ratio": 1,
+        "selection": "child",
+        "predicate": "(t.\"tenant_id\" IS NULL OR ((hashtextextended((t.\"tenant_id\")::text, 20251001) & 9223372036854775807) % 1000000) < 100000)"
+      },
+      {
+        "schema": "public",
+        "name": "usage_events_2027_06",
+        "kind": "partition",
+        "sourceRows": 0,
+        "shadowRows": 0,
+        "ratio": 1,
+        "selection": "child",
+        "predicate": "(t.\"tenant_id\" IS NULL OR ((hashtextextended((t.\"tenant_id\")::text, 20251001) & 9223372036854775807) % 1000000) < 100000)"
+      },
+      {
+        "schema": "public",
+        "name": "usage_events_2027_07",
+        "kind": "partition",
+        "sourceRows": 0,
+        "shadowRows": 0,
+        "ratio": 1,
+        "selection": "child",
+        "predicate": "(t.\"tenant_id\" IS NULL OR ((hashtextextended((t.\"tenant_id\")::text, 20251001) & 9223372036854775807) % 1000000) < 100000)"
+      },
+      {
+        "schema": "public",
+        "name": "usage_events_2027_08",
+        "kind": "partition",
+        "sourceRows": 0,
+        "shadowRows": 0,
+        "ratio": 1,
+        "selection": "child",
+        "predicate": "(t.\"tenant_id\" IS NULL OR ((hashtextextended((t.\"tenant_id\")::text, 20251001) & 9223372036854775807) % 1000000) < 100000)"
+      },
+      {
+        "schema": "public",
+        "name": "usage_events_2027_09",
+        "kind": "partition",
+        "sourceRows": 0,
+        "shadowRows": 0,
+        "ratio": 1,
+        "selection": "child",
+        "predicate": "(t.\"tenant_id\" IS NULL OR ((hashtextextended((t.\"tenant_id\")::text, 20251001) & 9223372036854775807) % 1000000) < 100000)"
+      },
+      {
+        "schema": "public",
+        "name": "usage_events_2027_10",
+        "kind": "partition",
+        "sourceRows": 0,
+        "shadowRows": 0,
+        "ratio": 1,
+        "selection": "child",
+        "predicate": "(t.\"tenant_id\" IS NULL OR ((hashtextextended((t.\"tenant_id\")::text, 20251001) & 9223372036854775807) % 1000000) < 100000)"
+      },
+      {
+        "schema": "public",
+        "name": "usage_events_2027_11",
+        "kind": "partition",
+        "sourceRows": 0,
+        "shadowRows": 0,
+        "ratio": 1,
+        "selection": "child",
+        "predicate": "(t.\"tenant_id\" IS NULL OR ((hashtextextended((t.\"tenant_id\")::text, 20251001) & 9223372036854775807) % 1000000) < 100000)"
+      },
+      {
+        "schema": "public",
+        "name": "usage_events_2027_12",
+        "kind": "partition",
+        "sourceRows": 0,
+        "shadowRows": 0,
+        "ratio": 1,
+        "selection": "child",
+        "predicate": "(t.\"tenant_id\" IS NULL OR ((hashtextextended((t.\"tenant_id\")::text, 20251001) & 9223372036854775807) % 1000000) < 100000)"
+      },
+      {
+        "schema": "public",
+        "name": "users",
+        "kind": "table",
+        "sourceRows": 1543,
+        "shadowRows": 120,
+        "ratio": 0.07777057679844458,
+        "selection": "referenced",
+        "predicate": "(EXISTS (SELECT 1 FROM \"public\".\"memberships\" s3 WHERE s3.\"user_id\" = t.\"id\" AND (s3.\"tenant_id\" IS NULL OR ((hashtextextended((s3.\"tenant_id\")::text, 20251001) & 9223372036854775807) % 1000000) < 100000)))"
+      }
+    ],
+    "container": {
+      "name": "lw-shadow-fb6155b8",
+      "volume": "lw-shadow-fb6155b8-data",
+      "limits": {
+        "cpus": 2,
+        "memoryMiB": 3072,
+        "memorySwapMiB": 3072,
+        "shmMiB": 256,
+        "pidsLimit": 512
+      },
+      "host": {
+        "cpus": 8,
+        "memoryMiB": 9838,
+        "dockerVersion": "28.0.4"
+      },
+      "sourceReserve": {
+        "cpus": 2,
+        "memoryMiB": 2048
+      }
+    },
+    "image": {
+      "tag": "ledgerworks/shadow-postgres:16.15-hypopg1.4.3",
+      "id": "sha256:af9fe3cbcd8fc101e7878bbd4c712f7a54335df3520adc9449ebb48298d2c4a6",
+      "postgresVersion": "16.15 (Debian 16.15-1.pgdg12+2)",
+      "hypopgVersion": "1.4.3",
+      "pgStatStatementsVersion": "1.10"
+    },
+    "extensions": {
+      "source": [
+        "pg_stat_statements",
+        "plpgsql"
+      ],
+      "shadow": [
+        "hypopg",
+        "pg_stat_statements",
+        "plpgsql"
+      ]
+    },
+    "roles": [
+      {
+        "name": "ledgerline_app",
+        "bypassRls": false,
+        "wasSuperuser": false
+      },
+      {
+        "name": "ledgerline_definer",
+        "bypassRls": false,
+        "wasSuperuser": false
+      },
+      {
+        "name": "ledgerline_ledger",
+        "bypassRls": false,
+        "wasSuperuser": false
+      },
+      {
+        "name": "ledgerline_metrics",
+        "bypassRls": false,
+        "wasSuperuser": false
+      },
+      {
+        "name": "ledgerline_owner",
+        "bypassRls": false,
+        "wasSuperuser": false
+      },
+      {
+        "name": "ledgerline_test_noprivs",
+        "bypassRls": false,
+        "wasSuperuser": false
+      },
+      {
+        "name": "ledgerline_worker",
+        "bypassRls": false,
+        "wasSuperuser": false
+      },
+      {
+        "name": "ledgerworks",
+        "bypassRls": true,
+        "wasSuperuser": true
+      },
+      {
+        "name": "shadow_reader",
+        "bypassRls": true,
+        "wasSuperuser": false
+      }
+    ],
+    "settings": [
+      {
+        "name": "seq_page_cost",
+        "source": "1",
+        "shadow": "1"
+      },
+      {
+        "name": "random_page_cost",
+        "source": "4",
+        "shadow": "4"
+      },
+      {
+        "name": "cpu_tuple_cost",
+        "source": "0.01",
+        "shadow": "0.01"
+      },
+      {
+        "name": "cpu_index_tuple_cost",
+        "source": "0.005",
+        "shadow": "0.005"
+      },
+      {
+        "name": "cpu_operator_cost",
+        "source": "0.0025",
+        "shadow": "0.0025"
+      },
+      {
+        "name": "parallel_setup_cost",
+        "source": "1000",
+        "shadow": "1000"
+      },
+      {
+        "name": "parallel_tuple_cost",
+        "source": "0.1",
+        "shadow": "0.1"
+      },
+      {
+        "name": "effective_cache_size",
+        "source": "1536MB",
+        "shadow": "1536MB"
+      },
+      {
+        "name": "effective_io_concurrency",
+        "source": "1",
+        "shadow": "1"
+      },
+      {
+        "name": "default_statistics_target",
+        "source": "100",
+        "shadow": "100"
+      },
+      {
+        "name": "jit",
+        "source": "on",
+        "shadow": "on"
+      },
+      {
+        "name": "work_mem",
+        "source": "16MB",
+        "shadow": "16MB"
+      },
+      {
+        "name": "max_parallel_workers_per_gather",
+        "source": "2",
+        "shadow": "2"
+      },
+      {
+        "name": "shared_buffers",
+        "source": "512MB",
+        "shadow": "768MB"
+      },
+      {
+        "name": "maintenance_work_mem",
+        "source": "128MB",
+        "shadow": "184MB"
+      },
+      {
+        "name": "max_wal_size",
+        "source": "1GB",
+        "shadow": "2GB"
+      }
+    ],
+    "copy": {
+      "method": "schema-dump+copy-stream",
+      "parallelism": 2,
+      "maxSourceMBps": null,
+      "snapshot": "exported-repeatable-read",
+      "sourceStatementTimeoutMs": 1800000
+    },
+    "stages": [
+      {
+        "name": "preflight",
+        "durationMs": 779
+      },
+      {
+        "name": "image",
+        "durationMs": 83
+      },
+      {
+        "name": "container",
+        "durationMs": 2643
+      },
+      {
+        "name": "extension-check",
+        "durationMs": 5
+      },
+      {
+        "name": "roles",
+        "durationMs": 19
+      },
+      {
+        "name": "schema-dump",
+        "durationMs": 644
+      },
+      {
+        "name": "restore-pre",
+        "durationMs": 564
+      },
+      {
+        "name": "copy-data",
+        "durationMs": 5440
+      },
+      {
+        "name": "sequences",
+        "durationMs": 5
+      },
+      {
+        "name": "restore-post",
+        "durationMs": 1500
+      },
+      {
+        "name": "matviews",
+        "durationMs": 0
+      },
+      {
+        "name": "extensions",
+        "durationMs": 14
+      },
+      {
+        "name": "analyze",
+        "durationMs": 1831
+      },
+      {
+        "name": "verify",
+        "durationMs": 100
+      },
+      {
+        "name": "marker",
+        "durationMs": 14
+      }
+    ],
+    "totalDurationMs": 16219,
+    "memory": {
+      "shadowPeakSampledMiB": 112,
+      "shadowCgroupPeakMiB": 250,
+      "sourcePeakSampledMiB": 1383,
+      "samples": 5
+    },
+    "sourceContainerHealth": {
+      "name": "ledgerworks-postgres",
+      "oomKilledBefore": false,
+      "oomKilledAfter": false,
+      "restartCountBefore": 0,
+      "restartCountAfter": 0,
+      "startedAtBefore": "2026-10-03T03:31:17.203738234Z",
+      "startedAtAfter": "2026-10-03T03:31:17.203738234Z"
+    },
+    "warnings": []
+  },
+  "integrityReport": {
+    "foreignKeysChecked": 10,
+    "orphans": 0,
+    "detail": [
+      {
+        "constraint": "api_keys_tenant_id_fkey",
+        "orphans": 0
+      },
+      {
+        "constraint": "credit_balances_tenant_id_fkey",
+        "orphans": 0
+      },
+      {
+        "constraint": "credit_ledger_refund_of_fkey",
+        "orphans": 0
+      },
+      {
+        "constraint": "credit_ledger_tenant_id_fkey",
+        "orphans": 0
+      },
+      {
+        "constraint": "dead_letters_tenant_id_job_id_fkey",
+        "orphans": 0
+      },
+      {
+        "constraint": "job_attempts_tenant_id_job_id_fkey",
+        "orphans": 0
+      },
+      {
+        "constraint": "jobs_tenant_id_fkey",
+        "orphans": 0
+      },
+      {
+        "constraint": "memberships_tenant_id_fkey",
+        "orphans": 0
+      },
+      {
+        "constraint": "memberships_user_id_fkey",
+        "orphans": 0
+      },
+      {
+        "constraint": "usage_events_tenant_id_fkey",
+        "orphans": 0
+      }
+    ]
+  },
+  "log": [
+    "2026-10-03T04:20:05.385Z stage preflight",
+    "2026-10-03T04:20:06.164Z stage image",
+    "2026-10-03T04:20:06.247Z stage container",
+    "2026-10-03T04:20:08.901Z stage extension-check",
+    "2026-10-03T04:20:08.905Z stage roles",
+    "2026-10-03T04:20:08.925Z stage schema-dump",
+    "2026-10-03T04:20:09.568Z stage restore-pre",
+    "2026-10-03T04:20:10.133Z stage copy-data",
+    "2026-10-03T04:20:11.333Z   copied public.usage_events_2026_08: 31238 of 1078102 rows",
+    "2026-10-03T04:20:11.336Z   copied public.usage_events_2026_09: 32966 of 1137731 rows",
+    "2026-10-03T04:20:12.306Z   copied public.usage_events_2026_06: 28083 of 969252 rows",
+    "2026-10-03T04:20:12.479Z   copied public.usage_events_2026_07: 30883 of 1065841 rows",
+    "2026-10-03T04:20:13.195Z   copied public.usage_events_2026_05: 26374 of 910208 rows",
+    "2026-10-03T04:20:13.306Z   copied public.usage_events_2026_04: 24874 of 858363 rows",
+    "2026-10-03T04:20:14.158Z   copied public.usage_events_2026_01: 20480 of 706864 rows",
+    "2026-10-03T04:20:14.167Z   copied public.usage_events_2026_03: 23657 of 816525 rows",
+    "2026-10-03T04:20:14.851Z   copied public.usage_events_2025_12: 19198 of 662550 rows",
+    "2026-10-03T04:20:14.852Z   copied public.usage_events_2026_02: 19993 of 690058 rows",
+    "2026-10-03T04:20:15.425Z   copied public.usage_events_2025_10: 15860 of 547332 rows",
+    "2026-10-03T04:20:15.427Z   copied public.usage_events_2025_11: 16143 of 557174 rows",
+    "2026-10-03T04:20:15.447Z   copied public.memberships: 120 of 1543 rows",
+    "2026-10-03T04:20:15.455Z   copied public.credit_ledger: 530 of 6053 rows",
+    "2026-10-03T04:20:15.465Z   copied public.api_keys: 22 of 250 rows",
+    "2026-10-03T04:20:15.466Z   copied public.users: 120 of 1543 rows",
+    "2026-10-03T04:20:15.475Z   copied public.tenants: 22 of 250 rows",
+    "2026-10-03T04:20:15.476Z   copied public.credit_balances: 22 of 250 rows",
+    "2026-10-03T04:20:15.482Z   copied public.jobs: 0 of 0 rows",
+    "2026-10-03T04:20:15.485Z   copied public.dead_letters: 0 of 0 rows",
+    "2026-10-03T04:20:15.492Z   copied public.schema_migrations: 11 of 11 rows",
+    "2026-10-03T04:20:15.495Z   copied public.job_attempts: 0 of 0 rows",
+    "2026-10-03T04:20:15.499Z   copied public.usage_events_2024_01: 0 of 0 rows",
+    "2026-10-03T04:20:15.503Z   copied public.usage_events_2024_02: 0 of 0 rows",
+    "2026-10-03T04:20:15.508Z   copied public.usage_events_2024_03: 0 of 0 rows",
+    "2026-10-03T04:20:15.510Z   copied public.usage_events_2024_04: 0 of 0 rows",
+    "2026-10-03T04:20:15.513Z   copied public.usage_events_2024_05: 0 of 0 rows",
+    "2026-10-03T04:20:15.515Z   copied public.usage_events_2024_06: 0 of 0 rows",
+    "2026-10-03T04:20:15.517Z   copied public.usage_events_2024_07: 0 of 0 rows",
+    "2026-10-03T04:20:15.519Z   copied public.usage_events_2024_08: 0 of 0 rows",
+    "2026-10-03T04:20:15.522Z   copied public.usage_events_2024_09: 0 of 0 rows",
+    "2026-10-03T04:20:15.524Z   copied public.usage_events_2024_10: 0 of 0 rows",
+    "2026-10-03T04:20:15.526Z   copied public.usage_events_2024_11: 0 of 0 rows",
+    "2026-10-03T04:20:15.528Z   copied public.usage_events_2024_12: 0 of 0 rows",
+    "2026-10-03T04:20:15.530Z   copied public.usage_events_2025_01: 0 of 0 rows",
+    "2026-10-03T04:20:15.532Z   copied public.usage_events_2025_02: 0 of 0 rows",
+    "2026-10-03T04:20:15.534Z   copied public.usage_events_2025_03: 0 of 0 rows",
+    "2026-10-03T04:20:15.536Z   copied public.usage_events_2025_04: 0 of 0 rows",
+    "2026-10-03T04:20:15.537Z   copied public.usage_events_2025_05: 0 of 0 rows",
+    "2026-10-03T04:20:15.539Z   copied public.usage_events_2025_06: 0 of 0 rows",
+    "2026-10-03T04:20:15.541Z   copied public.usage_events_2025_07: 0 of 0 rows",
+    "2026-10-03T04:20:15.542Z   copied public.usage_events_2025_08: 0 of 0 rows",
+    "2026-10-03T04:20:15.544Z   copied public.usage_events_2025_09: 0 of 0 rows",
+    "2026-10-03T04:20:15.545Z   copied public.usage_events_2026_10: 0 of 0 rows",
+    "2026-10-03T04:20:15.546Z   copied public.usage_events_2026_11: 0 of 0 rows",
+    "2026-10-03T04:20:15.548Z   copied public.usage_events_2026_12: 0 of 0 rows",
+    "2026-10-03T04:20:15.549Z   copied public.usage_events_2027_01: 0 of 0 rows",
+    "2026-10-03T04:20:15.550Z   copied public.usage_events_2027_02: 0 of 0 rows",
+    "2026-10-03T04:20:15.552Z   copied public.usage_events_2027_03: 0 of 0 rows",
+    "2026-10-03T04:20:15.554Z   copied public.usage_events_2027_04: 0 of 0 rows",
+    "2026-10-03T04:20:15.556Z   copied public.usage_events_2027_05: 0 of 0 rows",
+    "2026-10-03T04:20:15.557Z   copied public.usage_events_2027_06: 0 of 0 rows",
+    "2026-10-03T04:20:15.558Z   copied public.usage_events_2027_07: 0 of 0 rows",
+    "2026-10-03T04:20:15.560Z   copied public.usage_events_2027_08: 0 of 0 rows",
+    "2026-10-03T04:20:15.561Z   copied public.usage_events_2027_09: 0 of 0 rows",
+    "2026-10-03T04:20:15.563Z   copied public.usage_events_2027_10: 0 of 0 rows",
+    "2026-10-03T04:20:15.564Z   copied public.usage_events_2027_11: 0 of 0 rows",
+    "2026-10-03T04:20:15.566Z   copied public.usage_events_2027_12: 0 of 0 rows",
+    "2026-10-03T04:20:15.573Z stage sequences",
+    "2026-10-03T04:20:15.580Z stage restore-post",
+    "2026-10-03T04:20:17.080Z stage matviews",
+    "2026-10-03T04:20:17.080Z stage extensions",
+    "2026-10-03T04:20:17.094Z stage analyze",
+    "2026-10-03T04:20:18.926Z stage verify",
+    "2026-10-03T04:20:19.026Z stage marker"
+  ]
+}

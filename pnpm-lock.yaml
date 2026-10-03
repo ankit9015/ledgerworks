@@ -30,7 +30,30 @@ importers:
         specifier: ^2.1.0
         version: 2.1.9(@types/node@26.6.3)(jsdom@26.1.0)(lightningcss@1.33.0)
 
-  core: {}
+  core:
+    dependencies:
+      pg:
+        specifier: ^8.23.1
+        version: 8.23.1
+      pg-copy-streams:
+        specifier: ^7.0.0
+        version: 7.0.0
+      zod:
+        specifier: ^4.6.5
+        version: 4.6.5
+    devDependencies:
+      '@types/node':
+        specifier: ^24.19.0
+        version: 24.19.0
+      '@types/pg':
+        specifier: ^8.23.1
+        version: 8.23.1
+      '@types/pg-copy-streams':
+        specifier: ^1.2.5
+        version: 1.2.5
+      tsx:
+        specifier: ^4.23.15
+        version: 4.23.15
 
   evals: {}
 
@@ -904,6 +927,9 @@ packages:
   '@types/node@26.6.3':
     resolution: {integrity: sha512-dsqMQQoeTLqu9wynDD00q573mNzso3IdQOAfHRJqLCcmCFPoGo9A1bDpUcv/9tnKpErQWv9uKeGfl37EIS02Yg==}
 
+  '@types/pg-copy-streams@1.2.5':
+    resolution: {integrity: sha512-7D6/GYW2uHIaVU6S/5omI+6RZnwlZBpLQDZAH83xX1rjxAOK0f6/deKyyUTewxqts145VIGn6XWYz1YGf50G5g==}
+
   '@types/pg@8.23.1':
     resolution: {integrity: sha512-fKVHpikPdg4GKks3JuLEhvwSyvwzF23hnabPy6DD8ljVbC7+6J5dQzdv4arV6jqq57djnMgs1HKBxX4P8aBI3A==}
 
@@ -1589,6 +1615,9 @@ packages:
   pg-connection-string@2.14.1:
     resolution: {integrity: sha512-qR3kGNPBLpCNtz0evbKA0Y/MRFXwSSdT+pTJvYp/bXTcReZbvX1kzF0IyTc1QnxqF7AZbOeBhNL8R5mYQZV/MA==}
 
+  pg-copy-streams@7.0.0:
+    resolution: {integrity: sha512-zBvnY6wtaBRE2ae2xXWOOGMaNVPkXh1vhypAkNSKgMdciJeTyIQAHZaEeRAxUjs/p1El5jgzYmwG5u871Zj3dQ==}
+
   pg-int8@1.0.1:
     resolution: {integrity: sha512-WCtabS6t3c8SkpDBUlb1kjOs7l66xsGdKpIPZsg4wR+B3+u9UAum2odSsF9tnvxg80h4ZxLWMy4pRjOsFIqQpw==}
     engines: {node: '>=4.0.0'}
@@ -2071,6 +2100,9 @@ packages:
   yocto-queue@0.1.0:
     resolution: {integrity: sha512-rVksvsnNCdJ/ohGc6xgPwyN8eheCxsiLM8mxuE/t/mOVqJewPuO1miLpTHQiRgTKCLexL4MeAFVagts7HmNZ2Q==}
     engines: {node: '>=10'}
+
+  zod@4.6.5:
+    resolution: {integrity: sha512-v5l/aFXZQeai4awLbOpSoHecE9UiMrnfx75tEXLjNonXVARxQ5mOeipTjROUchszUNCqnE+hqAMujRsRHsut2Q==}
 
 snapshots:
 
@@ -2613,10 +2645,16 @@ snapshots:
   '@types/node@26.6.3':
     dependencies:
       undici-types: 8.9.0
+    optional: true
+
+  '@types/pg-copy-streams@1.2.5':
+    dependencies:
+      '@types/node': 24.19.0
+      '@types/pg': 8.23.1
 
   '@types/pg@8.23.1':
     dependencies:
-      '@types/node': 26.6.3
+      '@types/node': 24.19.0
       pg-protocol: 1.16.1
       pg-types: 2.2.0
 
@@ -3348,6 +3386,8 @@ snapshots:
 
   pg-connection-string@2.14.1: {}
 
+  pg-copy-streams@7.0.0: {}
+
   pg-int8@1.0.1: {}
 
   pg-pool@3.14.0(pg@8.23.1):
@@ -3650,7 +3690,8 @@ snapshots:
 
   undici-types@7.24.6: {}
 
-  undici-types@8.9.0: {}
+  undici-types@8.9.0:
+    optional: true
 
   uri-js@4.4.1:
     dependencies:
@@ -3770,3 +3811,5 @@ snapshots:
   xtend@4.0.2: {}
 
   yocto-queue@0.1.0: {}
+
+  zod@4.6.5: {}

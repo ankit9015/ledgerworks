@@ -1,6 +1,9 @@
 import { defineWorkspace } from 'vitest/config';
 
-const packages = ['core', 'ledgerlens', 'ledgerlatch', 'ui', 'evals'];
+const packages = ['ledgerlens', 'ledgerlatch', 'ui', 'evals'];
+
+// core runs real Docker and Postgres: cloning and measuring take seconds to minutes.
+const core = { testTimeout: 300_000, hookTimeout: 600_000 };
 
 const ledgerline = {
   root: './ledgerline',
@@ -13,38 +16,52 @@ const ledgerline = {
 
 // `pnpm test:concurrency` sets CONCURRENCY=1 and runs only the slow full-size tests.
 export default defineWorkspace(
-  process.env.CONCURRENCY === '1'
+  process.env.SHADOW_FULL === '1'
     ? [
+        // `pnpm test:shadow-full`: the clone of the 10M-row benchmark database (once, minutes long).
         {
           test: {
-            ...ledgerline,
-            name: 'ledgerline-concurrency',
-            include: ['test/concurrency/**/*.test.ts'],
-            testTimeout: 600_000,
+            name: 'core-shadow-full',
+            root: './core',
+            include: ['src/**/*.fulltest.ts'],
+            testTimeout: 3_600_000,
+            hookTimeout: 3_600_000,
           },
         },
       ]
-    : [
-        ...packages.map((name) => ({
-          test: { name, root: `./${name}`, include: ['src/**/*.test.ts'] },
-        })),
-        {
-          // The admin UI: component tests in jsdom (Playwright covers the real browser, see e2e/).
-          esbuild: { jsx: 'automatic' as const },
-          test: {
-            name: 'ledgerline-ui',
-            root: './ledgerline/ui',
-            environment: 'jsdom',
-            include: ['test/**/*.test.tsx'],
-            setupFiles: ['./test/setup.ts'],
+    : process.env.CONCURRENCY === '1'
+      ? [
+          {
+            test: {
+              ...ledgerline,
+              name: 'ledgerline-concurrency',
+              include: ['test/concurrency/**/*.test.ts'],
+              testTimeout: 600_000,
+            },
           },
-        },
-        {
-          test: {
-            ...ledgerline,
-            name: 'ledgerline',
-            include: ['src/**/*.test.ts', 'test/*.test.ts'],
+        ]
+      : [
+          ...packages.map((name) => ({
+            test: { name, root: `./${name}`, include: ['src/**/*.test.ts'] },
+          })),
+          { test: { name: 'core', root: './core', include: ['src/**/*.test.ts'], ...core } },
+          {
+            // The admin UI: component tests in jsdom (Playwright covers the real browser, see e2e/).
+            esbuild: { jsx: 'automatic' as const },
+            test: {
+              name: 'ledgerline-ui',
+              root: './ledgerline/ui',
+              environment: 'jsdom',
+              include: ['test/**/*.test.tsx'],
+              setupFiles: ['./test/setup.ts'],
+            },
           },
-        },
-      ],
+          {
+            test: {
+              ...ledgerline,
+              name: 'ledgerline',
+              include: ['src/**/*.test.ts', 'test/*.test.ts'],
+            },
+          },
+        ],
 );
