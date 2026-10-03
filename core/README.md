@@ -149,3 +149,29 @@ Everything matches PostgreSQL's documented behaviour; the extra `ShareLock` on r
 ### Tests
 
 `src/harness/harness.test.ts` runs in `pnpm test` (real Docker and Postgres, about 1 minute): fast versus slow query (the usage-read before the E1 fix against after it: ratios 9.7 and 10.1 by wall clock, 112 and 114 by server time, in two repetitions), plan capture (seq scan versus index scan), writes leaving the data unchanged (row counts and md5 before and after), the DDL table above, lock-wait measurement (a blocker holding ACCESS SHARE for 800 ms gives 801 ms), refusal of non-shadows, typed failures for timeouts, lock timeout, total runtime, invalid input and an unresponsive server (`docker pause`), cold-ish measurements, background detection, and the variance experiment code writing raw files. The 10M-row experiment is `pnpm --filter @ledgerworks/core variance` (minutes; not part of `pnpm test`).
+
+## LLM layer (C2.3 to C2.7)
+
+Provider-agnostic: no vendor SDK, plain `fetch`. **Everything a model returns is untrusted input**: text, tool names, tool arguments, and anything inside tool results that is sent back to it. No claims about model quality are made anywhere in this code or these docs. No real provider key is needed by `pnpm test` or CI: all tests use `FakeProvider` and a local mock HTTP server; real-provider checks are the manual script `pnpm llm:smoke`.
+
+### The interface (`src/llm/types.ts`)
+
+```ts
+interface LLMProvider {
+  readonly id: string;
+  readonly model: string;
+  capabilities(): Capabilities; // each entry: { value, source: 'declared' | 'probed' | 'unknown', probedAt? }
+  updateCapabilities?(patch: Partial<Capabilities>): void;
+  chat(request: ChatRequest): Promise<ChatResult>; // throws LLMError
+  stream(request: ChatRequest): AsyncIterable<StreamEvent>; // never throws a provider error: a failed stream ends with an `error` event
+  listModels?(signal?: AbortSignal): Promise<string[]>;
+}
+```
+
+- **Messages:** `system`, `user`, `assistant` (`content` or `toolCalls`), `tool` (`toolCallId`, `content`). **Tools:** `{ name, description, parameters: JSON Schema }`. **`ToolCall`:** `{ id, name, arguments (parsed, unvalidated), rawArguments (the model's own string), argumentsError? }`; a call whose arguments are not valid JSON is passed on flagged, never repaired silently.
+- **`ChatRequest`:** `messages`, `tools`, `toolChoice` (`auto`, `none`, `required`, `{ name }`), `temperature`, `maxTokens`, `jsonMode`, `signal` (`AbortSignal`: **cancellation works everywhere** and gives the `cancelled` error), `timeoutMs`, `conversationId`.
+- **`ChatResult`:** `content`, `toolCalls`, `finishReason` (`stop`, `tool_calls`, `length`, `content_filter`, `other`), `usage` (`promptTokens`, `completionTokens`, `totalTokens`, and `source: 'provider' | 'estimated'`: estimated numbers are about 4 characters per token and are labelled), `quirks` (what the adapter normalised), `rateLimit` (from response headers), `routing` (set by a fallback chain).
+- **`StreamEvent`:** `text_delta`, `tool_call_start` (`index`, `id`, `name`), `tool_call_delta` (`argumentsDelta`), `tool_call_end`, `usage`, `done` (with the assembled `ChatResult`), `error` (typed `LLMError`, always last).
+- **`Capabilities`:** `tools`, `streaming`, `jsonMode`, `parallelToolCalls`, `maxContext`, each `{ value: T | null, source: 'declared' | 'probed' | 'unknown' }`.
+- **Errors (`src/llm/errors.ts`):** `LLMError` with `kind` one of `rate_limited` (with `retryAfterMs` when known), `auth_failed`, `timeout`, `network`, `bad_request`, `server_error`, `invalid_response`, `context_length`, `content_filtered`, `cancelled`; plus `status`, `provider`, `midStream` (content had already been delivered) and, for a fallback chain, `causes`. Messages are redacted (`src/security/redact.ts`) and capped; an error never holds a key, headers, or a request or response body.
+- **`FakeProvider` (`src/llm/fake.ts`):** scripts normal replies, tool calls (also malformed arguments and unknown tool names), 429s and other typed errors, hangs (timeout or cancellation), mid-stream failures and slow streams (with an injectable `ManualClock`), and records every request. `collectStream` assembles a stream into a result.

@@ -110,7 +110,7 @@ Purpose: a realistic, data-heavy, multi-tenant backend that is fast, correct und
   - **Done when:** results are returned as typed JSON, repeat runs of the same query are within a documented variance, and the harness refuses to run against a non-shadow connection unless explicitly overridden.
 
 ### LLM layer
-- [ ] **C2.3** `LLMProvider` interface: `chat`, `stream`, tool-call support, usage reporting (tokens in/out), and a capability flags object (`tools`, `streaming`, `jsonMode`).
+- [x] **C2.3** `LLMProvider` interface: `chat`, `stream`, tool-call support, usage reporting (tokens in/out), and a capability flags object (`tools`, `streaming`, `jsonMode`).
   - **Done when:** interface and types are documented, with a fake provider used in tests.
 - [ ] **C2.4** Generic OpenAI-compatible adapter (`baseURL`, `apiKey`, `model`) with 429/5xx retry and backoff, request timeout, and normalization of streaming and tool-call formats.
   - **Done when:** contract tests pass against the fake provider, and a manual script works against at least one real free-tier provider (Groq or OpenRouter) and Ollama if installed. Record which were tested in `DECISIONS.md`.
