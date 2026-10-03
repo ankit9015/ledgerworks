@@ -54,6 +54,12 @@ export interface OpenAICompatibleConfig {
     maxContext: number;
   }>;
   limits?: { maxResponseBytes?: number; maxStreamEvents?: number; maxStreamMs?: number };
+  /**
+   * OFF by default. Read a reply that is exactly a tool call written as text (`<tool_call>{...}</tool_call>`,
+   * a bare JSON object or one json fence) as a tool call, for servers that do that. Only for tools in the
+   * request that are not marked `changesState`: for those the text stays text, whatever this is set to.
+   */
+  acceptTextToolCalls?: boolean;
 }
 
 type Json = Record<string, unknown>;
@@ -336,7 +342,11 @@ function normalizeToolCalls(
  * single ```json fence, each element having a `name` that is one of the OFFERED tools and
  * `arguments` (or `parameters`). Anything else stays text. The result is flagged 'text_tool_call'.
  */
-export function extractTextToolCalls(content: string, offered: Set<string>): ToolCall[] | null {
+export function extractTextToolCalls(
+  content: string,
+  offered: Set<string>,
+  stateChanging: Set<string> = new Set(),
+): ToolCall[] | null {
   let s = content.trim();
   if (s === '') return null;
   const blocks: string[] = [];
@@ -358,6 +368,8 @@ export function extractTextToolCalls(content: string, offered: Set<string>): Too
     }
     for (const c of Array.isArray(j) ? j : [j]) {
       if (!isObj(c) || typeof c.name !== 'string' || !offered.has(c.name)) return null;
+      // never for a tool that changes state: text that merely looks like a call must not trigger one
+      if (stateChanging.has(c.name)) return null;
       const args = c.arguments ?? c.parameters;
       if (args !== undefined && !isObj(args) && typeof args !== 'string') return null;
       const n = normalizeArguments(args, new Set());
@@ -713,8 +725,17 @@ export class OpenAICompatibleProvider implements LLMProvider {
       quirks.add('legacy_function_call');
     }
     let toolCalls = normalizeToolCalls(rawCalls, quirks, this.id);
-    if (toolCalls.length === 0 && content && req.tools?.length) {
-      const fromText = extractTextToolCalls(content, new Set(req.tools.map((t) => t.name)));
+    if (
+      this.cfg.acceptTextToolCalls === true &&
+      toolCalls.length === 0 &&
+      content &&
+      req.tools?.length
+    ) {
+      const fromText = extractTextToolCalls(
+        content,
+        new Set(req.tools.map((t) => t.name)),
+        new Set(req.tools.filter((t) => t.changesState).map((t) => t.name)),
+      );
       if (fromText) {
         toolCalls = fromText;
         content = null;
@@ -907,8 +928,17 @@ export class OpenAICompatibleProvider implements LLMProvider {
       if (new Set(toolCalls.map((c) => c.id)).size !== toolCalls.length)
         throw fail('invalid_response', 'two streamed tool calls share an id');
       let content: string | null = text === '' ? null : text;
-      if (toolCalls.length === 0 && content && req.tools?.length) {
-        const fromText = extractTextToolCalls(content, new Set(req.tools.map((t) => t.name)));
+      if (
+        this.cfg.acceptTextToolCalls === true &&
+        toolCalls.length === 0 &&
+        content &&
+        req.tools?.length
+      ) {
+        const fromText = extractTextToolCalls(
+          content,
+          new Set(req.tools.map((t) => t.name)),
+          new Set(req.tools.filter((t) => t.changesState).map((t) => t.name)),
+        );
         if (fromText) {
           toolCalls.push(...fromText);
           content = null;

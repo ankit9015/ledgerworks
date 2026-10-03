@@ -411,3 +411,8 @@ Measured on the small shadow (PostgreSQL 16.15, a 200,000-row table with a prima
   7. **Redaction is pattern-based** for anything that is not registered as an exact secret: a key in an unusual format that a third-party server echoes into an error message is caught only if the caller passes it in `secrets` (the adapter and the agent loop do for the configured key).
   8. **The dev flag** is dangerous if a production configuration sets it; it is a property of server code by design, but nothing prevents a deployment from turning it on.
   9. **Not tested:** real TLS handshakes and certificate checks, real DNS (the resolver is injected), IPv6 connectivity, behaviour behind a proxy or on Linux, and HTTP/2. The connection timeout is tested with a fake socket, not a black-holed address. Not built: a limit on the number of concurrent connections per user.
+
+## D42. Text tool calls are opt-in and never for state-changing tools (fix of a D38 risk)
+
+- **Change:** the adapter no longer reads a reply that merely looks like a tool call as one unless `acceptTextToolCalls: true` is set (default off). Even then it ignores the reply when any matched tool is marked `changesState` (a new optional field of `ToolDefinition`, copied from `AgentTool.changesState`, never sent to the server): that text stays text, and a reply that mixes a safe and a state-changing call is not read at all. Reason: D38 flagged that a model answering with exactly such JSON would be misread as a call; for a tool that writes that misreading would be an action nobody asked for.
+- **Cost:** servers that really emit tool calls as text need the flag for each provider config; nothing else changes. The structured `tool_calls` path is unaffected.

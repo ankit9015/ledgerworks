@@ -26,6 +26,8 @@ export interface AgentTool<S extends z.ZodType = z.ZodType> {
   execute(args: z.infer<S>, ctx: ToolContext): unknown;
   /** the loop asks the approval callback before running it; without a callback it is denied */
   requiresApproval?: boolean;
+  /** the tool changes state; propagated to the ToolDefinition (see ToolDefinition.changesState) */
+  changesState?: boolean;
   /** overrides AgentOptions.toolTimeoutMs */
   timeoutMs?: number;
   /** overrides AgentOptions.maxToolResultBytes */

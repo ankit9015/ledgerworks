@@ -32,7 +32,12 @@ export function toToolDefinition(tool: AgentTool): ToolDefinition {
   const schema = z.toJSONSchema(tool.parameters) as Record<string, unknown>;
   delete schema.$schema;
   if (schema.type === undefined) schema.type = 'object';
-  return { name: tool.name, description: tool.description, parameters: schema };
+  return {
+    name: tool.name,
+    description: tool.description,
+    parameters: schema,
+    ...(tool.changesState ? { changesState: true } : {}),
+  };
 }
 
 const INJECTION_NOTE =

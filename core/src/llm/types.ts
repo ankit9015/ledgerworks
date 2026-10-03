@@ -31,6 +31,8 @@ export type Message = SystemMessage | UserMessage | AssistantMessage | ToolMessa
 
 export interface ToolDefinition {
   name: string;
+  /** the tool changes state (writes, DDL, external effects). Never sent to the model; adapters use it to refuse risky normalisations. */
+  changesState?: boolean;
   description: string;
   /** JSON Schema object describing the arguments */
   parameters: JsonSchema;

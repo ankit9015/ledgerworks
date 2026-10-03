@@ -641,15 +641,22 @@ describe('provider quirks (non-streaming)', () => {
     function: fn,
     ...extra,
   });
-  const run = async (message: Record<string, unknown>, finish = 'tool_calls') => {
-    const { provider } = await setup((_r, res) =>
-      json(
-        res,
-        200,
-        completion(message, finish, { prompt_tokens: 1, completion_tokens: 1, total_tokens: 2 }),
-      ),
+  const run = async (
+    message: Record<string, unknown>,
+    finish = 'tool_calls',
+    cfg: Partial<OpenAICompatibleConfig> = {},
+    tools: ToolDefinition[] = [tool],
+  ) => {
+    const { provider } = await setup(
+      (_r, res) =>
+        json(
+          res,
+          200,
+          completion(message, finish, { prompt_tokens: 1, completion_tokens: 1, total_tokens: 2 }),
+        ),
+      cfg,
     );
-    return provider.chat(ask({ tools: [tool] }));
+    return provider.chat(ask({ tools }));
   };
 
   it('arguments as a JSON string (standard), as an object, empty, null and double-encoded', async () => {
@@ -750,10 +757,12 @@ describe('provider quirks (non-streaming)', () => {
     expect(r.quirks).toContain('finish_reason_corrected_to_tool_calls');
   });
 
-  it('tool calls returned as plain text: recognised only for an offered tool and flagged', async () => {
+  it('tool calls returned as plain text: recognised only when enabled, only for an offered tool, and flagged', async () => {
+    const textOn = { acceptTextToolCalls: true };
     const tagged = await run(
       { content: '<tool_call>{"name":"get_weather","arguments":{"city":"F"}}</tool_call>' },
       'stop',
+      textOn,
     );
     expect(tagged.toolCalls[0]).toMatchObject({ name: 'get_weather', arguments: { city: 'F' } });
     expect(tagged.content).toBeNull();
@@ -761,24 +770,72 @@ describe('provider quirks (non-streaming)', () => {
     const plain = await run(
       { content: '{"name":"get_weather","parameters":{"city":"G"}}' },
       'stop',
+      textOn,
     );
     expect(plain.toolCalls[0]!.arguments).toEqual({ city: 'G' });
     const fenced = await run(
       { content: '```json\n{"name":"get_weather","arguments":{"city":"H"}}\n```' },
       'stop',
+      textOn,
     );
     expect(fenced.toolCalls).toHaveLength(1);
     // a tool that was not offered stays text; prose around JSON stays text
-    const other = await run({ content: '{"name":"delete_everything","arguments":{}}' }, 'stop');
+    const other = await run(
+      { content: '{"name":"delete_everything","arguments":{}}' },
+      'stop',
+      textOn,
+    );
     expect(other.toolCalls).toEqual([]);
     expect(other.content).toContain('delete_everything');
     const prose = await run(
       { content: 'Sure! {"name":"get_weather","arguments":{"city":"I"}}' },
       'stop',
+      textOn,
     );
     expect(prose.toolCalls).toEqual([]);
     expect(
       extractTextToolCalls('{"name":"get_weather","arguments":[1]}', new Set(['get_weather'])),
+    ).toBeNull();
+  });
+
+  it('text tool calls are OFF by default: the same replies stay plain text', async () => {
+    for (const content of [
+      '<tool_call>{"name":"get_weather","arguments":{"city":"F"}}</tool_call>',
+      '{"name":"get_weather","arguments":{"city":"G"}}',
+    ]) {
+      const r = await run({ content }, 'stop'); // no acceptTextToolCalls
+      expect(r.toolCalls).toEqual([]);
+      expect(r.content).toBe(content);
+      expect(r.finishReason).toBe('stop');
+      expect(r.quirks ?? []).not.toContain('text_tool_call');
+    }
+  });
+
+  it('text tool calls are never read for a tool marked changesState, even when enabled', async () => {
+    const dangerous: ToolDefinition = { ...tool, name: 'drop_table', changesState: true };
+    const content = '<tool_call>{"name":"drop_table","arguments":{"city":"x"}}</tool_call>';
+    const on = { acceptTextToolCalls: true };
+    const r1 = await run({ content }, 'stop', on, [tool, dangerous]);
+    expect(r1.toolCalls).toEqual([]);
+    expect(r1.content).toBe(content);
+    // a reply that mixes a safe and a state-changing call is not read at all
+    const mixed =
+      '[{"name":"get_weather","arguments":{"city":"a"}},{"name":"drop_table","arguments":{"city":"b"}}]';
+    expect((await run({ content: mixed }, 'stop', on, [tool, dangerous])).toolCalls).toEqual([]);
+    // the same reply for a safe tool is read when enabled
+    const safe = '<tool_call>{"name":"get_weather","arguments":{"city":"x"}}</tool_call>';
+    expect((await run({ content: safe }, 'stop', on, [tool, dangerous])).toolCalls).toHaveLength(1);
+    // the marker is not sent to the server
+    const { provider, server } = await setup(
+      (_r, res) => json(res, 200, completion({ content: 'x' })),
+      on,
+    );
+    await provider.chat(ask({ tools: [dangerous] }));
+    expect(JSON.parse(server.requests[0]!.body).tools[0].function).not.toHaveProperty(
+      'changesState',
+    );
+    expect(
+      extractTextToolCalls(content, new Set(['drop_table']), new Set(['drop_table'])),
     ).toBeNull();
   });
 
