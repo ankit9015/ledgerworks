@@ -1,0 +1,1140 @@
+{
+  "report": {
+    "version": 1,
+    "capturedAt": "2026-10-04T19:30:36.945Z",
+    "database": "ledgerworks",
+    "statsResetAt": "2026-10-04T18:40:31.808Z",
+    "serverVersion": "16.15 (Debian 16.15-1.pgdg13+2)",
+    "statementsRead": 41,
+    "hiddenText": 0,
+    "excluded": [
+      {
+        "reason": "utility_statement",
+        "count": 13,
+        "totalTimeMs": 78.14142100000002
+      },
+      {
+        "reason": "ledgerlens_own_query",
+        "count": 13,
+        "totalTimeMs": 402.4665109999999
+      },
+      {
+        "reason": "monitoring_query",
+        "count": 0,
+        "totalTimeMs": 0
+      },
+      {
+        "reason": "no_user_tables",
+        "count": 7,
+        "totalTimeMs": 411.3990389999996
+      },
+      {
+        "reason": "other_database",
+        "count": 28,
+        "totalTimeMs": 879.3078870000002
+      }
+    ],
+    "inWorkload": 8,
+    "top": {
+      "n": 8,
+      "statements": 8,
+      "user-supplied": 0,
+      "sampled-from-stats": 4,
+      "synthesized": 0,
+      "not-needed": 1,
+      "unverifiable": 3
+    },
+    "all": {
+      "statements": 8,
+      "user-supplied": 0,
+      "sampled-from-stats": 4,
+      "synthesized": 0,
+      "not-needed": 1,
+      "unverifiable": 3
+    },
+    "unverifiableByReason": {
+      "param_without_column_or_type": 2,
+      "bindings_rejected_by_server": 1
+    },
+    "statements": [
+      {
+        "rank": 1,
+        "queryId": "-4457419433341093936",
+        "queryHash": "3a3675d99a7d7be1",
+        "kind": "select",
+        "calls": 1,
+        "totalTimeMs": 3065.084884,
+        "meanTimeMs": 3065.084884,
+        "rows": 1,
+        "text": {
+          "$untrusted": "SELECT count(*) FROM usage_events"
+        },
+        "status": "bound",
+        "provenance": "not-needed",
+        "confidence": "high",
+        "setCount": 1,
+        "validation": {
+          "ok": 1,
+          "rejected": 0,
+          "skipped": 0,
+          "notRun": 0
+        },
+        "unverifiable": null
+      },
+      {
+        "rank": 2,
+        "queryId": "-4283287826124651186",
+        "queryHash": "ee951d3b87340a92",
+        "kind": "select",
+        "calls": 11890,
+        "totalTimeMs": 2730.9797960000133,
+        "meanTimeMs": 0.2296871148864602,
+        "rows": 11890,
+        "text": {
+          "$untrusted": "SELECT tenant_id, api_key_id FROM ledgerline_fn.authenticate_api_key($1)"
+        },
+        "status": "unverifiable",
+        "provenance": null,
+        "confidence": null,
+        "setCount": 0,
+        "validation": {
+          "ok": 0,
+          "rejected": 0,
+          "skipped": 0,
+          "notRun": 0
+        },
+        "unverifiable": {
+          "reason": "param_without_column_or_type",
+          "detail": {
+            "$untrusted": "$1: not compared with a column and has no cast: its type and meaning are unknown (it is a function argument, in the select list or in an expression)"
+          },
+          "params": [
+            1
+          ]
+        }
+      },
+      {
+        "rank": 3,
+        "queryId": "-3598982451123530816",
+        "queryHash": "32add7b369eecf5c",
+        "kind": "select",
+        "calls": 362,
+        "totalTimeMs": 1892.3005729999995,
+        "meanTimeMs": 5.22734964917127,
+        "rows": 18462,
+        "text": {
+          "$untrusted": "SELECT id, event_type, quantity, to_char(occurred_at AT TIME ZONE $5, $6) AS occurred_at, metadata FROM usage_events WHERE tenant_id = $1 AND occurred_at >= $2::timestamptz AND occurred_at < $3::timestamptz ORDER BY usage_events.occurred_at DESC, usage_events.id DESC LIMIT $4"
+        },
+        "status": "bound",
+        "provenance": "sampled-from-stats",
+        "confidence": "medium",
+        "setCount": 3,
+        "validation": {
+          "ok": 3,
+          "rejected": 0,
+          "skipped": 0,
+          "notRun": 0
+        },
+        "unverifiable": null
+      },
+      {
+        "rank": 4,
+        "queryId": "7382902827749400368",
+        "queryHash": "ae114371a696b936",
+        "kind": "select",
+        "calls": 9002,
+        "totalTimeMs": 1034.6903569999986,
+        "meanTimeMs": 0.11494005298822499,
+        "rows": 9002,
+        "text": {
+          "$untrusted": "SELECT balance, updated_at FROM credit_balances WHERE tenant_id = $1"
+        },
+        "status": "bound",
+        "provenance": "sampled-from-stats",
+        "confidence": "medium",
+        "setCount": 3,
+        "validation": {
+          "ok": 3,
+          "rejected": 0,
+          "skipped": 0,
+          "notRun": 0
+        },
+        "unverifiable": null
+      },
+      {
+        "rank": 5,
+        "queryId": "6005503577259212969",
+        "queryHash": "6dbe43918dbda103",
+        "kind": "select",
+        "calls": 11890,
+        "totalTimeMs": 855.452996999999,
+        "meanTimeMs": 0.07194726635828412,
+        "rows": 11890,
+        "text": {
+          "$untrusted": "SELECT k.tenant_id, k.id FROM public.api_keys k WHERE k.key_hash = p_key_hash AND k.revoked_at IS NULL"
+        },
+        "status": "unverifiable",
+        "provenance": null,
+        "confidence": null,
+        "setCount": 1,
+        "validation": {
+          "ok": 0,
+          "rejected": 1,
+          "skipped": 0,
+          "notRun": 0
+        },
+        "unverifiable": {
+          "reason": "bindings_rejected_by_server",
+          "detail": {
+            "$untrusted": "42703: column \"p_key_hash\" does not exist (the statement ran inside a function or trigger, it may use variables that only exist there)"
+          },
+          "params": []
+        }
+      },
+      {
+        "rank": 6,
+        "queryId": "-8170521188960611238",
+        "queryHash": "8e438908e26a6e34",
+        "kind": "insert",
+        "calls": 1802,
+        "totalTimeMs": 736.6089800000012,
+        "meanTimeMs": 0.40877301886792433,
+        "rows": 1802,
+        "text": {
+          "$untrusted": "INSERT INTO usage_events (tenant_id, occurred_at, event_type, quantity, metadata) VALUES ($1, COALESCE($2::timestamptz, now()), $3, $4, $5) RETURNING id, to_char(occurred_at AT TIME ZONE $6, $7) AS occurred_at"
+        },
+        "status": "bound",
+        "provenance": "sampled-from-stats",
+        "confidence": "low",
+        "setCount": 3,
+        "validation": {
+          "ok": 0,
+          "rejected": 0,
+          "skipped": 3,
+          "notRun": 0
+        },
+        "unverifiable": null
+      },
+      {
+        "rank": 7,
+        "queryId": "-457685692665189491",
+        "queryHash": "a1a8a2955a1c26fe",
+        "kind": "select",
+        "calls": 724,
+        "totalTimeMs": 615.4656380000005,
+        "meanTimeMs": 0.8500906602209953,
+        "rows": 35905,
+        "text": {
+          "$untrusted": "SELECT id, event_type, quantity, to_char(occurred_at AT TIME ZONE $7, $8) AS occurred_at, metadata FROM usage_events WHERE tenant_id = $1 AND occurred_at >= $2::timestamptz AND occurred_at < $3::timestamptz AND (occurred_at, id) < ($4::timestamptz, $5::uuid) ORDER BY usage_events.occurred_at DESC, usage_events.id DESC LIMIT $6"
+        },
+        "status": "bound",
+        "provenance": "sampled-from-stats",
+        "confidence": "medium",
+        "setCount": 3,
+        "validation": {
+          "ok": 3,
+          "rejected": 0,
+          "skipped": 0,
+          "notRun": 0
+        },
+        "unverifiable": null
+      },
+      {
+        "rank": 8,
+        "queryId": "-3218985851856498250",
+        "queryHash": "a428cf922f20b82d",
+        "kind": "select",
+        "calls": 1802,
+        "totalTimeMs": 76.49445399999996,
+        "meanTimeMs": 0.04244975249722537,
+        "rows": 1802,
+        "text": {
+          "$untrusted": "SELECT $2 FROM ONLY \"public\".\"tenants\" x WHERE \"id\" OPERATOR(pg_catalog.=) $1 FOR KEY SHARE OF x"
+        },
+        "status": "unverifiable",
+        "provenance": null,
+        "confidence": null,
+        "setCount": 0,
+        "validation": {
+          "ok": 0,
+          "rejected": 0,
+          "skipped": 0,
+          "notRun": 0
+        },
+        "unverifiable": {
+          "reason": "param_without_column_or_type",
+          "detail": {
+            "$untrusted": "$2: not compared with a column and has no cast: its type and meaning are unknown (it is a function argument, in the select list or in an expression)"
+          },
+          "params": [
+            2
+          ]
+        }
+      }
+    ]
+  },
+  "bindings": [
+    {
+      "queryId": "-4457419433341093936",
+      "queryHash": "3a3675d99a7d7be1",
+      "status": "bound",
+      "sets": [
+        {
+          "id": "3a3675d99a7d7be1-0",
+          "provenance": "not-needed",
+          "confidence": "high",
+          "params": [],
+          "notes": [
+            "the statement has no parameters"
+          ],
+          "validation": {
+            "status": "ok"
+          }
+        }
+      ],
+      "unverifiable": null
+    },
+    {
+      "queryId": "-4283287826124651186",
+      "queryHash": "ee951d3b87340a92",
+      "status": "unverifiable",
+      "sets": [],
+      "unverifiable": {
+        "reason": "param_without_column_or_type",
+        "detail": "$1: not compared with a column and has no cast: its type and meaning are unknown (it is a function argument, in the select list or in an expression)",
+        "params": [
+          1
+        ]
+      }
+    },
+    {
+      "queryId": "-3598982451123530816",
+      "queryHash": "32add7b369eecf5c",
+      "status": "bound",
+      "sets": [
+        {
+          "id": "32add7b369eecf5c-0",
+          "provenance": "sampled-from-stats",
+          "confidence": "medium",
+          "params": [
+            {
+              "index": 1,
+              "value": "(omitted, use --include-values)",
+              "isArray": false,
+              "provenance": "sampled-from-stats",
+              "origin": "most_common_value",
+              "structural": false,
+              "column": "usage_events.tenant_id"
+            },
+            {
+              "index": 2,
+              "value": "(omitted, use --include-values)",
+              "isArray": false,
+              "provenance": "sampled-from-stats",
+              "origin": "histogram_bound",
+              "structural": false,
+              "column": "usage_events.occurred_at"
+            },
+            {
+              "index": 3,
+              "value": "(omitted, use --include-values)",
+              "isArray": false,
+              "provenance": "sampled-from-stats",
+              "origin": "histogram_bound",
+              "structural": false,
+              "column": "usage_events.occurred_at"
+            },
+            {
+              "index": 4,
+              "value": "(omitted, use --include-values)",
+              "isArray": false,
+              "provenance": "synthesized",
+              "origin": "structural_default",
+              "structural": true,
+              "column": null
+            },
+            {
+              "index": 5,
+              "value": "(omitted, use --include-values)",
+              "isArray": false,
+              "provenance": "synthesized",
+              "origin": "structural_default",
+              "structural": true,
+              "column": null
+            },
+            {
+              "index": 6,
+              "value": "(omitted, use --include-values)",
+              "isArray": false,
+              "provenance": "synthesized",
+              "origin": "structural_default",
+              "structural": true,
+              "column": null
+            }
+          ],
+          "notes": [
+            "5: argument 1 of timezone(): a plan-neutral value",
+            "6: argument 2 of to_char(): a plan-neutral value"
+          ],
+          "validation": {
+            "status": "ok"
+          }
+        },
+        {
+          "id": "32add7b369eecf5c-1",
+          "provenance": "sampled-from-stats",
+          "confidence": "medium",
+          "params": [
+            {
+              "index": 1,
+              "value": "(omitted, use --include-values)",
+              "isArray": false,
+              "provenance": "sampled-from-stats",
+              "origin": "histogram_bound",
+              "structural": false,
+              "column": "usage_events.tenant_id"
+            },
+            {
+              "index": 2,
+              "value": "(omitted, use --include-values)",
+              "isArray": false,
+              "provenance": "sampled-from-stats",
+              "origin": "histogram_bound",
+              "structural": false,
+              "column": "usage_events.occurred_at"
+            },
+            {
+              "index": 3,
+              "value": "(omitted, use --include-values)",
+              "isArray": false,
+              "provenance": "sampled-from-stats",
+              "origin": "histogram_bound",
+              "structural": false,
+              "column": "usage_events.occurred_at"
+            },
+            {
+              "index": 4,
+              "value": "(omitted, use --include-values)",
+              "isArray": false,
+              "provenance": "synthesized",
+              "origin": "structural_default",
+              "structural": true,
+              "column": null
+            },
+            {
+              "index": 5,
+              "value": "(omitted, use --include-values)",
+              "isArray": false,
+              "provenance": "synthesized",
+              "origin": "structural_default",
+              "structural": true,
+              "column": null
+            },
+            {
+              "index": 6,
+              "value": "(omitted, use --include-values)",
+              "isArray": false,
+              "provenance": "synthesized",
+              "origin": "structural_default",
+              "structural": true,
+              "column": null
+            }
+          ],
+          "notes": [
+            "5: argument 1 of timezone(): a plan-neutral value",
+            "6: argument 2 of to_char(): a plan-neutral value"
+          ],
+          "validation": {
+            "status": "ok"
+          }
+        },
+        {
+          "id": "32add7b369eecf5c-2",
+          "provenance": "sampled-from-stats",
+          "confidence": "medium",
+          "params": [
+            {
+              "index": 1,
+              "value": "(omitted, use --include-values)",
+              "isArray": false,
+              "provenance": "sampled-from-stats",
+              "origin": "histogram_bound",
+              "structural": false,
+              "column": "usage_events.tenant_id"
+            },
+            {
+              "index": 2,
+              "value": "(omitted, use --include-values)",
+              "isArray": false,
+              "provenance": "sampled-from-stats",
+              "origin": "histogram_bound",
+              "structural": false,
+              "column": "usage_events.occurred_at"
+            },
+            {
+              "index": 3,
+              "value": "(omitted, use --include-values)",
+              "isArray": false,
+              "provenance": "sampled-from-stats",
+              "origin": "histogram_bound",
+              "structural": false,
+              "column": "usage_events.occurred_at"
+            },
+            {
+              "index": 4,
+              "value": "(omitted, use --include-values)",
+              "isArray": false,
+              "provenance": "synthesized",
+              "origin": "structural_default",
+              "structural": true,
+              "column": null
+            },
+            {
+              "index": 5,
+              "value": "(omitted, use --include-values)",
+              "isArray": false,
+              "provenance": "synthesized",
+              "origin": "structural_default",
+              "structural": true,
+              "column": null
+            },
+            {
+              "index": 6,
+              "value": "(omitted, use --include-values)",
+              "isArray": false,
+              "provenance": "synthesized",
+              "origin": "structural_default",
+              "structural": true,
+              "column": null
+            }
+          ],
+          "notes": [
+            "5: argument 1 of timezone(): a plan-neutral value",
+            "6: argument 2 of to_char(): a plan-neutral value"
+          ],
+          "validation": {
+            "status": "ok"
+          }
+        }
+      ],
+      "unverifiable": null
+    },
+    {
+      "queryId": "7382902827749400368",
+      "queryHash": "ae114371a696b936",
+      "status": "bound",
+      "sets": [
+        {
+          "id": "ae114371a696b936-0",
+          "provenance": "sampled-from-stats",
+          "confidence": "medium",
+          "params": [
+            {
+              "index": 1,
+              "value": "(omitted, use --include-values)",
+              "isArray": false,
+              "provenance": "sampled-from-stats",
+              "origin": "histogram_bound",
+              "structural": false,
+              "column": "credit_balances.tenant_id"
+            }
+          ],
+          "notes": [],
+          "validation": {
+            "status": "ok"
+          }
+        },
+        {
+          "id": "ae114371a696b936-1",
+          "provenance": "sampled-from-stats",
+          "confidence": "medium",
+          "params": [
+            {
+              "index": 1,
+              "value": "(omitted, use --include-values)",
+              "isArray": false,
+              "provenance": "sampled-from-stats",
+              "origin": "histogram_bound",
+              "structural": false,
+              "column": "credit_balances.tenant_id"
+            }
+          ],
+          "notes": [],
+          "validation": {
+            "status": "ok"
+          }
+        },
+        {
+          "id": "ae114371a696b936-2",
+          "provenance": "sampled-from-stats",
+          "confidence": "medium",
+          "params": [
+            {
+              "index": 1,
+              "value": "(omitted, use --include-values)",
+              "isArray": false,
+              "provenance": "sampled-from-stats",
+              "origin": "histogram_bound",
+              "structural": false,
+              "column": "credit_balances.tenant_id"
+            }
+          ],
+          "notes": [],
+          "validation": {
+            "status": "ok"
+          }
+        }
+      ],
+      "unverifiable": null
+    },
+    {
+      "queryId": "6005503577259212969",
+      "queryHash": "6dbe43918dbda103",
+      "status": "unverifiable",
+      "sets": [
+        {
+          "id": "6dbe43918dbda103-0",
+          "provenance": "not-needed",
+          "confidence": "high",
+          "params": [],
+          "notes": [
+            "the statement has no parameters"
+          ],
+          "validation": {
+            "status": "rejected",
+            "detail": "42703: column \"p_key_hash\" does not exist"
+          }
+        }
+      ],
+      "unverifiable": {
+        "reason": "bindings_rejected_by_server",
+        "detail": "42703: column \"p_key_hash\" does not exist (the statement ran inside a function or trigger, it may use variables that only exist there)",
+        "params": []
+      }
+    },
+    {
+      "queryId": "-8170521188960611238",
+      "queryHash": "8e438908e26a6e34",
+      "status": "bound",
+      "sets": [
+        {
+          "id": "8e438908e26a6e34-0",
+          "provenance": "sampled-from-stats",
+          "confidence": "low",
+          "params": [
+            {
+              "index": 1,
+              "value": "(omitted, use --include-values)",
+              "isArray": false,
+              "provenance": "sampled-from-stats",
+              "origin": "most_common_value",
+              "structural": false,
+              "column": "usage_events.tenant_id"
+            },
+            {
+              "index": 2,
+              "value": "(omitted, use --include-values)",
+              "isArray": false,
+              "provenance": "sampled-from-stats",
+              "origin": "histogram_bound",
+              "structural": false,
+              "column": "usage_events.occurred_at"
+            },
+            {
+              "index": 3,
+              "value": "(omitted, use --include-values)",
+              "isArray": false,
+              "provenance": "sampled-from-stats",
+              "origin": "most_common_value",
+              "structural": false,
+              "column": "usage_events.event_type"
+            },
+            {
+              "index": 4,
+              "value": "(omitted, use --include-values)",
+              "isArray": false,
+              "provenance": "sampled-from-stats",
+              "origin": "most_common_value",
+              "structural": false,
+              "column": "usage_events.quantity"
+            },
+            {
+              "index": 5,
+              "value": "(omitted, use --include-values)",
+              "isArray": false,
+              "provenance": "sampled-from-stats",
+              "origin": "most_common_value",
+              "structural": false,
+              "column": "usage_events.metadata"
+            },
+            {
+              "index": 6,
+              "value": "(omitted, use --include-values)",
+              "isArray": false,
+              "provenance": "synthesized",
+              "origin": "structural_default",
+              "structural": true,
+              "column": null
+            },
+            {
+              "index": 7,
+              "value": "(omitted, use --include-values)",
+              "isArray": false,
+              "provenance": "synthesized",
+              "origin": "structural_default",
+              "structural": true,
+              "column": null
+            }
+          ],
+          "notes": [
+            "6: argument 1 of timezone(): a plan-neutral value",
+            "7: argument 2 of to_char(): a plan-neutral value",
+            "write statement: unique, foreign key and check constraints are not checked for these values"
+          ],
+          "validation": {
+            "status": "skipped",
+            "detail": "only plain SELECT statements are checked on the source"
+          }
+        },
+        {
+          "id": "8e438908e26a6e34-1",
+          "provenance": "sampled-from-stats",
+          "confidence": "low",
+          "params": [
+            {
+              "index": 1,
+              "value": "(omitted, use --include-values)",
+              "isArray": false,
+              "provenance": "sampled-from-stats",
+              "origin": "histogram_bound",
+              "structural": false,
+              "column": "usage_events.tenant_id"
+            },
+            {
+              "index": 2,
+              "value": "(omitted, use --include-values)",
+              "isArray": false,
+              "provenance": "sampled-from-stats",
+              "origin": "histogram_bound",
+              "structural": false,
+              "column": "usage_events.occurred_at"
+            },
+            {
+              "index": 3,
+              "value": "(omitted, use --include-values)",
+              "isArray": false,
+              "provenance": "sampled-from-stats",
+              "origin": "most_common_value",
+              "structural": false,
+              "column": "usage_events.event_type"
+            },
+            {
+              "index": 4,
+              "value": "(omitted, use --include-values)",
+              "isArray": false,
+              "provenance": "sampled-from-stats",
+              "origin": "histogram_bound",
+              "structural": false,
+              "column": "usage_events.quantity"
+            },
+            {
+              "index": 5,
+              "value": "(omitted, use --include-values)",
+              "isArray": false,
+              "provenance": "sampled-from-stats",
+              "origin": "most_common_value",
+              "structural": false,
+              "column": "usage_events.metadata"
+            },
+            {
+              "index": 6,
+              "value": "(omitted, use --include-values)",
+              "isArray": false,
+              "provenance": "synthesized",
+              "origin": "structural_default",
+              "structural": true,
+              "column": null
+            },
+            {
+              "index": 7,
+              "value": "(omitted, use --include-values)",
+              "isArray": false,
+              "provenance": "synthesized",
+              "origin": "structural_default",
+              "structural": true,
+              "column": null
+            }
+          ],
+          "notes": [
+            "6: argument 1 of timezone(): a plan-neutral value",
+            "7: argument 2 of to_char(): a plan-neutral value",
+            "write statement: unique, foreign key and check constraints are not checked for these values"
+          ],
+          "validation": {
+            "status": "skipped",
+            "detail": "only plain SELECT statements are checked on the source"
+          }
+        },
+        {
+          "id": "8e438908e26a6e34-2",
+          "provenance": "sampled-from-stats",
+          "confidence": "low",
+          "params": [
+            {
+              "index": 1,
+              "value": "(omitted, use --include-values)",
+              "isArray": false,
+              "provenance": "sampled-from-stats",
+              "origin": "histogram_bound",
+              "structural": false,
+              "column": "usage_events.tenant_id"
+            },
+            {
+              "index": 2,
+              "value": "(omitted, use --include-values)",
+              "isArray": false,
+              "provenance": "sampled-from-stats",
+              "origin": "histogram_bound",
+              "structural": false,
+              "column": "usage_events.occurred_at"
+            },
+            {
+              "index": 3,
+              "value": "(omitted, use --include-values)",
+              "isArray": false,
+              "provenance": "sampled-from-stats",
+              "origin": "most_common_value",
+              "structural": false,
+              "column": "usage_events.event_type"
+            },
+            {
+              "index": 4,
+              "value": "(omitted, use --include-values)",
+              "isArray": false,
+              "provenance": "sampled-from-stats",
+              "origin": "histogram_bound",
+              "structural": false,
+              "column": "usage_events.quantity"
+            },
+            {
+              "index": 5,
+              "value": "(omitted, use --include-values)",
+              "isArray": false,
+              "provenance": "sampled-from-stats",
+              "origin": "most_common_value",
+              "structural": false,
+              "column": "usage_events.metadata"
+            },
+            {
+              "index": 6,
+              "value": "(omitted, use --include-values)",
+              "isArray": false,
+              "provenance": "synthesized",
+              "origin": "structural_default",
+              "structural": true,
+              "column": null
+            },
+            {
+              "index": 7,
+              "value": "(omitted, use --include-values)",
+              "isArray": false,
+              "provenance": "synthesized",
+              "origin": "structural_default",
+              "structural": true,
+              "column": null
+            }
+          ],
+          "notes": [
+            "6: argument 1 of timezone(): a plan-neutral value",
+            "7: argument 2 of to_char(): a plan-neutral value",
+            "write statement: unique, foreign key and check constraints are not checked for these values"
+          ],
+          "validation": {
+            "status": "skipped",
+            "detail": "only plain SELECT statements are checked on the source"
+          }
+        }
+      ],
+      "unverifiable": null
+    },
+    {
+      "queryId": "-457685692665189491",
+      "queryHash": "a1a8a2955a1c26fe",
+      "status": "bound",
+      "sets": [
+        {
+          "id": "a1a8a2955a1c26fe-0",
+          "provenance": "sampled-from-stats",
+          "confidence": "medium",
+          "params": [
+            {
+              "index": 1,
+              "value": "(omitted, use --include-values)",
+              "isArray": false,
+              "provenance": "sampled-from-stats",
+              "origin": "most_common_value",
+              "structural": false,
+              "column": "usage_events.tenant_id"
+            },
+            {
+              "index": 2,
+              "value": "(omitted, use --include-values)",
+              "isArray": false,
+              "provenance": "sampled-from-stats",
+              "origin": "histogram_bound",
+              "structural": false,
+              "column": "usage_events.occurred_at"
+            },
+            {
+              "index": 3,
+              "value": "(omitted, use --include-values)",
+              "isArray": false,
+              "provenance": "sampled-from-stats",
+              "origin": "histogram_bound",
+              "structural": false,
+              "column": "usage_events.occurred_at"
+            },
+            {
+              "index": 4,
+              "value": "(omitted, use --include-values)",
+              "isArray": false,
+              "provenance": "sampled-from-stats",
+              "origin": "histogram_bound",
+              "structural": false,
+              "column": "usage_events.occurred_at"
+            },
+            {
+              "index": 5,
+              "value": "(omitted, use --include-values)",
+              "isArray": false,
+              "provenance": "sampled-from-stats",
+              "origin": "histogram_bound",
+              "structural": false,
+              "column": "usage_events.id"
+            },
+            {
+              "index": 6,
+              "value": "(omitted, use --include-values)",
+              "isArray": false,
+              "provenance": "synthesized",
+              "origin": "structural_default",
+              "structural": true,
+              "column": null
+            },
+            {
+              "index": 7,
+              "value": "(omitted, use --include-values)",
+              "isArray": false,
+              "provenance": "synthesized",
+              "origin": "structural_default",
+              "structural": true,
+              "column": null
+            },
+            {
+              "index": 8,
+              "value": "(omitted, use --include-values)",
+              "isArray": false,
+              "provenance": "synthesized",
+              "origin": "structural_default",
+              "structural": true,
+              "column": null
+            }
+          ],
+          "notes": [
+            "7: argument 1 of timezone(): a plan-neutral value",
+            "8: argument 2 of to_char(): a plan-neutral value"
+          ],
+          "validation": {
+            "status": "ok"
+          }
+        },
+        {
+          "id": "a1a8a2955a1c26fe-1",
+          "provenance": "sampled-from-stats",
+          "confidence": "medium",
+          "params": [
+            {
+              "index": 1,
+              "value": "(omitted, use --include-values)",
+              "isArray": false,
+              "provenance": "sampled-from-stats",
+              "origin": "histogram_bound",
+              "structural": false,
+              "column": "usage_events.tenant_id"
+            },
+            {
+              "index": 2,
+              "value": "(omitted, use --include-values)",
+              "isArray": false,
+              "provenance": "sampled-from-stats",
+              "origin": "histogram_bound",
+              "structural": false,
+              "column": "usage_events.occurred_at"
+            },
+            {
+              "index": 3,
+              "value": "(omitted, use --include-values)",
+              "isArray": false,
+              "provenance": "sampled-from-stats",
+              "origin": "histogram_bound",
+              "structural": false,
+              "column": "usage_events.occurred_at"
+            },
+            {
+              "index": 4,
+              "value": "(omitted, use --include-values)",
+              "isArray": false,
+              "provenance": "sampled-from-stats",
+              "origin": "histogram_bound",
+              "structural": false,
+              "column": "usage_events.occurred_at"
+            },
+            {
+              "index": 5,
+              "value": "(omitted, use --include-values)",
+              "isArray": false,
+              "provenance": "sampled-from-stats",
+              "origin": "histogram_bound",
+              "structural": false,
+              "column": "usage_events.id"
+            },
+            {
+              "index": 6,
+              "value": "(omitted, use --include-values)",
+              "isArray": false,
+              "provenance": "synthesized",
+              "origin": "structural_default",
+              "structural": true,
+              "column": null
+            },
+            {
+              "index": 7,
+              "value": "(omitted, use --include-values)",
+              "isArray": false,
+              "provenance": "synthesized",
+              "origin": "structural_default",
+              "structural": true,
+              "column": null
+            },
+            {
+              "index": 8,
+              "value": "(omitted, use --include-values)",
+              "isArray": false,
+              "provenance": "synthesized",
+              "origin": "structural_default",
+              "structural": true,
+              "column": null
+            }
+          ],
+          "notes": [
+            "7: argument 1 of timezone(): a plan-neutral value",
+            "8: argument 2 of to_char(): a plan-neutral value"
+          ],
+          "validation": {
+            "status": "ok"
+          }
+        },
+        {
+          "id": "a1a8a2955a1c26fe-2",
+          "provenance": "sampled-from-stats",
+          "confidence": "medium",
+          "params": [
+            {
+              "index": 1,
+              "value": "(omitted, use --include-values)",
+              "isArray": false,
+              "provenance": "sampled-from-stats",
+              "origin": "histogram_bound",
+              "structural": false,
+              "column": "usage_events.tenant_id"
+            },
+            {
+              "index": 2,
+              "value": "(omitted, use --include-values)",
+              "isArray": false,
+              "provenance": "sampled-from-stats",
+              "origin": "histogram_bound",
+              "structural": false,
+              "column": "usage_events.occurred_at"
+            },
+            {
+              "index": 3,
+              "value": "(omitted, use --include-values)",
+              "isArray": false,
+              "provenance": "sampled-from-stats",
+              "origin": "histogram_bound",
+              "structural": false,
+              "column": "usage_events.occurred_at"
+            },
+            {
+              "index": 4,
+              "value": "(omitted, use --include-values)",
+              "isArray": false,
+              "provenance": "sampled-from-stats",
+              "origin": "histogram_bound",
+              "structural": false,
+              "column": "usage_events.occurred_at"
+            },
+            {
+              "index": 5,
+              "value": "(omitted, use --include-values)",
+              "isArray": false,
+              "provenance": "sampled-from-stats",
+              "origin": "histogram_bound",
+              "structural": false,
+              "column": "usage_events.id"
+            },
+            {
+              "index": 6,
+              "value": "(omitted, use --include-values)",
+              "isArray": false,
+              "provenance": "synthesized",
+              "origin": "structural_default",
+              "structural": true,
+              "column": null
+            },
+            {
+              "index": 7,
+              "value": "(omitted, use --include-values)",
+              "isArray": false,
+              "provenance": "synthesized",
+              "origin": "structural_default",
+              "structural": true,
+              "column": null
+            },
+            {
+              "index": 8,
+              "value": "(omitted, use --include-values)",
+              "isArray": false,
+              "provenance": "synthesized",
+              "origin": "structural_default",
+              "structural": true,
+              "column": null
+            }
+          ],
+          "notes": [
+            "7: argument 1 of timezone(): a plan-neutral value",
+            "8: argument 2 of to_char(): a plan-neutral value"
+          ],
+          "validation": {
+            "status": "ok"
+          }
+        }
+      ],
+      "unverifiable": null
+    },
+    {
+      "queryId": "-3218985851856498250",
+      "queryHash": "a428cf922f20b82d",
+      "status": "unverifiable",
+      "sets": [],
+      "unverifiable": {
+        "reason": "param_without_column_or_type",
+        "detail": "$2: not compared with a column and has no cast: its type and meaning are unknown (it is a function argument, in the select list or in an expression)",
+        "params": [
+          2
+        ]
+      }
+    }
+  ]
+}

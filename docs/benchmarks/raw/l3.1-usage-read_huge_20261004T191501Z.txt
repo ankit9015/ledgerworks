@@ -1,0 +1,57 @@
+
+
+  █ THRESHOLDS 
+
+    dropped_iterations{scenario:measure}
+    ✓ 'count==0' count=0
+
+    http_req_duration{phase:measure,page:1}
+    ✓ 'p(95)<500' p(95)=32.21ms
+
+    http_req_duration{phase:measure,page:2}
+    ✓ 'p(95)<500' p(95)=19.3ms
+
+    http_req_duration{phase:measure,page:3}
+    ✓ 'p(95)<500' p(95)=16.12ms
+
+    http_req_duration{phase:measure}
+    ✓ 'p(95)<500' p(95)=30.79ms
+
+    http_req_failed{phase:measure}
+    ✓ 'rate<0.01' rate=0.00%
+
+
+  █ TOTAL RESULTS 
+
+    checks_total.......: 543     5.716139/s
+    checks_succeeded...: 100.00% 543 out of 543
+    checks_failed......: 0.00%   0 out of 543
+
+    ✓ status is 200
+
+    HTTP
+    http_req_duration..............: avg=17.7ms  min=5.71ms  med=16.26ms p(90)=30.46ms p(95)=31.83ms p(99)=35.41ms  max=63.05ms  count=543
+      { expected_response:true }...: avg=17.7ms  min=5.71ms  med=16.26ms p(90)=30.46ms p(95)=31.83ms p(99)=35.41ms  max=63.05ms  count=543
+      { phase:measure,page:1 }.....: avg=23.42ms min=8.13ms  med=22.81ms p(90)=31.6ms  p(95)=32.21ms p(99)=33.87ms  max=34.66ms  count=120
+      { phase:measure,page:2 }.....: avg=15.57ms min=6.32ms  med=16.45ms p(90)=18.72ms p(95)=19.3ms  p(99)=26.21ms  max=63.05ms  count=120
+      { phase:measure,page:3 }.....: avg=12.63ms min=5.71ms  med=13.32ms p(90)=15.71ms p(95)=16.12ms p(99)=19.06ms  max=24.35ms  count=120
+      { phase:measure }............: avg=17.21ms min=5.71ms  med=16.12ms p(90)=29.61ms p(95)=30.79ms p(99)=32.61ms  max=63.05ms  count=360
+    http_req_failed................: 0.00%  0 out of 543
+      { phase:measure }............: 0.00%  0 out of 360
+    http_reqs......................: 543    5.716139/s
+
+    EXECUTION
+    dropped_iterations.............: 0      0/s
+      { scenario:measure }.........: 0      0/s
+    iteration_duration.............: avg=57.24ms min=22.74ms med=57.4ms  p(90)=69.33ms p(95)=72.35ms p(99)=107.01ms max=119.15ms count=181
+    iterations.....................: 181    1.90538/s
+    vus............................: 0      min=0        max=0  
+    vus_max........................: 100    min=100      max=100
+
+    NETWORK
+    data_received..................: 4.6 MB 48 kB/s
+    data_sent......................: 186 kB 2.0 kB/s
+
+
+
+k6 exit code: 0 (thresholds are informational)

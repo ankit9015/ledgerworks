@@ -150,9 +150,9 @@ Ledgerlens finds slow queries in a Postgres database, proposes fixes, and **veri
 
 ### L3.1 Workload model and parameter bindings
 Problem: `pg_stat_statements` stores normalized text with `$1, $2`, so a query cannot be measured without concrete values.
-- [ ] A `Workload` type: normalized statements with calls, total and mean time, rows and buffer counts. Exclude utility statements, Ledgerlens's own queries and pg_catalog-only statements, and say how many were excluded and why.
-- [ ] Parameter binding strategies, each with a provenance label: `user-supplied` (a file of example values), `sampled-from-stats` (values from `pg_stats` most_common_vals and histogram bounds, matched to the column each parameter is compared with, using a real SQL parser; record the parser choice and version), and `synthesized` (values derived from column types, lowest confidence). Every binding set carries a confidence level.
-- [ ] Statements with no usable bindings are marked `unverifiable` and listed with a reason. They are never silently skipped.
+- [x] A `Workload` type: normalized statements with calls, total and mean time, rows and buffer counts. Exclude utility statements, Ledgerlens's own queries and pg_catalog-only statements, and say how many were excluded and why.
+- [x] Parameter binding strategies, each with a provenance label: `user-supplied` (a file of example values), `sampled-from-stats` (values from `pg_stats` most_common_vals and histogram bounds, matched to the column each parameter is compared with, using a real SQL parser; record the parser choice and version), and `synthesized` (values derived from column types, lowest confidence). Every binding set carries a confidence level.
+- [x] Statements with no usable bindings are marked `unverifiable` and listed with a reason. They are never silently skipped.
 - **Done when:** on the Ledgerline benchmark workload (after a k6 run) the report states the real share of the top 20 statements that got bindings, with provenance, and lists the unverifiable ones. Tests cover parameters in equality, range, IN lists and LIMIT/OFFSET, and a hostile value pulled from stats (for example a string containing quotes or a semicolon) that must be passed as a bound parameter, never as text.
 
 ### L3.2 Deterministic plan analyzer
