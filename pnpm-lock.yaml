@@ -68,7 +68,30 @@ importers:
 
   ledgerlatch: {}
 
-  ledgerlens: {}
+  ledgerlens:
+    dependencies:
+      '@ledgerworks/core':
+        specifier: workspace:^
+        version: link:../core
+      libpg-query:
+        specifier: 16.7.3
+        version: 16.7.3
+      pg:
+        specifier: ^8.23.1
+        version: 8.23.1
+      zod:
+        specifier: ^4.6.5
+        version: 4.6.5
+    devDependencies:
+      '@types/node':
+        specifier: ^24.19.0
+        version: 24.19.0
+      '@types/pg':
+        specifier: ^8.23.1
+        version: 8.23.1
+      tsx:
+        specifier: ^4.23.15
+        version: 4.23.15
 
   ledgerline:
     dependencies:
@@ -675,6 +698,9 @@ packages:
 
   '@oxc-project/types@0.152.0':
     resolution: {integrity: sha512-oM/5rLBm2tPkg0iBgkH/FOeR3PCDpY19GTgAZjMFM8h9WI9VW7cLgzp6nwtarYKmovavIQZ+Fe/RKX/8C8O/Rw==}
+
+  '@pgsql/types@16.1.2':
+    resolution: {integrity: sha512-mrZjHMCUEm3x6dEPImmTG8cKYEpdXEh2eUvJuXCX3GuRvrINnFvzUaeL2u2FRTPUpxwUEjUEhg2dooC650FeNQ==}
 
   '@pinojs/redact@0.4.0':
     resolution: {integrity: sha512-k2ENnmBugE/rzQfEcdWHcCY+/FM3VLzH9cYEsbdsoqrvzAKRhUZeRNhAZvB8OitQJ1TBed3yqWtdjzS6wJKBwg==}
@@ -1640,6 +1666,9 @@ packages:
   levn@0.4.1:
     resolution: {integrity: sha512-+bT2uH4E5LGE7h/n3evcS/sQlJXCpIp6ym8OWJ5eV6+67Dsql/LaaT7qJBAt2rzfoa/5QBGBhxDix1dMt2kQKQ==}
     engines: {node: '>= 0.8.0'}
+
+  libpg-query@16.7.3:
+    resolution: {integrity: sha512-GNn2O61I7KytLjGCC/YwCblqozlvl3grmf0ImUSz9oCe3z5lGvvvApyZr8NYQha/Qpep83mbl/Gfqge8iEE0eg==}
 
   light-my-request@6.6.0:
     resolution: {integrity: sha512-CHYbu8RtboSIoVsHZ6Ye4cj4Aw/yg2oAFimlF7mNvfDV192LR7nDiKtSIfCuLT7KokPSTn/9kfVLm5OGN0A28A==}
@@ -2806,6 +2835,8 @@ snapshots:
 
   '@oxc-project/types@0.152.0': {}
 
+  '@pgsql/types@16.1.2': {}
+
   '@pinojs/redact@0.4.0': {}
 
   '@playwright/test@1.63.0':
@@ -3781,6 +3812,10 @@ snapshots:
     dependencies:
       prelude-ls: 1.2.1
       type-check: 0.4.0
+
+  libpg-query@16.7.3:
+    dependencies:
+      '@pgsql/types': 16.1.2
 
   light-my-request@6.6.0:
     dependencies:

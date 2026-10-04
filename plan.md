@@ -144,8 +144,8 @@ Ledgerlens finds slow queries in a Postgres database, proposes fixes, and **veri
 8. **Generic.** Works on any Postgres 16 source. Ledgerline is the first test subject, so a second schema is used in the gauntlet to avoid overfitting.
 
 ### L3.0 Product framing
-- [ ] Write `ledgerlens/PRODUCT.md`: persona (a backend developer at a small startup with no DBA whose app got slow), problem, goals, at least three non-goals (no auto-apply, no query rewriting of application code, no monitoring replacement), and measurable success metrics. Add DECISIONS entries for the verdict vocabulary and risk levels.
-- [ ] Define the typed event taxonomy as a schema file (no sending yet): `investigation_started`, `slow_query_opened`, `candidate_viewed`, `fix_accepted`, `fix_rejected` (reason), `fix_reverted`, `thumbs`, `state_shown` (rate_limited, quota_exhausted, no_problems, fix_did_not_help). Events carry ids, hashes and classes only, never query text.
+- [x] Write `ledgerlens/PRODUCT.md`: persona (a backend developer at a small startup with no DBA whose app got slow), problem, goals, at least three non-goals (no auto-apply, no query rewriting of application code, no monitoring replacement), and measurable success metrics. Add DECISIONS entries for the verdict vocabulary and risk levels.
+- [x] Define the typed event taxonomy as a schema file (no sending yet): `investigation_started`, `slow_query_opened`, `candidate_viewed`, `fix_accepted`, `fix_rejected` (reason), `fix_reverted`, `thumbs`, `state_shown` (rate_limited, quota_exhausted, no_problems, fix_did_not_help). Events carry ids, hashes and classes only, never query text.
 - **Done when:** the files exist, and the taxonomy has a test that rejects an event containing a field named like query text.
 
 ### L3.1 Workload model and parameter bindings
