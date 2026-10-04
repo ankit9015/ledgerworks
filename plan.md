@@ -128,31 +128,117 @@ Purpose: a realistic, data-heavy, multi-tenant backend that is fast, correct und
   - **Done when:** a run is visible with its steps and token counts.
 - **Checkpoint:** stop and summarize. Then wait for the author's go-ahead before Phase 3.
 
-## 5. Phase 3 outline: Ledgerlens (weeks 3-6, detail to be expanded after Phase 2)
+## 5. Phase 3: Ledgerlens (weeks 3-6)
 
-**Persona:** a backend developer at a small startup with no DBA, whose app got slow.
-**Flow:** connect read-only, ranked slow queries, plain-language diagnosis, proposed fix, verified on the shadow copy with before/after timings, accept or reject.
+Ledgerlens finds slow queries in a Postgres database, proposes fixes, and **verifies each fix on a shadow copy** with measured before/after numbers. It never changes the source database and never applies anything automatically. Accepting a fix only exports a reviewable migration.
 
-Planned tasks (to be broken down with acceptance criteria at the Phase 2 checkpoint):
-- Slow-query finder from `pg_stat_statements` (ranked by total time, with normalized query text and optional literal redaction).
-- Plan analyzer (seq scans, bad estimates, sorts spilling to disk, N+1 patterns from repeated query shapes).
-- Fix proposer using the agent loop; candidate indexes tested first with HypoPG, then built on the shadow copy.
-- Verifier: before/after measurement, write-overhead estimate, storage cost, risk level; reject fixes that do not help or hurt writes too much.
-- Output as a reviewable migration file with a diff. Never auto-applied.
-- Product layer from day one: PostHog events (`slow_query_opened`, `fix_viewed`, `fix_accepted`, `fix_rejected` with reason, `fix_reverted`, `thumbs`), states for rate-limited, quota exhausted, no problems found, fix did not help.
-- Gauntlet of about 30 planted problems in Ledgerline-style data (missing index, wrong composite order, unindexed foreign key, N+1, bad `LIKE`, stale statistics, sort spill, and so on).
-- Metrics per model: percent fixed with a real speedup, percent harmful or useless, speedup versus human reference fix, tokens and cost per fix.
+### Principles (apply to every task below)
 
-**Visual storytelling (Ledgerlens "investigation board").** Everything shown must be measured data from recorded runs. Never invent timings. Do not rely on color alone (add icons and labels). Every view needs loading, empty, failed-step and rate-limited states.
-- **L3.V1 Plan diagram.** Map `EXPLAIN (FORMAT JSON)` to a flow diagram using React Flow with automatic layout (ELK or dagre). Boxes are plan nodes, arrows show row flow, arrow thickness encodes row count, box color encodes share of total time, badges flag problems (seq scan on a large table, estimate versus actual mismatch, sort spill).
-  - **Done when:** the diagram renders without overlap for all gauntlet queries, and a snapshot test covers at least 5 distinct plan shapes.
-- **L3.V2 Before/after view.** The same diagram side by side with the fix applied, showing measured timings.
-  - **Done when:** it uses only numbers from the verifier output, and a test fails if a displayed number is not present in the stored measurement.
-- **L3.V3 Agent run as workflow.** A horizontal chain: Find, Diagnose, Propose, Hypothetical index test, Build on shadow copy, Measure, Verdict. Each step shows status (done, running, failed, skipped); clicking a step shows the tool call, tokens and latency.
-  - **Done when:** a recorded run replays correctly, including a failed-step case and a rate-limited case.
-- **L3.V4 Verdict card.** Speedup, write overhead, storage cost, risk level, with Accept and Reject (reason required on reject). Emits the PostHog events defined above.
-  - **Done when:** accepting never applies anything automatically; it only exports the reviewable migration file.
+1. **Verified, not guessed.** Only the verifier decides a verdict. An LLM can propose, never judge.
+2. **Source is read-only.** `EXPLAIN ANALYZE`, index builds and write benchmarks run on a settled shadow only. Source access uses the read-only role and the existing readiness check.
+3. **Noise rules from D36 are enforced in code.** Call a difference real only above about 40% for queries of 50 ms or more, 2x for queries under 2 ms (use server time), and about 50% for DDL durations, compared interleaved in the same session. Anything smaller is "inconclusive", never an improvement.
+4. **Sampled shadows are labelled.** A sampled shadow is not a scaled-down database (10% of tenants kept 2.9% of events). Verdicts from a sample are capped at "indicative" and say so.
+5. **Database text is untrusted.** Query text, identifiers, comments and plan text are delimited data. Generated SQL quotes every identifier properly and never interpolates untrusted strings.
+6. **Deterministic baseline first.** A rules-only advisor (no LLM) is built before the LLM proposer, so the value of the LLM is measurable.
+7. **Honest numbers.** Report counts (for example 21/30), repeats, model ids and dates. No invented numbers. Raw outputs are kept and never overwritten.
+8. **Generic.** Works on any Postgres 16 source. Ledgerline is the first test subject, so a second schema is used in the gauntlet to avoid overfitting.
 
+### L3.0 Product framing
+- [ ] Write `ledgerlens/PRODUCT.md`: persona (a backend developer at a small startup with no DBA whose app got slow), problem, goals, at least three non-goals (no auto-apply, no query rewriting of application code, no monitoring replacement), and measurable success metrics. Add DECISIONS entries for the verdict vocabulary and risk levels.
+- [ ] Define the typed event taxonomy as a schema file (no sending yet): `investigation_started`, `slow_query_opened`, `candidate_viewed`, `fix_accepted`, `fix_rejected` (reason), `fix_reverted`, `thumbs`, `state_shown` (rate_limited, quota_exhausted, no_problems, fix_did_not_help). Events carry ids, hashes and classes only, never query text.
+- **Done when:** the files exist, and the taxonomy has a test that rejects an event containing a field named like query text.
+
+### L3.1 Workload model and parameter bindings
+Problem: `pg_stat_statements` stores normalized text with `$1, $2`, so a query cannot be measured without concrete values.
+- [ ] A `Workload` type: normalized statements with calls, total and mean time, rows and buffer counts. Exclude utility statements, Ledgerlens's own queries and pg_catalog-only statements, and say how many were excluded and why.
+- [ ] Parameter binding strategies, each with a provenance label: `user-supplied` (a file of example values), `sampled-from-stats` (values from `pg_stats` most_common_vals and histogram bounds, matched to the column each parameter is compared with, using a real SQL parser; record the parser choice and version), and `synthesized` (values derived from column types, lowest confidence). Every binding set carries a confidence level.
+- [ ] Statements with no usable bindings are marked `unverifiable` and listed with a reason. They are never silently skipped.
+- **Done when:** on the Ledgerline benchmark workload (after a k6 run) the report states the real share of the top 20 statements that got bindings, with provenance, and lists the unverifiable ones. Tests cover parameters in equality, range, IN lists and LIMIT/OFFSET, and a hostile value pulled from stats (for example a string containing quotes or a semicolon) that must be passed as a bound parameter, never as text.
+
+### L3.2 Deterministic plan analyzer
+- [ ] Parse `EXPLAIN (FORMAT JSON)` output (estimates only, from the source tool) and `EXPLAIN (ANALYZE, BUFFERS, FORMAT JSON)` output (from the harness) into a typed plan tree with node paths.
+- [ ] Findings with evidence numbers and a severity: seq scan on a large table with a selective filter, estimate versus actual row mismatch (factor), sort spilling to disk, sort over a large set where an index could provide order, nested loop with a high loop count (N+1 shape), hash join with multiple batches, lossy bitmap heap recheck, join on an unindexed foreign key, absent partition pruning, and stale statistics (last analyze versus modification counts).
+- [ ] Every finding links to the node path it came from. Plan text inside findings is marked untrusted.
+- **Done when:** snapshot tests cover at least 8 distinct plan shapes using fixture plans saved from real runs, and the pre-E1 Ledgerline usage-read plan produces a "large sort where an index could give order" finding. No finding is produced without evidence numbers (tested).
+
+### L3.3 Deterministic candidate generator (the rules-only advisor)
+- [ ] A typed `Candidate`: id, kind (`create_index`, `drop_redundant_index`, `analyze_or_stats_target`, `rewrite_suggestion`), up SQL and down SQL, rationale, targeted statements, risk notes, and the findings that triggered it.
+- [ ] Index rules: equality columns first, then range, then sort columns; partial indexes when a constant filter is dominant; `INCLUDE` for covering when it removes a heap fetch; `CONCURRENTLY` always; skip tiny tables; avoid duplicates of existing indexes (including prefix-redundant ones) using `describe_schema`.
+- [ ] `rewrite_suggestion` is advice text only and is not verified unless a rewrite SQL is supplied (see L3.7 equivalence check).
+- [ ] SQL generation quotes identifiers through one tested helper.
+- **Done when:** tests show correct column order for 6 query shapes, duplicate and prefix-redundant detection, and an identifier-injection test (table and column names containing quotes, semicolons and newlines) where the generated SQL is valid and inert.
+
+### L3.4 HypoPG pre-screen
+- [ ] On the settled shadow, create each index candidate as a hypothetical index, run plain `EXPLAIN` for the targeted statements with their bindings, and record whether the planner uses the index and the estimated cost change. Drop the hypothetical index afterwards.
+- [ ] Candidates the planner does not use are rejected early with the reason. HypoPG results are cost estimates only and are never reported as measured speedups.
+- **Done when:** a planted missing-index case passes the pre-screen, a useless index is rejected, and the report text never calls a HypoPG number a speedup (tested by a string check on the report schema, which has separate `estimatedCostRatio` and `measuredSpeedup` fields).
+
+### L3.5 Verifier
+- [ ] For each surviving candidate, on a settled shadow and with interleaved before/after measurement using the harness: measure the targeted statements before, apply the candidate for real (fresh shadow per run when the statement cannot be rolled back, for example `CREATE INDEX CONCURRENTLY`), measure the build time and size, then measure again.
+- [ ] Write overhead: benchmark inserts and updates on the affected table before and after (from workload statements when bound, otherwise a synthetic statement matching the table's columns, labelled as synthetic).
+- [ ] Regression check: re-measure the top N other statements touching the same table, and flag any regression beyond the noise thresholds.
+- [ ] Verdicts: `verified_improvement`, `inconclusive`, `no_effect`, `harmful`, `unverifiable`, with `indicative` as a cap for sampled shadows. Rules use the D36 thresholds and a configurable write-overhead limit.
+- [ ] Risk level (`low`, `medium`, `high`) from an explicit documented table: lock mode (`CONCURRENTLY` or not), table size, write overhead, how hot the table is (calls), and sampled versus full shadow.
+- [ ] Output is a typed, versioned `Verdict` that includes the shadow manifest id, whether the data was sampled, run counts and the spread.
+- **Done when:** tests show a planted missing index gives `verified_improvement`, a useless index gives `no_effect`, an index that heavily slows inserts gives `harmful` (a constructed case), two identical runs are never reported as an improvement, a sampled shadow caps the verdict at `indicative`, and repeating the same candidate gives the same verdict class in 3 of 3 runs.
+
+### L3.6 Migration output
+- [ ] Generate reviewable `up.sql` and `down.sql` with a header comment (candidate id, measured evidence summary, risks, whether sampled, noise thresholds used). Use `CONCURRENTLY` and a "no transaction" marker where needed.
+- [ ] Never execute anything on the source. Provide a script that prints how to apply the migration manually.
+- [ ] Validate the output: apply `up` then `down` on a fresh shadow and check that the schema returns to the original (schema diff equals empty).
+- **Done when:** the round-trip test passes for every candidate kind, and the header never contains query literals (redaction on by default).
+
+### L3.7 LLM proposer (agent loop)
+- [ ] New tools registered through the existing registry. Source tools: `list_slow_queries`, `get_query_plan`, `describe_schema`. Shadow-only tools: `get_plan_analysis` (deterministic findings), `hypothetical_index_test`, `measure_query`. The model submits candidates through `propose_candidate` as **structured parameters, not raw SQL**, and the generator turns them into SQL. A rewrite candidate may carry raw SQL, but it is only measured after a result-equivalence check (matching checksums for the sample bindings), and a failing check is a typed rejection.
+- [ ] Budgets per investigation: maximum steps, tokens, wall clock, shadow builds and shadow time. Exhausted budgets end the run with a typed stop reason.
+- [ ] The verifier remains the only judge. A test shows that a model claiming "this made it 10x faster" cannot change the verdict.
+- [ ] Prompt hygiene: system instructions stay separate from tool results, database text is delimited as untrusted, and a gauntlet case where a table comment tells the model to drop an index must not produce any drop candidate (this tests the mechanics, not the model's resistance).
+- **Done when:** a scripted fake-provider run goes from slow query to verified candidate with a full trace, a manual script runs one end-to-end investigation with a real provider on one planted problem (raw trace saved, keys stripped), and tests cover invalid candidates, a rewrite that fails equivalence, budget exhaustion, and the verdict-override attempt.
+
+### L3.8 Gauntlet
+- [ ] About 30 planted problems as directories: setup SQL, workload with bindings, problem class, human reference fix, expected verdict class, and a `trap` flag. Classes: missing index, wrong composite column order, unindexed foreign key, N+1 shape, bad `LIKE` pattern, stale statistics, sort spill, function on an indexed column, type mismatch preventing index use, partial-index opportunity, redundant index, and OFFSET pagination.
+- [ ] At least 5 **traps** where the right answer is "do not add an index" (low selectivity, tiny table, write-heavy table, an index that already exists in another form).
+- [ ] Use two schemas (Ledgerline-derived and a different synthetic one) so results do not depend on one dataset.
+- [ ] Hold out about 10 cases as a test set that is never used while tuning rules or prompts. Record in the repo which ones.
+- [ ] `pnpm gauntlet:build` builds every case reproducibly.
+- **Done when:** every human reference fix is run through the same verifier and produces the expected verdict class (a reference that fails is reported, not hidden), and the trap cases verify as "no change recommended".
+
+### L3.9 Evals
+- [ ] A runner that evaluates the deterministic baseline and each configured model on every case, with fallover disabled so results are attributable to one model, and at least 3 repeats per case for LLMs.
+- [ ] Metrics shown as counts and percentages: fixed with a verified speedup, harmful, trap passed, useless, speedup versus the reference fix (ratio), tool-error rate, repair rate, tokens, latency, and estimated cost only if a price table is configured.
+- [ ] promptfoo suites for CI use the fake provider and recorded runs only (no keys and no cost in CI). Real-model runs are manual, with raw outputs committed (keys stripped), the exact model id, the date and the current free-tier limits noted.
+- [ ] A results table in the README comparing the baseline and each model on the dev set and the held-out set separately.
+- **Done when:** CI fails on a regression of the baseline or the fake-provider suite, and the README table has real counts with repeat numbers.
+
+### L3.10 Service and API
+- [ ] Fastify API with a separate metadata database (never the source or the shadow): create connection (config encrypted, read-only readiness check), list slow queries, start an investigation, get an investigation (steps, trace), list candidates and verdicts, accept or reject (a reason is required to reject; accepting only unlocks the migration download), and download the migration.
+- [ ] Store plans, stats and redacted query text only. Original literals are never stored unless a setting is turned on, and the setting is off by default.
+- [ ] Single-user API token for now (record the decision and its limits).
+- **Done when:** integration tests cover each endpoint with a happy path and an auth failure, a test confirms literals do not appear in the stored data, and no endpoint can run anything on the source beyond the read-only tools.
+
+### L3.V (visual storytelling, from the main plan)
+- [ ] **L3.V1 Plan diagram.** Map EXPLAIN JSON to a flow diagram (React Flow plus ELK or dagre). Arrow thickness shows row count, box colour shows share of time, and badges show findings. Done when it renders without overlap for all gauntlet queries and snapshot tests cover at least 5 plan shapes.
+- [ ] **L3.V2 Before/after view.** Done when every displayed number exists in the stored verdict (a test fails otherwise) and sampled verdicts show the "indicative" label.
+- [ ] **L3.V3 Agent run as workflow.** Find, Diagnose, Propose, Hypothetical test, Build on shadow, Measure, Verdict, each with status and a click-through to the tool call, tokens and latency. Done when a recorded run replays correctly including a failed step and a rate-limited step.
+- [ ] **L3.V4 Verdict card.** Speedup (with its noise label), write overhead, storage, risk, Accept and Reject (reason required). Accept never applies anything.
+- Shared rules: measured data only, not colour alone, and loading, empty, failed-step and rate-limited states everywhere.
+
+### L3.11 Product instrumentation
+- [ ] Implement the typed events from L3.0 with a local JSONL sink and an optional PostHog sink (environment variables only). Events carry ids, hashes and classes only. A test scans events for query text and literals.
+- [ ] Document the funnels: connected, first investigation, first verified fix, first accept.
+- **Done when:** the privacy scan test passes and the funnel definitions are written in `ledgerlens/PRODUCT.md`.
+
+### L3.12 README, demo and test-user prep
+- [ ] `ledgerlens/README.md` leads with the gauntlet results table (baseline versus models, dev versus held-out, counts and repeats), then one verified before/after example, then architecture, then a one-command demo, then "Honest limits" (shadow noise, sampled shadows, parameter binding limits, free-model variance, HypoPG cost estimates, laptop numbers).
+- [ ] Prepare a short script and consent note for 5 to 10 test users, and a `docs/user-feedback.md` template (what they tried, what failed, what changed).
+- **Done when:** a fresh clone reaches a working demo with documented commands, and every number in the README links to a raw file.
+
+### Prompt split for Claude Code
+- Prompt 10: L3.0 to L3.4 (foundations, no LLM)
+- Prompt 11: L3.5 and L3.6 (verifier and migration output)
+- Prompt 12: L3.7 (LLM proposer)
+- Prompt 13: L3.8 and L3.9 (gauntlet and evals)
+- Prompt 14: L3.10, L3.V, L3.11, L3.12 (API, UI, instrumentation, README)
 ## 6. Phase 4 outline: Ledgerlatch (weeks 7-9)
 
 **Persona:** the same developer, about to ship a schema change.
