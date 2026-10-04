@@ -7,3 +7,4 @@ export * from './security/index.js';
 export * from './db/index.js';
 export * from './tools/index.js';
 export * from './mcp/index.js';
+export * from './tracing/index.js';

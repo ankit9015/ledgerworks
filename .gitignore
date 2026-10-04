@@ -8,3 +8,6 @@ coverage/
 test-results/
 playwright-report/
 ledgerline/ui/dist/
+
+# local agent run traces (C2.9)
+.ledgerworks/

@@ -10,10 +10,12 @@ import { ToolAbortedError, cancelBackend, withCancellableClient } from './cancel
 const tag = `lw-cancel-${Math.random().toString(36).slice(2, 8)}`;
 const factory = (name: string) => async (): Promise<pg.Client> => {
   const c = new pg.Client({ connectionString: ADMIN_URL, application_name: name });
+  c.on('error', () => undefined); // a test may terminate this session on purpose
   await c.connect();
   return c;
 };
 const admin = new pg.Client({ connectionString: ADMIN_URL });
+admin.on('error', () => undefined);
 const ready = admin.connect();
 afterAll(async () => {
   await ready;

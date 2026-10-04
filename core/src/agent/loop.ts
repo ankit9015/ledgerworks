@@ -11,6 +11,7 @@ import {
   type ToolMessage,
 } from '../llm/types.js';
 import { redactDeep, redactText } from '../security/redact.js';
+import { emitTrace } from '../tracing/sinks.js';
 import type {
   AgentOptions,
   AgentTool,
@@ -214,6 +215,7 @@ export async function runAgent(o: AgentOptions): Promise<RunResult> {
 
         // ---- model call ---------------------------------------------------------------
         const callStart = performance.now();
+        const callStartedAt = new Date(clock.now()).toISOString();
         let result: ChatResult;
         try {
           result = await o.provider.chat({
@@ -229,6 +231,7 @@ export async function runAgent(o: AgentOptions): Promise<RunResult> {
         } catch (e) {
           const err = toLLMError(e, o.provider.id, secrets);
           const model: ModelCallTrace = {
+            startedAt: callStartedAt,
             provider: o.provider.id,
             model: o.provider.model,
             latencyMs: Math.round(performance.now() - callStart),
@@ -250,6 +253,7 @@ export async function runAgent(o: AgentOptions): Promise<RunResult> {
         const stepTrace: StepTrace = {
           index: step,
           model: {
+            startedAt: callStartedAt,
             provider: result.provider,
             model: result.model ?? o.provider.model,
             latencyMs: Math.round(performance.now() - callStart),
@@ -380,14 +384,21 @@ export async function runAgent(o: AgentOptions): Promise<RunResult> {
       outcome: ToolOutcome;
       text: string;
       latencyMs: number;
+      startedAtMs: number;
       abandoned?: boolean;
     }[] = new Array(prepared.length);
     await pool(prepared, concurrency, async (p, i) => {
       if (p.early) {
-        outputs[i] = { outcome: p.early.outcome, text: p.early.text, latencyMs: 0 };
+        outputs[i] = {
+          outcome: p.early.outcome,
+          text: p.early.text,
+          latencyMs: 0,
+          startedAtMs: clock.now(),
+        };
         return;
       }
-      outputs[i] = await executeTool(p.tool!, p.args, p.call.id);
+      const startedAtMs = clock.now();
+      outputs[i] = { ...(await executeTool(p.tool!, p.args, p.call.id)), startedAtMs };
     });
 
     const toolMessages: ToolMessage[] = [];
@@ -421,6 +432,7 @@ export async function runAgent(o: AgentOptions): Promise<RunResult> {
       const trace: ToolCallTrace = {
         callId: p.call.id,
         name: p.call.name,
+        startedAt: new Date(out.startedAtMs).toISOString(),
         argumentsHash: sha(p.call.rawArguments),
         argumentsBytes: Buffer.byteLength(p.call.rawArguments),
         latencyMs: Math.round(out.latencyMs),
@@ -548,5 +560,17 @@ export async function runAgent(o: AgentOptions): Promise<RunResult> {
     },
     secrets,
   );
-  return { stopReason, finalAnswer, error, messages, trace };
+  // Tracing never changes the run: sinks are bounded by a timeout and their failures are only reported.
+  const traceErrors = await emitTrace(o.traceSinks ?? [], trace, {
+    timeoutMs: o.traceTimeoutMs,
+    secrets,
+  });
+  return {
+    stopReason,
+    finalAnswer,
+    error,
+    messages,
+    trace,
+    ...(traceErrors.length ? { traceErrors } : {}),
+  };
 }

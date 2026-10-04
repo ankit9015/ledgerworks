@@ -19,7 +19,8 @@
     "seed:demo": "pnpm --filter @ledgerworks/ledgerline seed:demo",
     "test:shadow-full": "node scripts/test-shadow-full.mjs",
     "llm:smoke": "pnpm --filter @ledgerworks/core llm:smoke",
-    "mcp:inspect": "pnpm --filter @ledgerworks/core mcp:inspect"
+    "mcp:inspect": "pnpm --filter @ledgerworks/core mcp:inspect",
+    "trace:show": "pnpm --filter @ledgerworks/core trace:show"
   },
   "devDependencies": {
     "@eslint/js": "^9.0.0",

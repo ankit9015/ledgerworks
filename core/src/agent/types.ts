@@ -85,6 +85,10 @@ export interface AgentOptions {
   debug?: boolean;
   /** per model call, ms */
   modelTimeoutMs?: number;
+  /** where the finished run trace is written (JSONL file, OpenTelemetry, Langfuse). Tracing never breaks or delays a run beyond traceTimeoutMs. */
+  traceSinks?: import('../tracing/sinks.js').TraceSink[];
+  /** longest the run waits for its trace sinks, ms. Default 2,000. */
+  traceTimeoutMs?: number;
   temperature?: number;
   maxTokens?: number;
   /** exact strings to scrub from the trace and from error messages (for example the API key) */
@@ -112,6 +116,8 @@ export type ToolOutcome =
 export interface ToolCallTrace {
   callId: string;
   name: string;
+  /** ISO time the call started (for the span timeline) */
+  startedAt: string;
   /** sha256 (first 16 hex characters) of the arguments exactly as the model sent them */
   argumentsHash: string;
   argumentsBytes: number;
@@ -133,6 +139,8 @@ export interface ToolCallTrace {
 export interface ModelCallTrace {
   provider: string;
   model: string;
+  /** ISO time the call started (for the span timeline) */
+  startedAt: string;
   latencyMs: number;
   usage: Usage | null;
   finishReason: FinishReason | null;
@@ -187,4 +195,6 @@ export interface RunResult {
   /** the whole conversation, including assistant turns and the (delimited) tool results */
   messages: Message[];
   trace: RunTrace;
+  /** sinks that failed or timed out (tracing problems never change the run's outcome); messages are redacted */
+  traceErrors?: { sink: string; message: string }[];
 }
