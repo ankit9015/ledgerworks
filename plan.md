@@ -122,7 +122,7 @@ Purpose: a realistic, data-heavy, multi-tenant backend that is fast, correct und
   - **Done when:** SSRF tests for private ranges, link-local, and redirects to private ranges all pass.
 
 ### Tools and MCP
-- [ ] **C2.8** Tool registry: each tool defined once with a typed schema, usable by the agent loop and exposed through an MCP server (streamable HTTP or stdio). Initial read-only tools: `list_slow_queries`, `get_query_plan`, `describe_schema`.
+- [x] **C2.8** Tool registry: each tool defined once with a typed schema, usable by the agent loop and exposed through an MCP server (streamable HTTP or stdio). Initial read-only tools: `list_slow_queries`, `get_query_plan`, `describe_schema`.
   - **Done when:** the MCP server works with an MCP inspector or client, and the same tool definitions are used by the in-process agent.
 - [ ] **C2.9** Tracing: record each agent run (steps, tools, tokens, latency) to Langfuse or to a local table if Langfuse is not configured.
   - **Done when:** a run is visible with its steps and token counts.

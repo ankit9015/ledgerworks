@@ -311,3 +311,32 @@ const key = decryptSecret(ring, stored, configId);
 3. a tool that has not settled by then is marked `abandoned: true` in the run trace. It is reported, not hidden; whatever it still runs is its own responsibility.
 
 **Database tools must use `withCancellableClient(connectionFactory, ctx.signal, fn, { statementTimeoutMs })`** (`src/db/cancellable.ts`). On abort it cancels the running query on the server with `pg_cancel_backend` from a second connection (the same database user may cancel its own sessions), drops the connection if the query has not stopped after `hardStopAfterMs`, always releases the connection, and throws `AbortError`. Tests run `pg_sleep(30)` through it and check `pg_stat_activity`: after a tool timeout and after a run cancellation no query is active and no connection of the tool is left, by the time the loop returns; a contrast test shows a tool that ignores its signal keeps its query running on the server and is reported as `abandoned`.
+
+### Tool registry and MCP server (`src/tools/`, `src/mcp/`, C2.8)
+
+Each tool is defined once as a `ToolSpec` and registered in a `ToolRegistry`; the same specs run in the agent loop (`registry.toAgentTools(...)`) and over MCP (`createMcpServer`).
+
+```ts
+const spec = defineToolSpec({
+  name: 'describe_schema',                       // ^[a-z][a-z0-9_]{1,63}$
+  description: '...',
+  input: z.object({ max_tables: z.number().int().max(100).default(30) }).strict(),  // THE schema: validation AND the JSON Schema for models and MCP
+  output: z.object({ ... }),                      // optional: a result that does not match is an error
+  annotations: { readOnly: true, changesState: false, requiresApproval: false, idempotent: true },
+  timeoutMs: 30_000, maxResultBytes: 65_536,
+  handler: async (input, ctx) => { /* ctx: { signal, connect, callId, span } */ },
+});
+const registry = new ToolRegistry().register(spec);
+const result = await registry.run('describe_schema', args, { connect, callId, signal });   // never throws: { ok, data | error, text, bytes, truncated }
+```
+
+- **Registration rules:** unsafe names, duplicates, descriptions under 10 characters, `readOnly` together with `changesState`, bad timeouts or size limits, and input schemas that are not objects are refused. A tool with `changesState` and without `requiresApproval` is refused unless `allowChangesStateWithoutApproval` carries a written reason (at least 10 characters) in code.
+- **`registry.run`:** validates the input (strict schemas: unknown keys are rejected), runs the handler under its timeout with an `AbortSignal` (see the cancellation contract above), validates the output, and returns typed errors (`invalid_arguments`, `unknown_tool`, `timeout`, `cancelled`, `invalid_output`, `internal_error`, or the handler's own `ToolError` code). The JSON `text` is cut at the tool's limit with `[truncated: N bytes omitted]` and the full size is reported.
+- **Text from the database is untrusted.** Names, comments, definitions, plan node text and query text travel as `{ "$untrusted": "..." }`: control characters, bidirectional overrides and zero-width characters removed, line breaks flattened, length limited. Literals in query text can be redacted (`redactLiterals`); `list_slow_queries` does it by default (it is a server-side configuration, not an argument a model can switch off).
+- **The Postgres tools** (`createPostgresTools({ sourceUrl })`, any Postgres 16 source through a read-only role; the same readiness check as the shadow runner runs once, read-only sessions with statement and lock timeouts, connection through `withCancellableClient`, a span per call):
+  - `list_slow_queries { limit (1-50), min_calls, order_by: total_time | mean_time | calls }`: from `pg_stat_statements`; typed errors when it is not installed, not loaded, or not readable; says when the role cannot see statement text.
+  - `get_query_plan { query }`: `EXPLAIN (FORMAT JSON)` of **one SELECT**, never ANALYZE (EXPLAIN ANALYZE belongs to the shadow harness). Refuses anything else (writes, DDL, several statements, hidden second statements, `SELECT INTO`, locking clauses, dangerous functions). Queries with `$1` get a `GENERIC_PLAN` and say so.
+  - `describe_schema { schemas?, table_filter?, max_tables, include_indexes }`: tables, columns, indexes with definitions and sizes, constraints, partitions (listed under the parent), planner row **estimates** (labelled), extension status.
+- **MCP:** built on the official `@modelcontextprotocol/sdk` (a protocol library). `inputSchema` is the registry's own JSON Schema, annotations become the MCP hints, `structuredContent` carries the data, and the text content starts with a line saying the result is data. Tools with `changesState` are not listed or callable unless `allowChangesState` is passed, and then still need an `approve` handler.
+- **Transports:** stdio (`pnpm --filter @ledgerworks/core mcp:stdio`, `MCP_SOURCE_URL` in the environment) and Streamable HTTP (`mcp:http`). HTTP: binds to `127.0.0.1`; a bearer token is required on every request (`MCP_AUTH_TOKEN`, at least 16 characters, constant-time comparison, never logged); `Origin` must be on the allow list (default: none, so browsers are refused) and `Host` must be a loopback name (DNS rebinding); 1 MiB request limit; 120 requests a minute per client address with `Retry-After`; at most 20 sessions, one isolated server per session; refuses to start on a non-loopback address without a token **and** an explicit flag. **Exposing it publicly is out of scope for now.**
+- `pnpm mcp:inspect` prints how to connect with the MCP Inspector and a Claude Desktop style configuration, with placeholders only. It starts nothing.

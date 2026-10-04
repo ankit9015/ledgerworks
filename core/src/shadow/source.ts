@@ -299,6 +299,8 @@ export async function provisionReaderRole(
       `${exists.rowCount ? 'ALTER' : 'CREATE'} ROLE ${qi(o.role)} ${attrs} PASSWORD ${ql(o.password)}`,
     );
     await admin.query(`GRANT pg_read_all_data TO ${qi(o.role)}`);
+    // read-only too: lets the role see the text of other sessions' statements in pg_stat_statements
+    await admin.query(`GRANT pg_read_all_stats TO ${qi(o.role)}`);
     await admin.query(`ALTER ROLE ${qi(o.role)} SET default_transaction_read_only = on`);
     await admin.query(`GRANT CONNECT ON DATABASE ${qi(o.database)} TO ${qi(o.role)}`);
   } finally {
