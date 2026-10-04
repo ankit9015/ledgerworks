@@ -1,0 +1,205 @@
+{
+  "fixtureVersion": 1,
+  "name": "estimate_mismatch_correlated",
+  "description": "Two perfectly correlated columns (a = b): the planner multiplies the selectivities and expects about 20 rows instead of 2,000.",
+  "mode": "analyze",
+  "sql": "SELECT count(*) FROM ll_fixtures.correlated WHERE a = 7 AND b = 7",
+  "settings": {},
+  "producedBy": {
+    "script": "ledgerlens/scripts/capture-plan-fixtures.ts",
+    "command": "EXPLAIN (ANALYZE, BUFFERS, FORMAT JSON)",
+    "postgres": "16.15 (Debian 16.15-1.pgdg12+2)",
+    "shadow": {
+      "manifestId": "80dff414-8584-4f96-8c07-ff6529168db9",
+      "mode": "full",
+      "sampled": false
+    },
+    "capturedAt": "2026-10-04T19:51:24.372Z",
+    "note": "a real run on a settled shadow; numbers are as the server reported them"
+  },
+  "context": {
+    "serverVersion": "16.15 (Debian 16.15-1.pgdg12+2)",
+    "tables": [
+      {
+        "schema": "ll_fixtures",
+        "name": "correlated",
+        "kind": "table",
+        "estimatedRows": 200000,
+        "totalBytes": 10493952,
+        "columns": [
+          {
+            "name": "id",
+            "type": "integer",
+            "notNull": false
+          },
+          {
+            "name": "a",
+            "type": "integer",
+            "notNull": false
+          },
+          {
+            "name": "b",
+            "type": "integer",
+            "notNull": false
+          },
+          {
+            "name": "pad",
+            "type": "text",
+            "notNull": false
+          }
+        ],
+        "indexes": [],
+        "foreignKeys": [],
+        "partitionKey": null,
+        "partitions": [],
+        "partitionCount": 0,
+        "partitionsTruncated": false,
+        "partitionKeyColumns": [],
+        "activity": {
+          "liveTuples": 200000,
+          "deadTuples": 0,
+          "modsSinceAnalyze": 0,
+          "lastAnalyze": "2026-10-04T19:51:12.630Z",
+          "lastAutoanalyze": null,
+          "seqScans": 0,
+          "idxScans": 0
+        }
+      }
+    ],
+    "tablesTruncated": false,
+    "hypopgInstalled": true
+  },
+  "plan": [
+    {
+      "Plan": {
+        "Node Type": "Aggregate",
+        "Strategy": "Plain",
+        "Partial Mode": "Finalize",
+        "Parallel Aware": false,
+        "Async Capable": false,
+        "Startup Cost": 4044.85,
+        "Total Cost": 4044.86,
+        "Plan Rows": 1,
+        "Plan Width": 8,
+        "Actual Startup Time": 12.593,
+        "Actual Total Time": 14.488,
+        "Actual Rows": 1,
+        "Actual Loops": 1,
+        "Shared Hit Blocks": 0,
+        "Shared Read Blocks": 1280,
+        "Shared Dirtied Blocks": 0,
+        "Shared Written Blocks": 0,
+        "Local Hit Blocks": 0,
+        "Local Read Blocks": 0,
+        "Local Dirtied Blocks": 0,
+        "Local Written Blocks": 0,
+        "Temp Read Blocks": 0,
+        "Temp Written Blocks": 0,
+        "Plans": [
+          {
+            "Node Type": "Gather",
+            "Parent Relationship": "Outer",
+            "Parallel Aware": false,
+            "Async Capable": false,
+            "Startup Cost": 4044.74,
+            "Total Cost": 4044.85,
+            "Plan Rows": 1,
+            "Plan Width": 8,
+            "Actual Startup Time": 12.383,
+            "Actual Total Time": 14.48,
+            "Actual Rows": 2,
+            "Actual Loops": 1,
+            "Workers Planned": 1,
+            "Workers Launched": 1,
+            "Single Copy": false,
+            "Shared Hit Blocks": 0,
+            "Shared Read Blocks": 1280,
+            "Shared Dirtied Blocks": 0,
+            "Shared Written Blocks": 0,
+            "Local Hit Blocks": 0,
+            "Local Read Blocks": 0,
+            "Local Dirtied Blocks": 0,
+            "Local Written Blocks": 0,
+            "Temp Read Blocks": 0,
+            "Temp Written Blocks": 0,
+            "Plans": [
+              {
+                "Node Type": "Aggregate",
+                "Strategy": "Plain",
+                "Partial Mode": "Partial",
+                "Parent Relationship": "Outer",
+                "Parallel Aware": false,
+                "Async Capable": false,
+                "Startup Cost": 3044.74,
+                "Total Cost": 3044.75,
+                "Plan Rows": 1,
+                "Plan Width": 8,
+                "Actual Startup Time": 10.703,
+                "Actual Total Time": 10.704,
+                "Actual Rows": 1,
+                "Actual Loops": 2,
+                "Shared Hit Blocks": 0,
+                "Shared Read Blocks": 1280,
+                "Shared Dirtied Blocks": 0,
+                "Shared Written Blocks": 0,
+                "Local Hit Blocks": 0,
+                "Local Read Blocks": 0,
+                "Local Dirtied Blocks": 0,
+                "Local Written Blocks": 0,
+                "Temp Read Blocks": 0,
+                "Temp Written Blocks": 0,
+                "Workers": [],
+                "Plans": [
+                  {
+                    "Node Type": "Seq Scan",
+                    "Parent Relationship": "Outer",
+                    "Parallel Aware": true,
+                    "Async Capable": false,
+                    "Relation Name": "correlated",
+                    "Alias": "correlated",
+                    "Startup Cost": 0,
+                    "Total Cost": 3044.71,
+                    "Plan Rows": 12,
+                    "Plan Width": 0,
+                    "Actual Startup Time": 0.023,
+                    "Actual Total Time": 10.602,
+                    "Actual Rows": 1000,
+                    "Actual Loops": 2,
+                    "Filter": "((a = 7) AND (b = 7))",
+                    "Rows Removed by Filter": 99000,
+                    "Shared Hit Blocks": 0,
+                    "Shared Read Blocks": 1280,
+                    "Shared Dirtied Blocks": 0,
+                    "Shared Written Blocks": 0,
+                    "Local Hit Blocks": 0,
+                    "Local Read Blocks": 0,
+                    "Local Dirtied Blocks": 0,
+                    "Local Written Blocks": 0,
+                    "Temp Read Blocks": 0,
+                    "Temp Written Blocks": 0,
+                    "Workers": []
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "Planning": {
+        "Shared Hit Blocks": 42,
+        "Shared Read Blocks": 0,
+        "Shared Dirtied Blocks": 1,
+        "Shared Written Blocks": 0,
+        "Local Hit Blocks": 0,
+        "Local Read Blocks": 0,
+        "Local Dirtied Blocks": 0,
+        "Local Written Blocks": 0,
+        "Temp Read Blocks": 0,
+        "Temp Written Blocks": 0
+      },
+      "Planning Time": 0.219,
+      "Triggers": [],
+      "Execution Time": 14.551
+    }
+  ]
+}

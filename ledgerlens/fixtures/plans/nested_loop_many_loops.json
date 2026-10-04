@@ -1,0 +1,282 @@
+{
+  "fixtureVersion": 1,
+  "name": "nested_loop_many_loops",
+  "description": "An order list joined to customers with a nested loop (hash and merge joins disabled): the inner index scan runs once per order, 40,000 times.",
+  "mode": "analyze",
+  "sql": "SELECT o.id, c.name FROM ll_fixtures.orders o JOIN ll_fixtures.customers c ON c.id = o.customer_id WHERE o.id <= 40000",
+  "settings": {
+    "enable_hashjoin": "off",
+    "enable_mergejoin": "off"
+  },
+  "producedBy": {
+    "script": "ledgerlens/scripts/capture-plan-fixtures.ts",
+    "command": "EXPLAIN (ANALYZE, BUFFERS, FORMAT JSON)",
+    "postgres": "16.15 (Debian 16.15-1.pgdg12+2)",
+    "shadow": {
+      "manifestId": "80dff414-8584-4f96-8c07-ff6529168db9",
+      "mode": "full",
+      "sampled": false
+    },
+    "capturedAt": "2026-10-04T19:51:25.044Z",
+    "note": "a real run on a settled shadow; numbers are as the server reported them"
+  },
+  "context": {
+    "serverVersion": "16.15 (Debian 16.15-1.pgdg12+2)",
+    "tables": [
+      {
+        "schema": "ll_fixtures",
+        "name": "customers",
+        "kind": "table",
+        "estimatedRows": 50000,
+        "totalBytes": 3391488,
+        "columns": [
+          {
+            "name": "id",
+            "type": "integer",
+            "notNull": true
+          },
+          {
+            "name": "name",
+            "type": "text",
+            "notNull": false
+          }
+        ],
+        "indexes": [
+          {
+            "name": "customers_pkey",
+            "method": "btree",
+            "unique": true,
+            "primary": true,
+            "valid": true,
+            "columns": [
+              {
+                "name": "id",
+                "desc": false,
+                "nullsFirst": null,
+                "opclass": null
+              }
+            ],
+            "include": [],
+            "predicate": null,
+            "sizeBytes": 1138688
+          }
+        ],
+        "foreignKeys": [],
+        "partitionKey": null,
+        "partitions": [],
+        "partitionCount": 0,
+        "partitionsTruncated": false,
+        "partitionKeyColumns": [],
+        "activity": {
+          "liveTuples": 50000,
+          "deadTuples": 0,
+          "modsSinceAnalyze": 0,
+          "lastAnalyze": "2026-10-04T19:51:12.874Z",
+          "lastAutoanalyze": null,
+          "seqScans": 1,
+          "idxScans": 0
+        }
+      },
+      {
+        "schema": "ll_fixtures",
+        "name": "orders",
+        "kind": "table",
+        "estimatedRows": 100000,
+        "totalBytes": 6717440,
+        "columns": [
+          {
+            "name": "id",
+            "type": "integer",
+            "notNull": true
+          },
+          {
+            "name": "customer_id",
+            "type": "integer",
+            "notNull": true
+          },
+          {
+            "name": "total",
+            "type": "integer",
+            "notNull": false
+          }
+        ],
+        "indexes": [
+          {
+            "name": "orders_pkey",
+            "method": "btree",
+            "unique": true,
+            "primary": true,
+            "valid": true,
+            "columns": [
+              {
+                "name": "id",
+                "desc": false,
+                "nullsFirst": null,
+                "opclass": null
+              }
+            ],
+            "include": [],
+            "predicate": null,
+            "sizeBytes": 2260992
+          }
+        ],
+        "foreignKeys": [],
+        "partitionKey": null,
+        "partitions": [],
+        "partitionCount": 0,
+        "partitionsTruncated": false,
+        "partitionKeyColumns": [],
+        "activity": {
+          "liveTuples": 100000,
+          "deadTuples": 0,
+          "modsSinceAnalyze": 0,
+          "lastAnalyze": "2026-10-04T19:51:12.897Z",
+          "lastAutoanalyze": null,
+          "seqScans": 1,
+          "idxScans": 0
+        }
+      }
+    ],
+    "tablesTruncated": false,
+    "hypopgInstalled": true
+  },
+  "plan": [
+    {
+      "Plan": {
+        "Node Type": "Nested Loop",
+        "Parallel Aware": false,
+        "Async Capable": false,
+        "Join Type": "Inner",
+        "Startup Cost": 0.59,
+        "Total Cost": 13459.79,
+        "Plan Rows": 39791,
+        "Plan Width": 10,
+        "Actual Startup Time": 0.095,
+        "Actual Total Time": 74.351,
+        "Actual Rows": 40000,
+        "Actual Loops": 1,
+        "Inner Unique": true,
+        "Shared Hit Blocks": 119591,
+        "Shared Read Blocks": 737,
+        "Shared Dirtied Blocks": 0,
+        "Shared Written Blocks": 0,
+        "Local Hit Blocks": 0,
+        "Local Read Blocks": 0,
+        "Local Dirtied Blocks": 0,
+        "Local Written Blocks": 0,
+        "Temp Read Blocks": 0,
+        "Temp Written Blocks": 0,
+        "Plans": [
+          {
+            "Node Type": "Index Scan",
+            "Parent Relationship": "Outer",
+            "Parallel Aware": false,
+            "Async Capable": false,
+            "Scan Direction": "Forward",
+            "Index Name": "orders_pkey",
+            "Relation Name": "orders",
+            "Alias": "o",
+            "Startup Cost": 0.29,
+            "Total Cost": 1355.63,
+            "Plan Rows": 39791,
+            "Plan Width": 8,
+            "Actual Startup Time": 0.05,
+            "Actual Total Time": 5.775,
+            "Actual Rows": 40000,
+            "Actual Loops": 1,
+            "Index Cond": "(id <= 40000)",
+            "Rows Removed by Index Recheck": 0,
+            "Shared Hit Blocks": 0,
+            "Shared Read Blocks": 328,
+            "Shared Dirtied Blocks": 0,
+            "Shared Written Blocks": 0,
+            "Local Hit Blocks": 0,
+            "Local Read Blocks": 0,
+            "Local Dirtied Blocks": 0,
+            "Local Written Blocks": 0,
+            "Temp Read Blocks": 0,
+            "Temp Written Blocks": 0
+          },
+          {
+            "Node Type": "Memoize",
+            "Parent Relationship": "Inner",
+            "Parallel Aware": false,
+            "Async Capable": false,
+            "Startup Cost": 0.3,
+            "Total Cost": 0.36,
+            "Plan Rows": 1,
+            "Plan Width": 10,
+            "Actual Startup Time": 0.002,
+            "Actual Total Time": 0.002,
+            "Actual Rows": 1,
+            "Actual Loops": 40000,
+            "Cache Key": "o.customer_id",
+            "Cache Mode": "logical",
+            "Cache Hits": 0,
+            "Cache Misses": 40000,
+            "Cache Evictions": 0,
+            "Cache Overflows": 0,
+            "Peak Memory Usage": 4375,
+            "Shared Hit Blocks": 119591,
+            "Shared Read Blocks": 409,
+            "Shared Dirtied Blocks": 0,
+            "Shared Written Blocks": 0,
+            "Local Hit Blocks": 0,
+            "Local Read Blocks": 0,
+            "Local Dirtied Blocks": 0,
+            "Local Written Blocks": 0,
+            "Temp Read Blocks": 0,
+            "Temp Written Blocks": 0,
+            "Plans": [
+              {
+                "Node Type": "Index Scan",
+                "Parent Relationship": "Outer",
+                "Parallel Aware": false,
+                "Async Capable": false,
+                "Scan Direction": "Forward",
+                "Index Name": "customers_pkey",
+                "Relation Name": "customers",
+                "Alias": "c",
+                "Startup Cost": 0.29,
+                "Total Cost": 0.35,
+                "Plan Rows": 1,
+                "Plan Width": 10,
+                "Actual Startup Time": 0.001,
+                "Actual Total Time": 0.001,
+                "Actual Rows": 1,
+                "Actual Loops": 40000,
+                "Index Cond": "(id = o.customer_id)",
+                "Rows Removed by Index Recheck": 0,
+                "Shared Hit Blocks": 119591,
+                "Shared Read Blocks": 409,
+                "Shared Dirtied Blocks": 0,
+                "Shared Written Blocks": 0,
+                "Local Hit Blocks": 0,
+                "Local Read Blocks": 0,
+                "Local Dirtied Blocks": 0,
+                "Local Written Blocks": 0,
+                "Temp Read Blocks": 0,
+                "Temp Written Blocks": 0
+              }
+            ]
+          }
+        ]
+      },
+      "Planning": {
+        "Shared Hit Blocks": 161,
+        "Shared Read Blocks": 4,
+        "Shared Dirtied Blocks": 2,
+        "Shared Written Blocks": 0,
+        "Local Hit Blocks": 0,
+        "Local Read Blocks": 0,
+        "Local Dirtied Blocks": 0,
+        "Local Written Blocks": 0,
+        "Temp Read Blocks": 0,
+        "Temp Written Blocks": 0
+      },
+      "Planning Time": 0.617,
+      "Triggers": [],
+      "Execution Time": 76.834
+    }
+  ]
+}

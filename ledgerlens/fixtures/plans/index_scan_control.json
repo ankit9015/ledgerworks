@@ -1,0 +1,140 @@
+{
+  "fixtureVersion": 1,
+  "name": "index_scan_control",
+  "description": "A lookup of one balance row on a small table (the planner chooses a sequential scan for it): a control, nothing to report.",
+  "mode": "analyze",
+  "sql": "SELECT balance, updated_at FROM credit_balances WHERE tenant_id = '8641a01e-babb-4e44-d36d-f68e5233c7fb'",
+  "settings": {},
+  "producedBy": {
+    "script": "ledgerlens/scripts/capture-plan-fixtures.ts",
+    "command": "EXPLAIN (ANALYZE, BUFFERS, FORMAT JSON)",
+    "postgres": "16.15 (Debian 16.15-1.pgdg12+2)",
+    "shadow": {
+      "manifestId": "80dff414-8584-4f96-8c07-ff6529168db9",
+      "mode": "full",
+      "sampled": false
+    },
+    "capturedAt": "2026-10-04T19:51:23.854Z",
+    "note": "a real run on a settled shadow; numbers are as the server reported them"
+  },
+  "context": {
+    "serverVersion": "16.15 (Debian 16.15-1.pgdg12+2)",
+    "tables": [
+      {
+        "schema": "public",
+        "name": "credit_balances",
+        "kind": "table",
+        "estimatedRows": 250,
+        "totalBytes": 65536,
+        "columns": [
+          {
+            "name": "tenant_id",
+            "type": "uuid",
+            "notNull": true
+          },
+          {
+            "name": "balance",
+            "type": "bigint",
+            "notNull": true
+          },
+          {
+            "name": "updated_at",
+            "type": "timestamp with time zone",
+            "notNull": true
+          }
+        ],
+        "indexes": [
+          {
+            "name": "credit_balances_pkey",
+            "method": "btree",
+            "unique": true,
+            "primary": true,
+            "valid": true,
+            "columns": [
+              {
+                "name": "tenant_id",
+                "desc": false,
+                "nullsFirst": null,
+                "opclass": null
+              }
+            ],
+            "include": [],
+            "predicate": null,
+            "sizeBytes": 16384
+          }
+        ],
+        "foreignKeys": [
+          {
+            "name": "credit_balances_tenant_id_fkey",
+            "columns": ["tenant_id"],
+            "refSchema": null,
+            "refTable": "tenants",
+            "refColumns": ["id"]
+          }
+        ],
+        "partitionKey": null,
+        "partitions": [],
+        "partitionCount": 0,
+        "partitionsTruncated": false,
+        "partitionKeyColumns": [],
+        "activity": {
+          "liveTuples": 250,
+          "deadTuples": 0,
+          "modsSinceAnalyze": 0,
+          "lastAnalyze": "2026-10-04T19:50:19.328Z",
+          "lastAutoanalyze": "2026-10-04T19:50:07.815Z",
+          "seqScans": 3,
+          "idxScans": 0
+        }
+      }
+    ],
+    "tablesTruncated": false,
+    "hypopgInstalled": true
+  },
+  "plan": [
+    {
+      "Plan": {
+        "Node Type": "Seq Scan",
+        "Parallel Aware": false,
+        "Async Capable": false,
+        "Relation Name": "credit_balances",
+        "Alias": "credit_balances",
+        "Startup Cost": 0,
+        "Total Cost": 5.12,
+        "Plan Rows": 1,
+        "Plan Width": 16,
+        "Actual Startup Time": 0.07,
+        "Actual Total Time": 0.07,
+        "Actual Rows": 1,
+        "Actual Loops": 1,
+        "Filter": "(tenant_id = '8641a01e-babb-4e44-d36d-f68e5233c7fb'::uuid)",
+        "Rows Removed by Filter": 249,
+        "Shared Hit Blocks": 0,
+        "Shared Read Blocks": 2,
+        "Shared Dirtied Blocks": 0,
+        "Shared Written Blocks": 0,
+        "Local Hit Blocks": 0,
+        "Local Read Blocks": 0,
+        "Local Dirtied Blocks": 0,
+        "Local Written Blocks": 0,
+        "Temp Read Blocks": 0,
+        "Temp Written Blocks": 0
+      },
+      "Planning": {
+        "Shared Hit Blocks": 65,
+        "Shared Read Blocks": 2,
+        "Shared Dirtied Blocks": 0,
+        "Shared Written Blocks": 0,
+        "Local Hit Blocks": 0,
+        "Local Read Blocks": 0,
+        "Local Dirtied Blocks": 0,
+        "Local Written Blocks": 0,
+        "Temp Read Blocks": 0,
+        "Temp Written Blocks": 0
+      },
+      "Planning Time": 2.253,
+      "Triggers": [],
+      "Execution Time": 0.139
+    }
+  ]
+}

@@ -1,0 +1,282 @@
+{
+  "fixtureVersion": 1,
+  "name": "join_on_unindexed_foreign_key",
+  "description": "child.parent_id is a foreign key to parent with no index; joining a few rare parents to their children reads all 400,000 child rows.",
+  "mode": "analyze",
+  "sql": "SELECT c.id, c.amount FROM ll_fixtures.parent p JOIN ll_fixtures.child c ON c.parent_id = p.id WHERE p.kind = 'rare'",
+  "settings": {
+    "max_parallel_workers_per_gather": "0"
+  },
+  "producedBy": {
+    "script": "ledgerlens/scripts/capture-plan-fixtures.ts",
+    "command": "EXPLAIN (ANALYZE, BUFFERS, FORMAT JSON)",
+    "postgres": "16.15 (Debian 16.15-1.pgdg12+2)",
+    "shadow": {
+      "manifestId": "80dff414-8584-4f96-8c07-ff6529168db9",
+      "mode": "full",
+      "sampled": false
+    },
+    "capturedAt": "2026-10-04T19:51:25.132Z",
+    "note": "a real run on a settled shadow; numbers are as the server reported them"
+  },
+  "context": {
+    "serverVersion": "16.15 (Debian 16.15-1.pgdg12+2)",
+    "tables": [
+      {
+        "schema": "ll_fixtures",
+        "name": "child",
+        "kind": "table",
+        "estimatedRows": 400000,
+        "totalBytes": 26746880,
+        "columns": [
+          {
+            "name": "id",
+            "type": "integer",
+            "notNull": true
+          },
+          {
+            "name": "parent_id",
+            "type": "integer",
+            "notNull": true
+          },
+          {
+            "name": "amount",
+            "type": "integer",
+            "notNull": false
+          }
+        ],
+        "indexes": [
+          {
+            "name": "child_pkey",
+            "method": "btree",
+            "unique": true,
+            "primary": true,
+            "valid": true,
+            "columns": [
+              {
+                "name": "id",
+                "desc": false,
+                "nullsFirst": null,
+                "opclass": null
+              }
+            ],
+            "include": [],
+            "predicate": null,
+            "sizeBytes": 9003008
+          }
+        ],
+        "foreignKeys": [
+          {
+            "name": "child_parent_id_fkey",
+            "columns": ["parent_id"],
+            "refSchema": "ll_fixtures",
+            "refTable": "parent",
+            "refColumns": ["id"]
+          }
+        ],
+        "partitionKey": null,
+        "partitions": [],
+        "partitionCount": 0,
+        "partitionsTruncated": false,
+        "partitionKeyColumns": [],
+        "activity": {
+          "liveTuples": 400000,
+          "deadTuples": 0,
+          "modsSinceAnalyze": 0,
+          "lastAnalyze": "2026-10-04T19:51:12.955Z",
+          "lastAutoanalyze": null,
+          "seqScans": 1,
+          "idxScans": 0
+        }
+      },
+      {
+        "schema": "ll_fixtures",
+        "name": "parent",
+        "kind": "table",
+        "estimatedRows": 50000,
+        "totalBytes": 3391488,
+        "columns": [
+          {
+            "name": "id",
+            "type": "integer",
+            "notNull": true
+          },
+          {
+            "name": "kind",
+            "type": "text",
+            "notNull": true
+          }
+        ],
+        "indexes": [
+          {
+            "name": "parent_pkey",
+            "method": "btree",
+            "unique": true,
+            "primary": true,
+            "valid": true,
+            "columns": [
+              {
+                "name": "id",
+                "desc": false,
+                "nullsFirst": null,
+                "opclass": null
+              }
+            ],
+            "include": [],
+            "predicate": null,
+            "sizeBytes": 1138688
+          }
+        ],
+        "foreignKeys": [],
+        "partitionKey": null,
+        "partitions": [],
+        "partitionCount": 0,
+        "partitionsTruncated": false,
+        "partitionKeyColumns": [],
+        "activity": {
+          "liveTuples": 50000,
+          "deadTuples": 0,
+          "modsSinceAnalyze": 0,
+          "lastAnalyze": "2026-10-04T19:51:12.914Z",
+          "lastAutoanalyze": null,
+          "seqScans": 1,
+          "idxScans": 400000
+        }
+      }
+    ],
+    "tablesTruncated": false,
+    "hypopgInstalled": true
+  },
+  "plan": [
+    {
+      "Plan": {
+        "Node Type": "Hash Join",
+        "Parallel Aware": false,
+        "Async Capable": false,
+        "Join Type": "Inner",
+        "Startup Cost": 896.65,
+        "Total Cost": 8109.74,
+        "Plan Rows": 416,
+        "Plan Width": 8,
+        "Actual Startup Time": 3.922,
+        "Actual Total Time": 57.883,
+        "Actual Rows": 400,
+        "Actual Loops": 1,
+        "Inner Unique": true,
+        "Hash Cond": "(c.parent_id = p.id)",
+        "Shared Hit Blocks": 2,
+        "Shared Read Blocks": 2432,
+        "Shared Dirtied Blocks": 0,
+        "Shared Written Blocks": 0,
+        "Local Hit Blocks": 0,
+        "Local Read Blocks": 0,
+        "Local Dirtied Blocks": 0,
+        "Local Written Blocks": 0,
+        "Temp Read Blocks": 0,
+        "Temp Written Blocks": 0,
+        "Plans": [
+          {
+            "Node Type": "Seq Scan",
+            "Parent Relationship": "Outer",
+            "Parallel Aware": false,
+            "Async Capable": false,
+            "Relation Name": "child",
+            "Alias": "c",
+            "Startup Cost": 0,
+            "Total Cost": 6163,
+            "Plan Rows": 400000,
+            "Plan Width": 12,
+            "Actual Startup Time": 0.012,
+            "Actual Total Time": 28.599,
+            "Actual Rows": 400000,
+            "Actual Loops": 1,
+            "Shared Hit Blocks": 0,
+            "Shared Read Blocks": 2163,
+            "Shared Dirtied Blocks": 0,
+            "Shared Written Blocks": 0,
+            "Local Hit Blocks": 0,
+            "Local Read Blocks": 0,
+            "Local Dirtied Blocks": 0,
+            "Local Written Blocks": 0,
+            "Temp Read Blocks": 0,
+            "Temp Written Blocks": 0
+          },
+          {
+            "Node Type": "Hash",
+            "Parent Relationship": "Inner",
+            "Parallel Aware": false,
+            "Async Capable": false,
+            "Startup Cost": 896,
+            "Total Cost": 896,
+            "Plan Rows": 52,
+            "Plan Width": 4,
+            "Actual Startup Time": 3.769,
+            "Actual Total Time": 3.77,
+            "Actual Rows": 50,
+            "Actual Loops": 1,
+            "Hash Buckets": 1024,
+            "Original Hash Buckets": 1024,
+            "Hash Batches": 1,
+            "Original Hash Batches": 1,
+            "Peak Memory Usage": 10,
+            "Shared Hit Blocks": 2,
+            "Shared Read Blocks": 269,
+            "Shared Dirtied Blocks": 0,
+            "Shared Written Blocks": 0,
+            "Local Hit Blocks": 0,
+            "Local Read Blocks": 0,
+            "Local Dirtied Blocks": 0,
+            "Local Written Blocks": 0,
+            "Temp Read Blocks": 0,
+            "Temp Written Blocks": 0,
+            "Plans": [
+              {
+                "Node Type": "Seq Scan",
+                "Parent Relationship": "Outer",
+                "Parallel Aware": false,
+                "Async Capable": false,
+                "Relation Name": "parent",
+                "Alias": "p",
+                "Startup Cost": 0,
+                "Total Cost": 896,
+                "Plan Rows": 52,
+                "Plan Width": 4,
+                "Actual Startup Time": 0.091,
+                "Actual Total Time": 3.751,
+                "Actual Rows": 50,
+                "Actual Loops": 1,
+                "Filter": "(kind = 'rare'::text)",
+                "Rows Removed by Filter": 49950,
+                "Shared Hit Blocks": 2,
+                "Shared Read Blocks": 269,
+                "Shared Dirtied Blocks": 0,
+                "Shared Written Blocks": 0,
+                "Local Hit Blocks": 0,
+                "Local Read Blocks": 0,
+                "Local Dirtied Blocks": 0,
+                "Local Written Blocks": 0,
+                "Temp Read Blocks": 0,
+                "Temp Written Blocks": 0
+              }
+            ]
+          }
+        ]
+      },
+      "Planning": {
+        "Shared Hit Blocks": 212,
+        "Shared Read Blocks": 8,
+        "Shared Dirtied Blocks": 2,
+        "Shared Written Blocks": 0,
+        "Local Hit Blocks": 0,
+        "Local Read Blocks": 0,
+        "Local Dirtied Blocks": 0,
+        "Local Written Blocks": 0,
+        "Temp Read Blocks": 0,
+        "Temp Written Blocks": 0
+      },
+      "Planning Time": 0.548,
+      "Triggers": [],
+      "Execution Time": 57.947
+    }
+  ]
+}

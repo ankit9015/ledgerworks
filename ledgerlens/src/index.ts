@@ -4,3 +4,6 @@ export * from './verdict/vocabulary.js';
 export * from './sql/ident.js';
 export * from './sql/parse.js';
 export * from './workload/index.js';
+export * from './analyzer/index.js';
+export * from './schema/snapshot.js';
+export * from './sql/indexdef.js';

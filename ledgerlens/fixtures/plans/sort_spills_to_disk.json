@@ -1,0 +1,205 @@
+{
+  "fixtureVersion": 1,
+  "name": "sort_spills_to_disk",
+  "description": "ORDER BY over 200,000 wide rows with work_mem at its 64 kB minimum: an external merge sort on disk.",
+  "mode": "analyze",
+  "sql": "SELECT id, payload FROM ll_fixtures.wide ORDER BY payload",
+  "settings": {
+    "work_mem": "64kB"
+  },
+  "producedBy": {
+    "script": "ledgerlens/scripts/capture-plan-fixtures.ts",
+    "command": "EXPLAIN (ANALYZE, BUFFERS, FORMAT JSON)",
+    "postgres": "16.15 (Debian 16.15-1.pgdg12+2)",
+    "shadow": {
+      "manifestId": "80dff414-8584-4f96-8c07-ff6529168db9",
+      "mode": "full",
+      "sampled": false
+    },
+    "capturedAt": "2026-10-04T19:51:24.736Z",
+    "note": "a real run on a settled shadow; numbers are as the server reported them"
+  },
+  "context": {
+    "serverVersion": "16.15 (Debian 16.15-1.pgdg12+2)",
+    "tables": [
+      {
+        "schema": "ll_fixtures",
+        "name": "wide",
+        "kind": "table",
+        "estimatedRows": 200000,
+        "totalBytes": 29884416,
+        "columns": [
+          {
+            "name": "id",
+            "type": "integer",
+            "notNull": false
+          },
+          {
+            "name": "grp",
+            "type": "integer",
+            "notNull": false
+          },
+          {
+            "name": "payload",
+            "type": "text",
+            "notNull": false
+          }
+        ],
+        "indexes": [
+          {
+            "name": "wide_grp_idx",
+            "method": "btree",
+            "unique": false,
+            "primary": false,
+            "valid": true,
+            "columns": [
+              {
+                "name": "grp",
+                "desc": false,
+                "nullsFirst": null,
+                "opclass": null
+              }
+            ],
+            "include": [],
+            "predicate": null,
+            "sizeBytes": 1564672
+          }
+        ],
+        "foreignKeys": [],
+        "partitionKey": null,
+        "partitions": [],
+        "partitionCount": 0,
+        "partitionsTruncated": false,
+        "partitionKeyColumns": [],
+        "activity": {
+          "liveTuples": 200000,
+          "deadTuples": 0,
+          "modsSinceAnalyze": 0,
+          "lastAnalyze": "2026-10-04T19:51:12.699Z",
+          "lastAutoanalyze": null,
+          "seqScans": 3,
+          "idxScans": 0
+        }
+      }
+    ],
+    "tablesTruncated": false,
+    "hypopgInstalled": true
+  },
+  "plan": [
+    {
+      "Plan": {
+        "Node Type": "Gather Merge",
+        "Parallel Aware": false,
+        "Async Capable": false,
+        "Startup Cost": 25781.91,
+        "Total Cost": 45227.64,
+        "Plan Rows": 166666,
+        "Plan Width": 101,
+        "Actual Startup Time": 227.285,
+        "Actual Total Time": 337.429,
+        "Actual Rows": 200000,
+        "Actual Loops": 1,
+        "Workers Planned": 2,
+        "Workers Launched": 2,
+        "Shared Hit Blocks": 114,
+        "Shared Read Blocks": 3456,
+        "Shared Dirtied Blocks": 0,
+        "Shared Written Blocks": 0,
+        "Local Hit Blocks": 0,
+        "Local Read Blocks": 0,
+        "Local Dirtied Blocks": 0,
+        "Local Written Blocks": 0,
+        "Temp Read Blocks": 9148,
+        "Temp Written Blocks": 9770,
+        "Plans": [
+          {
+            "Node Type": "Sort",
+            "Parent Relationship": "Outer",
+            "Parallel Aware": false,
+            "Async Capable": false,
+            "Startup Cost": 24781.89,
+            "Total Cost": 24990.22,
+            "Plan Rows": 83333,
+            "Plan Width": 101,
+            "Actual Startup Time": 205.712,
+            "Actual Total Time": 230.86,
+            "Actual Rows": 66667,
+            "Actual Loops": 3,
+            "Sort Key": ["payload"],
+            "Sort Method": "external merge",
+            "Sort Space Used": 7800,
+            "Sort Space Type": "Disk",
+            "Shared Hit Blocks": 114,
+            "Shared Read Blocks": 3456,
+            "Shared Dirtied Blocks": 0,
+            "Shared Written Blocks": 0,
+            "Local Hit Blocks": 0,
+            "Local Read Blocks": 0,
+            "Local Dirtied Blocks": 0,
+            "Local Written Blocks": 0,
+            "Temp Read Blocks": 9148,
+            "Temp Written Blocks": 9770,
+            "Workers": [
+              {
+                "Worker Number": 0,
+                "Sort Method": "external merge",
+                "Sort Space Used": 7312,
+                "Sort Space Type": "Disk"
+              },
+              {
+                "Worker Number": 1,
+                "Sort Method": "external merge",
+                "Sort Space Used": 6824,
+                "Sort Space Type": "Disk"
+              }
+            ],
+            "Plans": [
+              {
+                "Node Type": "Seq Scan",
+                "Parent Relationship": "Outer",
+                "Parallel Aware": true,
+                "Async Capable": false,
+                "Relation Name": "wide",
+                "Alias": "wide",
+                "Startup Cost": 0,
+                "Total Cost": 4289.33,
+                "Plan Rows": 83333,
+                "Plan Width": 101,
+                "Actual Startup Time": 0.027,
+                "Actual Total Time": 18.75,
+                "Actual Rows": 66667,
+                "Actual Loops": 3,
+                "Shared Hit Blocks": 0,
+                "Shared Read Blocks": 3456,
+                "Shared Dirtied Blocks": 0,
+                "Shared Written Blocks": 0,
+                "Local Hit Blocks": 0,
+                "Local Read Blocks": 0,
+                "Local Dirtied Blocks": 0,
+                "Local Written Blocks": 0,
+                "Temp Read Blocks": 0,
+                "Temp Written Blocks": 0,
+                "Workers": []
+              }
+            ]
+          }
+        ]
+      },
+      "Planning": {
+        "Shared Hit Blocks": 101,
+        "Shared Read Blocks": 2,
+        "Shared Dirtied Blocks": 1,
+        "Shared Written Blocks": 0,
+        "Local Hit Blocks": 0,
+        "Local Read Blocks": 0,
+        "Local Dirtied Blocks": 0,
+        "Local Written Blocks": 0,
+        "Temp Read Blocks": 0,
+        "Temp Written Blocks": 0
+      },
+      "Planning Time": 0.379,
+      "Triggers": [],
+      "Execution Time": 345.56
+    }
+  ]
+}

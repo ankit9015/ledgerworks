@@ -565,3 +565,89 @@ class Walker {
     this.expr(a.rexpr, scope);
   }
 }
+
+// ------------------------------------------------------------------------------------------------
+// fragments of plans: conditions and sort keys, read by the same parser (never executed)
+
+export interface ConditionFacts {
+  /** every column reference in the condition */
+  columns: ColumnReference[];
+  /** column = column comparisons (join conditions), in the order written */
+  equalities: [ColumnReference, ColumnReference][];
+}
+
+/** Reads the text of a plan condition such as `((e.tenant_id = t.id) AND (e.x > 5))`. null when it cannot be parsed. */
+export async function parseCondition(cond: string): Promise<ConditionFacts | null> {
+  await ensureLoaded();
+  let tree: any;
+  try {
+    tree = await parse(`SELECT 1 WHERE ${cond}`);
+  } catch {
+    return null;
+  }
+  if ((tree.stmts ?? []).length !== 1) return null;
+  const where = tree.stmts[0]?.stmt?.SelectStmt?.whereClause;
+  if (!where) return null;
+  const facts: ConditionFacts = { columns: [], equalities: [] };
+  const colOf = (n: any): ColumnReference | null => {
+    let cur = n;
+    while (cur?.TypeCast) cur = cur.TypeCast.arg;
+    if (!cur?.ColumnRef) return null;
+    const names = (cur.ColumnRef.fields ?? []).map(str);
+    if (names.some((x: string | null) => x === null)) return null;
+    return {
+      name: names[names.length - 1] as string,
+      qualifier: names.length >= 2 ? (names[names.length - 2] as string) : null,
+      viaFunction: null,
+    };
+  };
+  const visit = (n: any): void => {
+    if (Array.isArray(n)) return n.forEach(visit);
+    if (!n || typeof n !== 'object') return;
+    if (n.ColumnRef) {
+      const c = colOf(n);
+      if (c) facts.columns.push(c);
+    }
+    if (n.A_Expr?.kind === 'AEXPR_OP' && (n.A_Expr.name ?? []).map(str).pop() === '=') {
+      const l = colOf(n.A_Expr.lexpr);
+      const r = colOf(n.A_Expr.rexpr);
+      if (l && r) facts.equalities.push([l, r]);
+    }
+    for (const v of Object.values(n)) visit(v);
+  };
+  visit(where);
+  return facts;
+}
+
+export interface SortKeyFacts {
+  /** a plain column (possibly qualified), or null when the key is an expression or could not be read */
+  column: ColumnReference | null;
+  desc: boolean;
+}
+
+/** Reads one `Sort Key` entry of a plan (it is valid ORDER BY syntax: `t.col DESC NULLS FIRST`). */
+export async function parseSortKey(key: string): Promise<SortKeyFacts> {
+  await ensureLoaded();
+  let tree: any;
+  try {
+    tree = await parse(`SELECT 1 ORDER BY ${key}`);
+  } catch {
+    return { column: null, desc: false };
+  }
+  const sorts: any[] = tree.stmts?.[0]?.stmt?.SelectStmt?.sortClause ?? [];
+  if ((tree.stmts ?? []).length !== 1 || sorts.length !== 1) return { column: null, desc: false };
+  const sb = sorts[0].SortBy;
+  const node = sb?.node;
+  const names = node?.ColumnRef ? (node.ColumnRef.fields ?? []).map(str) : null;
+  const ok = names && !names.some((x: string | null) => x === null);
+  return {
+    column: ok
+      ? {
+          name: names[names.length - 1] as string,
+          qualifier: names.length >= 2 ? (names[names.length - 2] as string) : null,
+          viaFunction: null,
+        }
+      : null,
+    desc: sb?.sortby_dir === 'SORTBY_DESC',
+  };
+}

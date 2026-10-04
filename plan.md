@@ -156,9 +156,9 @@ Problem: `pg_stat_statements` stores normalized text with `$1, $2`, so a query c
 - **Done when:** on the Ledgerline benchmark workload (after a k6 run) the report states the real share of the top 20 statements that got bindings, with provenance, and lists the unverifiable ones. Tests cover parameters in equality, range, IN lists and LIMIT/OFFSET, and a hostile value pulled from stats (for example a string containing quotes or a semicolon) that must be passed as a bound parameter, never as text.
 
 ### L3.2 Deterministic plan analyzer
-- [ ] Parse `EXPLAIN (FORMAT JSON)` output (estimates only, from the source tool) and `EXPLAIN (ANALYZE, BUFFERS, FORMAT JSON)` output (from the harness) into a typed plan tree with node paths.
-- [ ] Findings with evidence numbers and a severity: seq scan on a large table with a selective filter, estimate versus actual row mismatch (factor), sort spilling to disk, sort over a large set where an index could provide order, nested loop with a high loop count (N+1 shape), hash join with multiple batches, lossy bitmap heap recheck, join on an unindexed foreign key, absent partition pruning, and stale statistics (last analyze versus modification counts).
-- [ ] Every finding links to the node path it came from. Plan text inside findings is marked untrusted.
+- [x] Parse `EXPLAIN (FORMAT JSON)` output (estimates only, from the source tool) and `EXPLAIN (ANALYZE, BUFFERS, FORMAT JSON)` output (from the harness) into a typed plan tree with node paths.
+- [x] Findings with evidence numbers and a severity: seq scan on a large table with a selective filter, estimate versus actual row mismatch (factor), sort spilling to disk, sort over a large set where an index could provide order, nested loop with a high loop count (N+1 shape), hash join with multiple batches, lossy bitmap heap recheck, join on an unindexed foreign key, absent partition pruning, and stale statistics (last analyze versus modification counts).
+- [x] Every finding links to the node path it came from. Plan text inside findings is marked untrusted.
 - **Done when:** snapshot tests cover at least 8 distinct plan shapes using fixture plans saved from real runs, and the pre-E1 Ledgerline usage-read plan produces a "large sort where an index could give order" finding. No finding is produced without evidence numbers (tested).
 
 ### L3.3 Deterministic candidate generator (the rules-only advisor)

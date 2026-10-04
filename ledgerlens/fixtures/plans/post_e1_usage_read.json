@@ -1,0 +1,303 @@
+{
+  "fixtureVersion": 1,
+  "name": "post_e1_usage_read",
+  "description": "The same query after the E1 fix (ORDER BY usage_events.occurred_at DESC, usage_events.id DESC): index order, no sort. A control: it must produce no sort finding.",
+  "mode": "analyze",
+  "sql": "SELECT id, event_type, quantity, to_char(occurred_at AT TIME ZONE 'UTC', 'YYYY-MM-DD\"T\"HH24:MI:SS.US\"Z\"') AS occurred_at, metadata FROM usage_events WHERE tenant_id = '8641a01e-babb-4e44-d36d-f68e5233c7fb' AND occurred_at >= '2026-03-01T00:00:00Z'::timestamptz AND occurred_at < '2026-03-08T00:00:00Z'::timestamptz ORDER BY usage_events.occurred_at DESC, usage_events.id DESC LIMIT 51",
+  "settings": {},
+  "producedBy": {
+    "script": "ledgerlens/scripts/capture-plan-fixtures.ts",
+    "command": "EXPLAIN (ANALYZE, BUFFERS, FORMAT JSON)",
+    "postgres": "16.15 (Debian 16.15-1.pgdg12+2)",
+    "shadow": {
+      "manifestId": "80dff414-8584-4f96-8c07-ff6529168db9",
+      "mode": "full",
+      "sampled": false
+    },
+    "capturedAt": "2026-10-04T19:51:22.553Z",
+    "note": "a real run on a settled shadow; numbers are as the server reported them"
+  },
+  "context": {
+    "serverVersion": "16.15 (Debian 16.15-1.pgdg12+2)",
+    "tables": [
+      {
+        "schema": "public",
+        "name": "usage_events",
+        "kind": "partitioned_table",
+        "estimatedRows": 9999411,
+        "totalBytes": 0,
+        "columns": [
+          {
+            "name": "id",
+            "type": "uuid",
+            "notNull": true
+          },
+          {
+            "name": "tenant_id",
+            "type": "uuid",
+            "notNull": true
+          },
+          {
+            "name": "occurred_at",
+            "type": "timestamp with time zone",
+            "notNull": true
+          },
+          {
+            "name": "event_type",
+            "type": "text",
+            "notNull": true
+          },
+          {
+            "name": "quantity",
+            "type": "bigint",
+            "notNull": true
+          },
+          {
+            "name": "metadata",
+            "type": "jsonb",
+            "notNull": true
+          },
+          {
+            "name": "created_at",
+            "type": "timestamp with time zone",
+            "notNull": true
+          }
+        ],
+        "indexes": [
+          {
+            "name": "usage_events_pkey",
+            "method": "btree",
+            "unique": true,
+            "primary": true,
+            "valid": true,
+            "columns": [
+              {
+                "name": "id",
+                "desc": false,
+                "nullsFirst": null,
+                "opclass": null
+              },
+              {
+                "name": "occurred_at",
+                "desc": false,
+                "nullsFirst": null,
+                "opclass": null
+              }
+            ],
+            "include": [],
+            "predicate": null,
+            "sizeBytes": null
+          },
+          {
+            "name": "usage_events_tenant_time_idx",
+            "method": "btree",
+            "unique": false,
+            "primary": false,
+            "valid": true,
+            "columns": [
+              {
+                "name": "tenant_id",
+                "desc": false,
+                "nullsFirst": null,
+                "opclass": null
+              },
+              {
+                "name": "occurred_at",
+                "desc": false,
+                "nullsFirst": null,
+                "opclass": null
+              }
+            ],
+            "include": [],
+            "predicate": null,
+            "sizeBytes": null
+          }
+        ],
+        "foreignKeys": [
+          {
+            "name": "usage_events_tenant_id_fkey",
+            "columns": ["tenant_id"],
+            "refSchema": null,
+            "refTable": "tenants",
+            "refColumns": ["id"]
+          }
+        ],
+        "partitionKey": "RANGE (occurred_at)",
+        "partitions": [
+          "usage_events_2024_01",
+          "usage_events_2024_02",
+          "usage_events_2024_03",
+          "usage_events_2024_04",
+          "usage_events_2024_05",
+          "usage_events_2024_06",
+          "usage_events_2024_07",
+          "usage_events_2024_08",
+          "usage_events_2024_09",
+          "usage_events_2024_10",
+          "usage_events_2024_11",
+          "usage_events_2024_12",
+          "usage_events_2025_01",
+          "usage_events_2025_02",
+          "usage_events_2025_03",
+          "usage_events_2025_04",
+          "usage_events_2025_05",
+          "usage_events_2025_06",
+          "usage_events_2025_07",
+          "usage_events_2025_08",
+          "usage_events_2025_09",
+          "usage_events_2025_10",
+          "usage_events_2025_11",
+          "usage_events_2025_12",
+          "usage_events_2026_01",
+          "usage_events_2026_02",
+          "usage_events_2026_03",
+          "usage_events_2026_04",
+          "usage_events_2026_05",
+          "usage_events_2026_06",
+          "usage_events_2026_07",
+          "usage_events_2026_08",
+          "usage_events_2026_09",
+          "usage_events_2026_10",
+          "usage_events_2026_11",
+          "usage_events_2026_12",
+          "usage_events_2027_01",
+          "usage_events_2027_02",
+          "usage_events_2027_03",
+          "usage_events_2027_04",
+          "usage_events_2027_05",
+          "usage_events_2027_06",
+          "usage_events_2027_07",
+          "usage_events_2027_08",
+          "usage_events_2027_09",
+          "usage_events_2027_10",
+          "usage_events_2027_11",
+          "usage_events_2027_12"
+        ],
+        "partitionCount": 48,
+        "partitionsTruncated": false,
+        "partitionKeyColumns": ["occurred_at"],
+        "activity": {
+          "liveTuples": 10000000,
+          "deadTuples": 0,
+          "modsSinceAnalyze": 0,
+          "lastAnalyze": "2026-10-04T19:50:21.797Z",
+          "lastAutoanalyze": "2026-10-04T19:50:04.009Z",
+          "seqScans": 426,
+          "idxScans": 14
+        }
+      }
+    ],
+    "tablesTruncated": false,
+    "hypopgInstalled": true
+  },
+  "plan": [
+    {
+      "Plan": {
+        "Node Type": "Limit",
+        "Parallel Aware": false,
+        "Async Capable": false,
+        "Startup Cost": 1.69,
+        "Total Cost": 68,
+        "Plan Rows": 51,
+        "Plan Width": 101,
+        "Actual Startup Time": 0.411,
+        "Actual Total Time": 0.514,
+        "Actual Rows": 51,
+        "Actual Loops": 1,
+        "Shared Hit Blocks": 63,
+        "Shared Read Blocks": 1,
+        "Shared Dirtied Blocks": 0,
+        "Shared Written Blocks": 0,
+        "Local Hit Blocks": 0,
+        "Local Read Blocks": 0,
+        "Local Dirtied Blocks": 0,
+        "Local Written Blocks": 0,
+        "Temp Read Blocks": 0,
+        "Temp Written Blocks": 0,
+        "Plans": [
+          {
+            "Node Type": "Incremental Sort",
+            "Parent Relationship": "Outer",
+            "Parallel Aware": false,
+            "Async Capable": false,
+            "Startup Cost": 1.69,
+            "Total Cost": 57651.12,
+            "Plan Rows": 44337,
+            "Plan Width": 101,
+            "Actual Startup Time": 0.41,
+            "Actual Total Time": 0.508,
+            "Actual Rows": 51,
+            "Actual Loops": 1,
+            "Sort Key": ["usage_events.occurred_at DESC", "usage_events.id DESC"],
+            "Presorted Key": ["usage_events.occurred_at"],
+            "Full-sort Groups": {
+              "Group Count": 2,
+              "Sort Methods Used": ["quicksort"],
+              "Sort Space Memory": {
+                "Average Sort Space Used": 29,
+                "Peak Sort Space Used": 29
+              }
+            },
+            "Shared Hit Blocks": 63,
+            "Shared Read Blocks": 1,
+            "Shared Dirtied Blocks": 0,
+            "Shared Written Blocks": 0,
+            "Local Hit Blocks": 0,
+            "Local Read Blocks": 0,
+            "Local Dirtied Blocks": 0,
+            "Local Written Blocks": 0,
+            "Temp Read Blocks": 0,
+            "Temp Written Blocks": 0,
+            "Plans": [
+              {
+                "Node Type": "Index Scan",
+                "Parent Relationship": "Outer",
+                "Parallel Aware": false,
+                "Async Capable": false,
+                "Scan Direction": "Backward",
+                "Index Name": "usage_events_2026_03_tenant_id_occurred_at_idx",
+                "Relation Name": "usage_events_2026_03",
+                "Alias": "usage_events",
+                "Startup Cost": 0.42,
+                "Total Cost": 55655.95,
+                "Plan Rows": 44337,
+                "Plan Width": 101,
+                "Actual Startup Time": 0.146,
+                "Actual Total Time": 0.441,
+                "Actual Rows": 52,
+                "Actual Loops": 1,
+                "Index Cond": "((tenant_id = '8641a01e-babb-4e44-d36d-f68e5233c7fb'::uuid) AND (occurred_at >= '2026-03-01 00:00:00+00'::timestamp with time zone) AND (occurred_at < '2026-03-08 00:00:00+00'::timestamp with time zone))",
+                "Rows Removed by Index Recheck": 0,
+                "Shared Hit Blocks": 54,
+                "Shared Read Blocks": 1,
+                "Shared Dirtied Blocks": 0,
+                "Shared Written Blocks": 0,
+                "Local Hit Blocks": 0,
+                "Local Read Blocks": 0,
+                "Local Dirtied Blocks": 0,
+                "Local Written Blocks": 0,
+                "Temp Read Blocks": 0,
+                "Temp Written Blocks": 0
+              }
+            ]
+          }
+        ]
+      },
+      "Planning": {
+        "Shared Hit Blocks": 404,
+        "Shared Read Blocks": 0,
+        "Shared Dirtied Blocks": 0,
+        "Shared Written Blocks": 0,
+        "Local Hit Blocks": 0,
+        "Local Read Blocks": 0,
+        "Local Dirtied Blocks": 0,
+        "Local Written Blocks": 0,
+        "Temp Read Blocks": 0,
+        "Temp Written Blocks": 0
+      },
+      "Planning Time": 1.421,
+      "Triggers": [],
+      "Execution Time": 0.566
+    }
+  ]
+}

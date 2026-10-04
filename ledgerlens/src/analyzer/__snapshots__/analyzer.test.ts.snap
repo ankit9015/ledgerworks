@@ -1,0 +1,309 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`findings per plan shape (snapshot of what the rules say about real plans) > estimate_mismatch_correlated 1`] = `
+[
+  {
+    "evidence": {
+      "rowsExamined (rows)": 200000,
+      "rowsReturned (rows)": 2000,
+      "scanTimeMsAllWorkers (ms)": 21.204,
+      "selectivity (ratio)": 0.01,
+    },
+    "kind": "seq_scan_selective_filter",
+    "node": "Seq Scan",
+    "path": "0.0.0.0",
+    "related": [],
+    "severity": "medium",
+  },
+  {
+    "evidence": {
+      "actualRows (rows)": 2000,
+      "estimatedRows (rows)": 24,
+      "factor (factor)": 80.04,
+    },
+    "kind": "estimate_mismatch",
+    "node": "Seq Scan",
+    "path": "0.0.0.0",
+    "related": [],
+    "severity": "low",
+  },
+]
+`;
+
+exports[`findings per plan shape (snapshot of what the rules say about real plans) > hash_join_multiple_batches 1`] = `
+[
+  {
+    "evidence": {
+      "hashBatches (count)": 128,
+      "hashedRows (rows)": 200000,
+      "originalHashBatches (count)": 128,
+      "peakMemoryKb (kb)": 128,
+    },
+    "kind": "hash_join_multiple_batches",
+    "node": "Hash",
+    "path": "0.0.0.0.1",
+    "related": [],
+    "severity": "high",
+  },
+]
+`;
+
+exports[`findings per plan shape (snapshot of what the rules say about real plans) > hostile_names_seq_scan 1`] = `
+[
+  {
+    "evidence": {
+      "rowsExamined (rows)": 120000,
+      "rowsReturned (rows)": 3,
+      "scanTimeMsAllWorkers (ms)": 9.424,
+      "selectivity (ratio)": 0,
+    },
+    "kind": "seq_scan_selective_filter",
+    "node": "Seq Scan",
+    "path": "0",
+    "related": [],
+    "severity": "medium",
+  },
+]
+`;
+
+exports[`findings per plan shape (snapshot of what the rules say about real plans) > index_scan_control 1`] = `[]`;
+
+exports[`findings per plan shape (snapshot of what the rules say about real plans) > join_on_unindexed_foreign_key 1`] = `
+[
+  {
+    "evidence": {
+      "foreignKeyColumns (count)": 1,
+      "indexesOnTable (count)": 1,
+      "rowsReadBySeqScan (rows)": 400000,
+      "tableRows (rows)": 400000,
+    },
+    "kind": "join_on_unindexed_foreign_key",
+    "node": "Hash Join",
+    "path": "0",
+    "related": [
+      "0.0",
+    ],
+    "severity": "medium",
+  },
+  {
+    "evidence": {
+      "rowsExamined (rows)": 50000,
+      "rowsReturned (rows)": 50,
+      "scanTimeMsAllWorkers (ms)": 3.751,
+      "selectivity (ratio)": 0.001,
+    },
+    "kind": "seq_scan_selective_filter",
+    "node": "Seq Scan",
+    "path": "0.1.0",
+    "related": [],
+    "severity": "medium",
+  },
+]
+`;
+
+exports[`findings per plan shape (snapshot of what the rules say about real plans) > lossy_bitmap_heap_scan 1`] = `
+[
+  {
+    "evidence": {
+      "exactHeapBlocks (blocks)": 305,
+      "lossyHeapBlocks (blocks)": 1092,
+      "lossyShare (ratio)": 0.782,
+      "rowsRemovedByRecheck (rows)": 61338,
+    },
+    "kind": "lossy_bitmap_recheck",
+    "node": "Bitmap Heap Scan",
+    "path": "0.0.0.0",
+    "related": [],
+    "severity": "medium",
+  },
+]
+`;
+
+exports[`findings per plan shape (snapshot of what the rules say about real plans) > nested_loop_many_loops 1`] = `
+[
+  {
+    "evidence": {
+      "innerLoops (count)": 40000,
+      "innerRowsPerLoop (rows)": 1,
+      "innerTotalMs (ms)": 80,
+      "shareOfExecutionTime (ratio)": 1.041,
+    },
+    "kind": "nested_loop_many_loops",
+    "node": "Nested Loop",
+    "path": "0",
+    "related": [
+      "0.1",
+    ],
+    "severity": "high",
+  },
+]
+`;
+
+exports[`findings per plan shape (snapshot of what the rules say about real plans) > no_partition_pruning_tenant_count 1`] = `
+[
+  {
+    "evidence": {
+      "partitionsScanned (count)": 48,
+      "partitionsTotal (count)": 48,
+      "scansWithAnyCondition (count)": 48,
+      "scansWithConditionOnKey (count)": 0,
+      "subplansRemoved (count)": 0,
+    },
+    "kind": "no_partition_pruning",
+    "node": "Append",
+    "path": "0.0.0.0",
+    "related": [],
+    "severity": "high",
+  },
+]
+`;
+
+exports[`findings per plan shape (snapshot of what the rules say about real plans) > post_e1_usage_read 1`] = `[]`;
+
+exports[`findings per plan shape (snapshot of what the rules say about real plans) > pre_e1_usage_read 1`] = `
+[
+  {
+    "evidence": {
+      "limitRows (rows)": 51,
+      "rowsSorted (rows)": 45807,
+      "sortKeys (count)": 2,
+      "sortKeysThatAreExpressions (count)": 1,
+      "sortNodeTimeMs (ms)": 176.817,
+    },
+    "kind": "large_sort_index_could_order",
+    "node": "Sort",
+    "path": "0.0.0",
+    "related": [
+      "0",
+    ],
+    "severity": "high",
+  },
+]
+`;
+
+exports[`findings per plan shape (snapshot of what the rules say about real plans) > pre_e1_usage_read_estimate 1`] = `
+[
+  {
+    "evidence": {
+      "limitRows (rows)": 51,
+      "rowsSorted (rows)": 18474,
+      "sortKeys (count)": 2,
+      "sortKeysThatAreExpressions (count)": 1,
+    },
+    "kind": "large_sort_index_could_order",
+    "node": "Sort",
+    "path": "0.0.0",
+    "related": [
+      "0",
+    ],
+    "severity": "high",
+  },
+]
+`;
+
+exports[`findings per plan shape (snapshot of what the rules say about real plans) > seq_scan_selective_partitioned 1`] = `
+[
+  {
+    "evidence": {
+      "rowsExamined (rows)": 10000000,
+      "rowsReturned (rows)": 499915,
+      "scanTimeMsAllWorkers (ms)": 3001.034,
+      "scansGrouped (count)": 12,
+      "selectivity (ratio)": 0.05,
+    },
+    "kind": "seq_scan_selective_filter",
+    "node": "Append",
+    "path": "0.0",
+    "related": [
+      "0.0.36",
+      "0.0.37",
+      "0.0.38",
+      "0.0.39",
+      "0.0.40",
+      "0.0.41",
+      "0.0.42",
+      "0.0.43",
+      "0.0.44",
+      "0.0.45",
+      "0.0.46",
+      "0.0.47",
+    ],
+    "severity": "high",
+  },
+  {
+    "evidence": {
+      "partitionsScanned (count)": 48,
+      "partitionsTotal (count)": 48,
+      "scansWithAnyCondition (count)": 48,
+      "scansWithConditionOnKey (count)": 0,
+      "subplansRemoved (count)": 0,
+    },
+    "kind": "no_partition_pruning",
+    "node": "Append",
+    "path": "0.0",
+    "related": [],
+    "severity": "high",
+  },
+]
+`;
+
+exports[`findings per plan shape (snapshot of what the rules say about real plans) > sort_spills_to_disk 1`] = `
+[
+  {
+    "evidence": {
+      "rowsSorted (rows)": 200001,
+      "sortKeys (count)": 1,
+      "sortKeysThatAreExpressions (count)": 0,
+      "sortNodeTimeMs (ms)": 692.58,
+    },
+    "kind": "large_sort_index_could_order",
+    "node": "Sort",
+    "path": "0.0",
+    "related": [],
+    "severity": "high",
+  },
+  {
+    "evidence": {
+      "rowsSorted (rows)": 200001,
+      "sortSpaceKb (kb)": 7800,
+      "tempBlocksWritten (blocks)": 9770,
+    },
+    "kind": "sort_spills_to_disk",
+    "node": "Sort",
+    "path": "0.0",
+    "related": [],
+    "severity": "low",
+  },
+]
+`;
+
+exports[`findings per plan shape (snapshot of what the rules say about real plans) > stale_statistics 1`] = `
+[
+  {
+    "evidence": {
+      "actualRows (rows)": 300000,
+      "estimatedRows (rows)": 1,
+      "factor (factor)": 150000.5,
+    },
+    "kind": "estimate_mismatch",
+    "node": "Seq Scan",
+    "path": "0.0",
+    "related": [],
+    "severity": "high",
+  },
+  {
+    "evidence": {
+      "daysSinceAnalyze (days)": 0,
+      "liveRows (rows)": 302000,
+      "modificationRatio (ratio)": 0.997,
+      "modificationsSinceAnalyze (rows)": 301000,
+      "neverAnalyzed (count)": 0,
+    },
+    "kind": "stale_statistics",
+    "node": "Seq Scan",
+    "path": "0.0",
+    "related": [],
+    "severity": "high",
+  },
+]
+`;
