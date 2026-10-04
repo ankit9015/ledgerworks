@@ -162,10 +162,10 @@ Problem: `pg_stat_statements` stores normalized text with `$1, $2`, so a query c
 - **Done when:** snapshot tests cover at least 8 distinct plan shapes using fixture plans saved from real runs, and the pre-E1 Ledgerline usage-read plan produces a "large sort where an index could give order" finding. No finding is produced without evidence numbers (tested).
 
 ### L3.3 Deterministic candidate generator (the rules-only advisor)
-- [ ] A typed `Candidate`: id, kind (`create_index`, `drop_redundant_index`, `analyze_or_stats_target`, `rewrite_suggestion`), up SQL and down SQL, rationale, targeted statements, risk notes, and the findings that triggered it.
-- [ ] Index rules: equality columns first, then range, then sort columns; partial indexes when a constant filter is dominant; `INCLUDE` for covering when it removes a heap fetch; `CONCURRENTLY` always; skip tiny tables; avoid duplicates of existing indexes (including prefix-redundant ones) using `describe_schema`.
-- [ ] `rewrite_suggestion` is advice text only and is not verified unless a rewrite SQL is supplied (see L3.7 equivalence check).
-- [ ] SQL generation quotes identifiers through one tested helper.
+- [x] A typed `Candidate`: id, kind (`create_index`, `drop_redundant_index`, `analyze_or_stats_target`, `rewrite_suggestion`), up SQL and down SQL, rationale, targeted statements, risk notes, and the findings that triggered it.
+- [x] Index rules: equality columns first, then range, then sort columns; partial indexes when a constant filter is dominant; `INCLUDE` for covering when it removes a heap fetch; `CONCURRENTLY` always; skip tiny tables; avoid duplicates of existing indexes (including prefix-redundant ones) using `describe_schema`.
+- [x] `rewrite_suggestion` is advice text only and is not verified unless a rewrite SQL is supplied (see L3.7 equivalence check).
+- [x] SQL generation quotes identifiers through one tested helper.
 - **Done when:** tests show correct column order for 6 query shapes, duplicate and prefix-redundant detection, and an identifier-injection test (table and column names containing quotes, semicolons and newlines) where the generated SQL is valid and inert.
 
 ### L3.4 HypoPG pre-screen

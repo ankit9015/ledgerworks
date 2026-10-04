@@ -7,7 +7,8 @@
     "typecheck": "tsc -p tsconfig.json",
     "workload:report": "tsx src/workload/cli.ts",
     "fixtures:plans": "tsx scripts/capture-plan-fixtures.ts",
-    "fixtures:describe": "tsx scripts/describe-fixtures.ts"
+    "fixtures:describe": "tsx scripts/describe-fixtures.ts",
+    "candidates:report": "tsx scripts/candidates-report.ts"
   },
   "dependencies": {
     "@ledgerworks/core": "workspace:^",

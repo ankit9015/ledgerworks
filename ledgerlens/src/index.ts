@@ -7,3 +7,4 @@ export * from './workload/index.js';
 export * from './analyzer/index.js';
 export * from './schema/snapshot.js';
 export * from './sql/indexdef.js';
+export * from './candidates/index.js';

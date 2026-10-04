@@ -81,6 +81,14 @@ export interface SnapshotTable {
   /** plain columns of the partition key (expressions are not listed) */
   partitionKeyColumns: string[];
   activity: TableActivity | null;
+  /**
+   * Whether every name of this table (schema, table, columns, indexes, partitions) was checked
+   * against the catalog and found EXACTLY as written. The describe_schema tool removes control
+   * characters and line breaks from names (it is built for models), so a name with one is not what
+   * the database holds, and SQL built from it would point at the wrong object. false: refused by the
+   * generator. null: not checked (a snapshot built from a tool result alone).
+   */
+  namesVerified: boolean | null;
 }
 export interface SchemaSnapshot {
   serverVersion: string;
@@ -200,6 +208,7 @@ export async function snapshotFromDescribeSchema(
       partitions: (t.partitions ?? []).map((p) => plain(p.name)),
       partitionCount: t.partitions?.length ?? 0,
       partitionsTruncated: t.partitionsTruncated ?? false,
+      namesVerified: null,
       partitionKeyColumns: t.partitionKey
         ? ((await parsePartitionKey(plain(t.partitionKey)))?.columns ?? [])
         : [],
@@ -270,6 +279,33 @@ export async function readActivity(c: pg.Client, snapshot: SchemaSnapshot): Prom
 }
 
 /**
+ * Checks every name in the snapshot against the catalog, exactly (not through the sanitising of the
+ * describe_schema tool), and sets `namesVerified` on each table.
+ */
+export async function verifyNames(c: pg.Client, snapshot: SchemaSnapshot): Promise<void> {
+  const input = snapshot.tables.map((t, i) => ({
+    ord: i + 1,
+    schema: t.schema,
+    name: t.name,
+    cols: t.columns.map((x) => x.name),
+    idx: t.indexes.map((x) => x.name),
+    parts: t.partitions,
+  }));
+  const r = await c.query<{ ord: string; ok: boolean }>(
+    ll(`SELECT x.ord::text AS ord,
+               (c.oid IS NOT NULL
+                AND (SELECT count(*) FROM pg_attribute a WHERE a.attrelid = c.oid AND a.attnum > 0 AND NOT a.attisdropped AND a.attname = ANY(x.cols)) = cardinality(x.cols)
+                AND (SELECT count(*) FROM pg_index i JOIN pg_class ic ON ic.oid = i.indexrelid WHERE i.indrelid = c.oid AND ic.relname = ANY(x.idx)) = cardinality(x.idx)
+                AND (SELECT count(*) FROM pg_inherits h JOIN pg_class pc ON pc.oid = h.inhrelid WHERE h.inhparent = c.oid AND pc.relname = ANY(x.parts)) = cardinality(x.parts)) AS ok
+          FROM json_to_recordset($1::json) AS x(ord int, schema text, name text, cols text[], idx text[], parts text[])
+          LEFT JOIN pg_namespace n ON n.nspname = x.schema
+          LEFT JOIN pg_class c ON c.relnamespace = n.oid AND c.relname = x.name`),
+    [JSON.stringify(input)],
+  );
+  for (const row of r.rows) snapshot.tables[Number(row.ord) - 1]!.namesVerified = row.ok;
+}
+
+/**
  * Reads the schema of the source database: runs the describe_schema tool (read-only, with its
  * limits), adapts its result, and adds table activity. `schemas` limits what is described.
  */
@@ -287,6 +323,9 @@ export async function readSnapshot(
   );
   if (!res.ok) throw new Error(`describe_schema failed: ${res.error?.code}: ${res.error?.message}`);
   const out = await snapshotFromDescribeSchema(res.data);
-  await withSource(connect, (c) => readActivity(c, out.snapshot));
+  await withSource(connect, async (c) => {
+    await readActivity(c, out.snapshot);
+    await verifyNames(c, out.snapshot);
+  });
   return out;
 }

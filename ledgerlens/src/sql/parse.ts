@@ -57,6 +57,21 @@ export interface ParamUsage {
   functionArg: { name: string; index: number } | null;
 }
 
+export interface SortItem {
+  /** a plain column, or null when the key is an expression, an ordinal, or an output alias */
+  column: ColumnReference | null;
+  desc: boolean;
+  nullsFirst: boolean | null;
+  /** ORDER BY names an output alias that is NOT the same bare column (the Ledgerline E1 problem): the sort is on an expression */
+  viaAlias: boolean;
+}
+
+export interface ColumnUse {
+  ref: ColumnReference;
+  /** tables visible where it appears, innermost first */
+  scope: TableRef[];
+}
+
 export type StatementKind = 'select' | 'insert' | 'update' | 'delete' | 'merge' | 'utility';
 
 export interface ParsedStatement {
@@ -72,6 +87,15 @@ export interface ParsedStatement {
   functions: { schema: string | null; name: string }[];
   /** true when the statement has a part this reader does not understand (a derived table, a CTE, MERGE, ...) */
   hasDerivedRelations: boolean;
+  /** the top-level SELECT only (empty for other statements and for UNION / VALUES): */
+  orderBy: SortItem[];
+  hasLimit: boolean;
+  selectsStar: boolean;
+  /** every column the top-level SELECT mentions anywhere */
+  columns: ColumnUse[];
+  /** column = column comparisons (join conditions and WHERE) */
+  joinEqualities: { left: ColumnReference; right: ColumnReference; scope: TableRef[] }[];
+  hasSubqueries: boolean;
 }
 
 let loaded: Promise<void> | undefined;
@@ -136,6 +160,12 @@ export async function parseStatement(sql: string): Promise<ParsedStatement> {
     usages: [],
     hasDerivedRelations: false,
     functions: [],
+    orderBy: [],
+    hasLimit: false,
+    selectsStar: false,
+    columns: [],
+    joinEqualities: [],
+    hasSubqueries: false,
   };
   if (!first || !key || !KIND[key]) return out;
   const w = new Walker(out);
@@ -338,7 +368,116 @@ class Walker {
     (from ?? []).forEach(visit);
   }
 
+  private depth = 0;
+
   statement(s: any, key: string, outer: TableRef[]): void {
+    const top = this.depth++ === 0;
+    try {
+      this.statementInner(s, key, outer, top);
+    } finally {
+      this.depth--;
+    }
+  }
+
+  /** column references anywhere inside a node */
+  private columnsIn(n: any, scope: TableRef[], into: ColumnUse[]): void {
+    if (Array.isArray(n)) return n.forEach((x) => this.columnsIn(x, scope, into));
+    if (!n || typeof n !== 'object') return;
+    if (n.ColumnRef) {
+      const names = (n.ColumnRef.fields ?? []).map(str);
+      if (names.some((x: string | null) => x === null)) return;
+      into.push({
+        ref: {
+          name: names[names.length - 1] as string,
+          qualifier: names.length >= 2 ? (names[names.length - 2] as string) : null,
+          viaFunction: null,
+        },
+        scope,
+      });
+      return;
+    }
+    for (const v of Object.values(n)) this.columnsIn(v, scope, into);
+  }
+
+  private topLevelFacts(s: any, scope: TableRef[]): void {
+    const out = this.out;
+    const aliases = new Map<string, any>();
+    for (const t of s.targetList ?? []) {
+      const r = t.ResTarget;
+      if (r?.name) aliases.set(r.name, r.val);
+      if (r?.val?.ColumnRef?.fields?.some((f: any) => f.A_Star)) out.selectsStar = true;
+    }
+    for (const item of s.sortClause ?? []) {
+      const sb = item.SortBy;
+      const node = sb?.node;
+      const desc = sb?.sortby_dir === 'SORTBY_DESC';
+      const nullsFirst =
+        sb?.sortby_nulls === 'SORTBY_NULLS_FIRST'
+          ? true
+          : sb?.sortby_nulls === 'SORTBY_NULLS_LAST'
+            ? false
+            : null;
+      const names = node?.ColumnRef ? (node.ColumnRef.fields ?? []).map(str) : null;
+      if (!names || names.some((x: string | null) => x === null)) {
+        out.orderBy.push({ column: null, desc, nullsFirst, viaAlias: false });
+        continue;
+      }
+      const name = names[names.length - 1] as string;
+      if (names.length === 1 && aliases.has(name)) {
+        // an unqualified name that is also an output column name refers to the OUTPUT column
+        const val = aliases.get(name);
+        const bare = val?.ColumnRef ? (val.ColumnRef.fields ?? []).map(str) : null;
+        const same =
+          bare && bare[bare.length - 1] === name && bare.every((x: string | null) => x !== null);
+        if (!same) {
+          out.orderBy.push({ column: null, desc, nullsFirst, viaAlias: true });
+          continue;
+        }
+      }
+      out.orderBy.push({
+        column: {
+          name,
+          qualifier: names.length >= 2 ? (names[names.length - 2] as string) : null,
+          viaFunction: null,
+        },
+        desc,
+        nullsFirst,
+        viaAlias: false,
+      });
+    }
+    out.hasLimit = s.limitCount !== undefined && s.limitCount !== null;
+    for (const part of [
+      s.targetList,
+      s.whereClause,
+      s.sortClause,
+      s.groupClause,
+      s.havingClause,
+      s.fromClause,
+    ])
+      this.columnsIn(part, scope, out.columns);
+    // column = column
+    const visit = (n: any): void => {
+      if (Array.isArray(n)) return n.forEach(visit);
+      if (!n || typeof n !== 'object') return;
+      if (n.SubLink || n.RangeSubselect) out.hasSubqueries = true;
+      const a = n.A_Expr;
+      if (a?.kind === 'AEXPR_OP' && (a.name ?? []).map(str).pop() === '=') {
+        const l: ColumnUse[] = [];
+        const r: ColumnUse[] = [];
+        const peel = (e: any): any => (e?.TypeCast ? peel(e.TypeCast.arg) : e);
+        if (peel(a.lexpr)?.ColumnRef && peel(a.rexpr)?.ColumnRef) {
+          this.columnsIn(peel(a.lexpr), scope, l);
+          this.columnsIn(peel(a.rexpr), scope, r);
+          if (l[0] && r[0]) out.joinEqualities.push({ left: l[0].ref, right: r[0].ref, scope });
+        }
+      }
+      for (const v of Object.values(n)) visit(v);
+    };
+    visit(s.whereClause);
+    visit(s.fromClause);
+  }
+
+  private statementInner(s: any, key: string, outer: TableRef[], top: boolean): void {
     for (const w of s.withClause?.ctes ?? []) {
       const c = w.CommonTableExpr;
       if (c?.ctename) this.cteNames.add(c.ctename);
@@ -369,6 +508,7 @@ class Walker {
       if (s.havingClause) this.expr(s.havingClause, all);
       this.limit(s.limitCount, 'limit', all);
       this.limit(s.limitOffset, 'offset', all);
+      if (top) this.topLevelFacts(s, all);
     } else if (key === 'InsertStmt') {
       const target = rangeVar(s.relation);
       this.addTable(target);

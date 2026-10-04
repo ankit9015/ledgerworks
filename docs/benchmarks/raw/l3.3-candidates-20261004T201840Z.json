@@ -1,0 +1,746 @@
+{
+  "snapshotWarnings": [],
+  "statements": [
+    {
+      "label": "usage-read BEFORE the E1 fix (ORDER BY the output alias)",
+      "hash": "62df103ada23da14",
+      "findings": [
+        {
+          "kind": "large_sort_index_could_order",
+          "severity": "high",
+          "path": "0.0.0"
+        }
+      ],
+      "candidates": [
+        {
+          "id": "cand_04bf275b1d4e",
+          "kind": "rewrite_suggestion",
+          "table": {
+            "schema": "public",
+            "name": "usage_events"
+          },
+          "rationale": "ORDER BY names an output alias that hides a column, so the sort is on the alias expression and no index can supply the order. Qualify the column (ORDER BY table.column) so the order can come from an index.",
+          "subjects": [
+            {
+              "$untrusted": "public.usage_events"
+            }
+          ],
+          "targetedStatements": [
+            "62df103ada23da14"
+          ],
+          "riskNotes": [
+            "advice only: it changes the application's SQL, which Ledgerlens does not do and cannot verify until a rewritten statement is supplied"
+          ],
+          "triggeredBy": [
+            {
+              "findingKind": null,
+              "nodePath": null,
+              "queryHash": "62df103ada23da14"
+            }
+          ],
+          "variantOf": null,
+          "upSql": null,
+          "downSql": null,
+          "advice": "qualify_order_by_alias"
+        }
+      ],
+      "skipped": [
+        {
+          "reason": "covered_by_existing_index",
+          "subject": {
+            "$untrusted": "public.usage_events: usage_events_tenant_time_idx"
+          },
+          "detail": "an existing index already starts with these columns (2 key columns)",
+          "targetedStatements": [
+            "62df103ada23da14"
+          ]
+        }
+      ]
+    },
+    {
+      "label": "usage-read AFTER the E1 fix (ORDER BY the column)",
+      "hash": "3bb1a08f8a2cd970",
+      "findings": [],
+      "candidates": [
+        {
+          "id": "cand_364e0ad35623",
+          "kind": "create_index",
+          "table": {
+            "schema": "public",
+            "name": "usage_events"
+          },
+          "rationale": "Index on the columns the statement filters by (equality + range + sort): equality columns first, then the range column, then the sort columns.",
+          "subjects": [
+            {
+              "$untrusted": "public.usage_events"
+            }
+          ],
+          "targetedStatements": [
+            "3bb1a08f8a2cd970"
+          ],
+          "riskNotes": [
+            "partitioned table: one concurrent index per partition (48), attached to an index on the parent; assumes the partitions are in the same schema as the parent and are not partitioned themselves",
+            "an index adds work to every INSERT, UPDATE and DELETE of the table and takes space; the verifier measures both"
+          ],
+          "triggeredBy": [
+            {
+              "findingKind": null,
+              "nodePath": null,
+              "queryHash": "3bb1a08f8a2cd970"
+            }
+          ],
+          "variantOf": null,
+          "upSql": "CREATE INDEX IF NOT EXISTS \"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f\" ON ONLY \"public\".\"usage_events\" USING btree (\"tenant_id\", \"occurred_at\", \"id\");\nCREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f_p0\" ON \"public\".\"usage_events_2024_01\" USING btree (\"tenant_id\", \"occurred_at\", \"id\");\nALTER INDEX \"public\".\"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f\" ATTACH PARTITION \"public\".\"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f_p0\";\nCREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f_p1\" ON \"public\".\"usage_events_2024_02\" USING btree (\"tenant_id\", \"occurred_at\", \"id\");\nALTER INDEX \"public\".\"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f\" ATTACH PARTITION \"public\".\"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f_p1\";\nCREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f_p2\" ON \"public\".\"usage_events_2024_03\" USING btree (\"tenant_id\", \"occurred_at\", \"id\");\nALTER INDEX \"public\".\"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f\" ATTACH PARTITION \"public\".\"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f_p2\";\nCREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f_p3\" ON \"public\".\"usage_events_2024_04\" USING btree (\"tenant_id\", \"occurred_at\", \"id\");\nALTER INDEX \"public\".\"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f\" ATTACH PARTITION \"public\".\"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f_p3\";\nCREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f_p4\" ON \"public\".\"usage_events_2024_05\" USING btree (\"tenant_id\", \"occurred_at\", \"id\");\nALTER INDEX \"public\".\"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f\" ATTACH PARTITION \"public\".\"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f_p4\";\nCREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f_p5\" ON \"public\".\"usage_events_2024_06\" USING btree (\"tenant_id\", \"occurred_at\", \"id\");\nALTER INDEX \"public\".\"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f\" ATTACH PARTITION \"public\".\"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f_p5\";\nCREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f_p6\" ON \"public\".\"usage_events_2024_07\" USING btree (\"tenant_id\", \"occurred_at\", \"id\");\nALTER INDEX \"public\".\"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f\" ATTACH PARTITION \"public\".\"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f_p6\";\nCREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f_p7\" ON \"public\".\"usage_events_2024_08\" USING btree (\"tenant_id\", \"occurred_at\", \"id\");\nALTER INDEX \"public\".\"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f\" ATTACH PARTITION \"public\".\"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f_p7\";\nCREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f_p8\" ON \"public\".\"usage_events_2024_09\" USING btree (\"tenant_id\", \"occurred_at\", \"id\");\nALTER INDEX \"public\".\"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f\" ATTACH PARTITION \"public\".\"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f_p8\";\nCREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f_p9\" ON \"public\".\"usage_events_2024_10\" USING btree (\"tenant_id\", \"occurred_at\", \"id\");\nALTER INDEX \"public\".\"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f\" ATTACH PARTITION \"public\".\"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f_p9\";\nCREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f_p10\" ON \"public\".\"usage_events_2024_11\" USING btree (\"tenant_id\", \"occurred_at\", \"id\");\nALTER INDEX \"public\".\"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f\" ATTACH PARTITION \"public\".\"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f_p10\";\nCREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f_p11\" ON \"public\".\"usage_events_2024_12\" USING btree (\"tenant_id\", \"occurred_at\", \"id\");\nALTER INDEX \"public\".\"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f\" ATTACH PARTITION \"public\".\"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f_p11\";\nCREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f_p12\" ON \"public\".\"usage_events_2025_01\" USING btree (\"tenant_id\", \"occurred_at\", \"id\");\nALTER INDEX \"public\".\"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f\" ATTACH PARTITION \"public\".\"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f_p12\";\nCREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f_p13\" ON \"public\".\"usage_events_2025_02\" USING btree (\"tenant_id\", \"occurred_at\", \"id\");\nALTER INDEX \"public\".\"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f\" ATTACH PARTITION \"public\".\"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f_p13\";\nCREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f_p14\" ON \"public\".\"usage_events_2025_03\" USING btree (\"tenant_id\", \"occurred_at\", \"id\");\nALTER INDEX \"public\".\"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f\" ATTACH PARTITION \"public\".\"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f_p14\";\nCREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f_p15\" ON \"public\".\"usage_events_2025_04\" USING btree (\"tenant_id\", \"occurred_at\", \"id\");\nALTER INDEX \"public\".\"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f\" ATTACH PARTITION \"public\".\"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f_p15\";\nCREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f_p16\" ON \"public\".\"usage_events_2025_05\" USING btree (\"tenant_id\", \"occurred_at\", \"id\");\nALTER INDEX \"public\".\"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f\" ATTACH PARTITION \"public\".\"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f_p16\";\nCREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f_p17\" ON \"public\".\"usage_events_2025_06\" USING btree (\"tenant_id\", \"occurred_at\", \"id\");\nALTER INDEX \"public\".\"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f\" ATTACH PARTITION \"public\".\"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f_p17\";\nCREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f_p18\" ON \"public\".\"usage_events_2025_07\" USING btree (\"tenant_id\", \"occurred_at\", \"id\");\nALTER INDEX \"public\".\"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f\" ATTACH PARTITION \"public\".\"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f_p18\";\nCREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f_p19\" ON \"public\".\"usage_events_2025_08\" USING btree (\"tenant_id\", \"occurred_at\", \"id\");\nALTER INDEX \"public\".\"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f\" ATTACH PARTITION \"public\".\"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f_p19\";\nCREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f_p20\" ON \"public\".\"usage_events_2025_09\" USING btree (\"tenant_id\", \"occurred_at\", \"id\");\nALTER INDEX \"public\".\"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f\" ATTACH PARTITION \"public\".\"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f_p20\";\nCREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f_p21\" ON \"public\".\"usage_events_2025_10\" USING btree (\"tenant_id\", \"occurred_at\", \"id\");\nALTER INDEX \"public\".\"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f\" ATTACH PARTITION \"public\".\"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f_p21\";\nCREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f_p22\" ON \"public\".\"usage_events_2025_11\" USING btree (\"tenant_id\", \"occurred_at\", \"id\");\nALTER INDEX \"public\".\"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f\" ATTACH PARTITION \"public\".\"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f_p22\";\nCREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f_p23\" ON \"public\".\"usage_events_2025_12\" USING btree (\"tenant_id\", \"occurred_at\", \"id\");\nALTER INDEX \"public\".\"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f\" ATTACH PARTITION \"public\".\"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f_p23\";\nCREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f_p24\" ON \"public\".\"usage_events_2026_01\" USING btree (\"tenant_id\", \"occurred_at\", \"id\");\nALTER INDEX \"public\".\"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f\" ATTACH PARTITION \"public\".\"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f_p24\";\nCREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f_p25\" ON \"public\".\"usage_events_2026_02\" USING btree (\"tenant_id\", \"occurred_at\", \"id\");\nALTER INDEX \"public\".\"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f\" ATTACH PARTITION \"public\".\"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f_p25\";\nCREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f_p26\" ON \"public\".\"usage_events_2026_03\" USING btree (\"tenant_id\", \"occurred_at\", \"id\");\nALTER INDEX \"public\".\"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f\" ATTACH PARTITION \"public\".\"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f_p26\";\nCREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f_p27\" ON \"public\".\"usage_events_2026_04\" USING btree (\"tenant_id\", \"occurred_at\", \"id\");\nALTER INDEX \"public\".\"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f\" ATTACH PARTITION \"public\".\"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f_p27\";\nCREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f_p28\" ON \"public\".\"usage_events_2026_05\" USING btree (\"tenant_id\", \"occurred_at\", \"id\");\nALTER INDEX \"public\".\"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f\" ATTACH PARTITION \"public\".\"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f_p28\";\nCREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f_p29\" ON \"public\".\"usage_events_2026_06\" USING btree (\"tenant_id\", \"occurred_at\", \"id\");\nALTER INDEX \"public\".\"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f\" ATTACH PARTITION \"public\".\"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f_p29\";\nCREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f_p30\" ON \"public\".\"usage_events_2026_07\" USING btree (\"tenant_id\", \"occurred_at\", \"id\");\nALTER INDEX \"public\".\"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f\" ATTACH PARTITION \"public\".\"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f_p30\";\nCREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f_p31\" ON \"public\".\"usage_events_2026_08\" USING btree (\"tenant_id\", \"occurred_at\", \"id\");\nALTER INDEX \"public\".\"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f\" ATTACH PARTITION \"public\".\"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f_p31\";\nCREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f_p32\" ON \"public\".\"usage_events_2026_09\" USING btree (\"tenant_id\", \"occurred_at\", \"id\");\nALTER INDEX \"public\".\"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f\" ATTACH PARTITION \"public\".\"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f_p32\";\nCREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f_p33\" ON \"public\".\"usage_events_2026_10\" USING btree (\"tenant_id\", \"occurred_at\", \"id\");\nALTER INDEX \"public\".\"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f\" ATTACH PARTITION \"public\".\"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f_p33\";\nCREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f_p34\" ON \"public\".\"usage_events_2026_11\" USING btree (\"tenant_id\", \"occurred_at\", \"id\");\nALTER INDEX \"public\".\"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f\" ATTACH PARTITION \"public\".\"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f_p34\";\nCREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f_p35\" ON \"public\".\"usage_events_2026_12\" USING btree (\"tenant_id\", \"occurred_at\", \"id\");\nALTER INDEX \"public\".\"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f\" ATTACH PARTITION \"public\".\"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f_p35\";\nCREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f_p36\" ON \"public\".\"usage_events_2027_01\" USING btree (\"tenant_id\", \"occurred_at\", \"id\");\nALTER INDEX \"public\".\"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f\" ATTACH PARTITION \"public\".\"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f_p36\";\nCREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f_p37\" ON \"public\".\"usage_events_2027_02\" USING btree (\"tenant_id\", \"occurred_at\", \"id\");\nALTER INDEX \"public\".\"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f\" ATTACH PARTITION \"public\".\"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f_p37\";\nCREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f_p38\" ON \"public\".\"usage_events_2027_03\" USING btree (\"tenant_id\", \"occurred_at\", \"id\");\nALTER INDEX \"public\".\"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f\" ATTACH PARTITION \"public\".\"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f_p38\";\nCREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f_p39\" ON \"public\".\"usage_events_2027_04\" USING btree (\"tenant_id\", \"occurred_at\", \"id\");\nALTER INDEX \"public\".\"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f\" ATTACH PARTITION \"public\".\"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f_p39\";\nCREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f_p40\" ON \"public\".\"usage_events_2027_05\" USING btree (\"tenant_id\", \"occurred_at\", \"id\");\nALTER INDEX \"public\".\"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f\" ATTACH PARTITION \"public\".\"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f_p40\";\nCREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f_p41\" ON \"public\".\"usage_events_2027_06\" USING btree (\"tenant_id\", \"occurred_at\", \"id\");\nALTER INDEX \"public\".\"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f\" ATTACH PARTITION \"public\".\"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f_p41\";\nCREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f_p42\" ON \"public\".\"usage_events_2027_07\" USING btree (\"tenant_id\", \"occurred_at\", \"id\");\nALTER INDEX \"public\".\"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f\" ATTACH PARTITION \"public\".\"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f_p42\";\nCREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f_p43\" ON \"public\".\"usage_events_2027_08\" USING btree (\"tenant_id\", \"occurred_at\", \"id\");\nALTER INDEX \"public\".\"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f\" ATTACH PARTITION \"public\".\"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f_p43\";\nCREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f_p44\" ON \"public\".\"usage_events_2027_09\" USING btree (\"tenant_id\", \"occurred_at\", \"id\");\nALTER INDEX \"public\".\"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f\" ATTACH PARTITION \"public\".\"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f_p44\";\nCREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f_p45\" ON \"public\".\"usage_events_2027_10\" USING btree (\"tenant_id\", \"occurred_at\", \"id\");\nALTER INDEX \"public\".\"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f\" ATTACH PARTITION \"public\".\"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f_p45\";\nCREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f_p46\" ON \"public\".\"usage_events_2027_11\" USING btree (\"tenant_id\", \"occurred_at\", \"id\");\nALTER INDEX \"public\".\"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f\" ATTACH PARTITION \"public\".\"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f_p46\";\nCREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f_p47\" ON \"public\".\"usage_events_2027_12\" USING btree (\"tenant_id\", \"occurred_at\", \"id\");\nALTER INDEX \"public\".\"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f\" ATTACH PARTITION \"public\".\"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f_p47\"",
+          "downSql": "DROP INDEX IF EXISTS \"public\".\"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f\"",
+          "upStatements": [
+            "CREATE INDEX IF NOT EXISTS \"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f\" ON ONLY \"public\".\"usage_events\" USING btree (\"tenant_id\", \"occurred_at\", \"id\")",
+            "CREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f_p0\" ON \"public\".\"usage_events_2024_01\" USING btree (\"tenant_id\", \"occurred_at\", \"id\")",
+            "ALTER INDEX \"public\".\"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f\" ATTACH PARTITION \"public\".\"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f_p0\"",
+            "CREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f_p1\" ON \"public\".\"usage_events_2024_02\" USING btree (\"tenant_id\", \"occurred_at\", \"id\")",
+            "ALTER INDEX \"public\".\"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f\" ATTACH PARTITION \"public\".\"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f_p1\"",
+            "CREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f_p2\" ON \"public\".\"usage_events_2024_03\" USING btree (\"tenant_id\", \"occurred_at\", \"id\")",
+            "ALTER INDEX \"public\".\"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f\" ATTACH PARTITION \"public\".\"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f_p2\"",
+            "CREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f_p3\" ON \"public\".\"usage_events_2024_04\" USING btree (\"tenant_id\", \"occurred_at\", \"id\")",
+            "ALTER INDEX \"public\".\"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f\" ATTACH PARTITION \"public\".\"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f_p3\"",
+            "CREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f_p4\" ON \"public\".\"usage_events_2024_05\" USING btree (\"tenant_id\", \"occurred_at\", \"id\")",
+            "ALTER INDEX \"public\".\"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f\" ATTACH PARTITION \"public\".\"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f_p4\"",
+            "CREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f_p5\" ON \"public\".\"usage_events_2024_06\" USING btree (\"tenant_id\", \"occurred_at\", \"id\")",
+            "ALTER INDEX \"public\".\"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f\" ATTACH PARTITION \"public\".\"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f_p5\"",
+            "CREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f_p6\" ON \"public\".\"usage_events_2024_07\" USING btree (\"tenant_id\", \"occurred_at\", \"id\")",
+            "ALTER INDEX \"public\".\"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f\" ATTACH PARTITION \"public\".\"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f_p6\"",
+            "CREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f_p7\" ON \"public\".\"usage_events_2024_08\" USING btree (\"tenant_id\", \"occurred_at\", \"id\")",
+            "ALTER INDEX \"public\".\"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f\" ATTACH PARTITION \"public\".\"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f_p7\"",
+            "CREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f_p8\" ON \"public\".\"usage_events_2024_09\" USING btree (\"tenant_id\", \"occurred_at\", \"id\")",
+            "ALTER INDEX \"public\".\"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f\" ATTACH PARTITION \"public\".\"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f_p8\"",
+            "CREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f_p9\" ON \"public\".\"usage_events_2024_10\" USING btree (\"tenant_id\", \"occurred_at\", \"id\")",
+            "ALTER INDEX \"public\".\"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f\" ATTACH PARTITION \"public\".\"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f_p9\"",
+            "CREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f_p10\" ON \"public\".\"usage_events_2024_11\" USING btree (\"tenant_id\", \"occurred_at\", \"id\")",
+            "ALTER INDEX \"public\".\"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f\" ATTACH PARTITION \"public\".\"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f_p10\"",
+            "CREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f_p11\" ON \"public\".\"usage_events_2024_12\" USING btree (\"tenant_id\", \"occurred_at\", \"id\")",
+            "ALTER INDEX \"public\".\"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f\" ATTACH PARTITION \"public\".\"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f_p11\"",
+            "CREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f_p12\" ON \"public\".\"usage_events_2025_01\" USING btree (\"tenant_id\", \"occurred_at\", \"id\")",
+            "ALTER INDEX \"public\".\"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f\" ATTACH PARTITION \"public\".\"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f_p12\"",
+            "CREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f_p13\" ON \"public\".\"usage_events_2025_02\" USING btree (\"tenant_id\", \"occurred_at\", \"id\")",
+            "ALTER INDEX \"public\".\"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f\" ATTACH PARTITION \"public\".\"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f_p13\"",
+            "CREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f_p14\" ON \"public\".\"usage_events_2025_03\" USING btree (\"tenant_id\", \"occurred_at\", \"id\")",
+            "ALTER INDEX \"public\".\"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f\" ATTACH PARTITION \"public\".\"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f_p14\"",
+            "CREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f_p15\" ON \"public\".\"usage_events_2025_04\" USING btree (\"tenant_id\", \"occurred_at\", \"id\")",
+            "ALTER INDEX \"public\".\"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f\" ATTACH PARTITION \"public\".\"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f_p15\"",
+            "CREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f_p16\" ON \"public\".\"usage_events_2025_05\" USING btree (\"tenant_id\", \"occurred_at\", \"id\")",
+            "ALTER INDEX \"public\".\"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f\" ATTACH PARTITION \"public\".\"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f_p16\"",
+            "CREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f_p17\" ON \"public\".\"usage_events_2025_06\" USING btree (\"tenant_id\", \"occurred_at\", \"id\")",
+            "ALTER INDEX \"public\".\"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f\" ATTACH PARTITION \"public\".\"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f_p17\"",
+            "CREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f_p18\" ON \"public\".\"usage_events_2025_07\" USING btree (\"tenant_id\", \"occurred_at\", \"id\")",
+            "ALTER INDEX \"public\".\"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f\" ATTACH PARTITION \"public\".\"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f_p18\"",
+            "CREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f_p19\" ON \"public\".\"usage_events_2025_08\" USING btree (\"tenant_id\", \"occurred_at\", \"id\")",
+            "ALTER INDEX \"public\".\"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f\" ATTACH PARTITION \"public\".\"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f_p19\"",
+            "CREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f_p20\" ON \"public\".\"usage_events_2025_09\" USING btree (\"tenant_id\", \"occurred_at\", \"id\")",
+            "ALTER INDEX \"public\".\"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f\" ATTACH PARTITION \"public\".\"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f_p20\"",
+            "CREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f_p21\" ON \"public\".\"usage_events_2025_10\" USING btree (\"tenant_id\", \"occurred_at\", \"id\")",
+            "ALTER INDEX \"public\".\"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f\" ATTACH PARTITION \"public\".\"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f_p21\"",
+            "CREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f_p22\" ON \"public\".\"usage_events_2025_11\" USING btree (\"tenant_id\", \"occurred_at\", \"id\")",
+            "ALTER INDEX \"public\".\"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f\" ATTACH PARTITION \"public\".\"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f_p22\"",
+            "CREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f_p23\" ON \"public\".\"usage_events_2025_12\" USING btree (\"tenant_id\", \"occurred_at\", \"id\")",
+            "ALTER INDEX \"public\".\"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f\" ATTACH PARTITION \"public\".\"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f_p23\"",
+            "CREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f_p24\" ON \"public\".\"usage_events_2026_01\" USING btree (\"tenant_id\", \"occurred_at\", \"id\")",
+            "ALTER INDEX \"public\".\"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f\" ATTACH PARTITION \"public\".\"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f_p24\"",
+            "CREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f_p25\" ON \"public\".\"usage_events_2026_02\" USING btree (\"tenant_id\", \"occurred_at\", \"id\")",
+            "ALTER INDEX \"public\".\"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f\" ATTACH PARTITION \"public\".\"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f_p25\"",
+            "CREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f_p26\" ON \"public\".\"usage_events_2026_03\" USING btree (\"tenant_id\", \"occurred_at\", \"id\")",
+            "ALTER INDEX \"public\".\"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f\" ATTACH PARTITION \"public\".\"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f_p26\"",
+            "CREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f_p27\" ON \"public\".\"usage_events_2026_04\" USING btree (\"tenant_id\", \"occurred_at\", \"id\")",
+            "ALTER INDEX \"public\".\"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f\" ATTACH PARTITION \"public\".\"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f_p27\"",
+            "CREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f_p28\" ON \"public\".\"usage_events_2026_05\" USING btree (\"tenant_id\", \"occurred_at\", \"id\")",
+            "ALTER INDEX \"public\".\"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f\" ATTACH PARTITION \"public\".\"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f_p28\"",
+            "CREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f_p29\" ON \"public\".\"usage_events_2026_06\" USING btree (\"tenant_id\", \"occurred_at\", \"id\")",
+            "ALTER INDEX \"public\".\"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f\" ATTACH PARTITION \"public\".\"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f_p29\"",
+            "CREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f_p30\" ON \"public\".\"usage_events_2026_07\" USING btree (\"tenant_id\", \"occurred_at\", \"id\")",
+            "ALTER INDEX \"public\".\"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f\" ATTACH PARTITION \"public\".\"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f_p30\"",
+            "CREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f_p31\" ON \"public\".\"usage_events_2026_08\" USING btree (\"tenant_id\", \"occurred_at\", \"id\")",
+            "ALTER INDEX \"public\".\"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f\" ATTACH PARTITION \"public\".\"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f_p31\"",
+            "CREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f_p32\" ON \"public\".\"usage_events_2026_09\" USING btree (\"tenant_id\", \"occurred_at\", \"id\")",
+            "ALTER INDEX \"public\".\"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f\" ATTACH PARTITION \"public\".\"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f_p32\"",
+            "CREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f_p33\" ON \"public\".\"usage_events_2026_10\" USING btree (\"tenant_id\", \"occurred_at\", \"id\")",
+            "ALTER INDEX \"public\".\"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f\" ATTACH PARTITION \"public\".\"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f_p33\"",
+            "CREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f_p34\" ON \"public\".\"usage_events_2026_11\" USING btree (\"tenant_id\", \"occurred_at\", \"id\")",
+            "ALTER INDEX \"public\".\"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f\" ATTACH PARTITION \"public\".\"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f_p34\"",
+            "CREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f_p35\" ON \"public\".\"usage_events_2026_12\" USING btree (\"tenant_id\", \"occurred_at\", \"id\")",
+            "ALTER INDEX \"public\".\"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f\" ATTACH PARTITION \"public\".\"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f_p35\"",
+            "CREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f_p36\" ON \"public\".\"usage_events_2027_01\" USING btree (\"tenant_id\", \"occurred_at\", \"id\")",
+            "ALTER INDEX \"public\".\"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f\" ATTACH PARTITION \"public\".\"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f_p36\"",
+            "CREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f_p37\" ON \"public\".\"usage_events_2027_02\" USING btree (\"tenant_id\", \"occurred_at\", \"id\")",
+            "ALTER INDEX \"public\".\"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f\" ATTACH PARTITION \"public\".\"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f_p37\"",
+            "CREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f_p38\" ON \"public\".\"usage_events_2027_03\" USING btree (\"tenant_id\", \"occurred_at\", \"id\")",
+            "ALTER INDEX \"public\".\"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f\" ATTACH PARTITION \"public\".\"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f_p38\"",
+            "CREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f_p39\" ON \"public\".\"usage_events_2027_04\" USING btree (\"tenant_id\", \"occurred_at\", \"id\")",
+            "ALTER INDEX \"public\".\"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f\" ATTACH PARTITION \"public\".\"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f_p39\"",
+            "CREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f_p40\" ON \"public\".\"usage_events_2027_05\" USING btree (\"tenant_id\", \"occurred_at\", \"id\")",
+            "ALTER INDEX \"public\".\"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f\" ATTACH PARTITION \"public\".\"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f_p40\"",
+            "CREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f_p41\" ON \"public\".\"usage_events_2027_06\" USING btree (\"tenant_id\", \"occurred_at\", \"id\")",
+            "ALTER INDEX \"public\".\"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f\" ATTACH PARTITION \"public\".\"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f_p41\"",
+            "CREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f_p42\" ON \"public\".\"usage_events_2027_07\" USING btree (\"tenant_id\", \"occurred_at\", \"id\")",
+            "ALTER INDEX \"public\".\"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f\" ATTACH PARTITION \"public\".\"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f_p42\"",
+            "CREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f_p43\" ON \"public\".\"usage_events_2027_08\" USING btree (\"tenant_id\", \"occurred_at\", \"id\")",
+            "ALTER INDEX \"public\".\"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f\" ATTACH PARTITION \"public\".\"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f_p43\"",
+            "CREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f_p44\" ON \"public\".\"usage_events_2027_09\" USING btree (\"tenant_id\", \"occurred_at\", \"id\")",
+            "ALTER INDEX \"public\".\"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f\" ATTACH PARTITION \"public\".\"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f_p44\"",
+            "CREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f_p45\" ON \"public\".\"usage_events_2027_10\" USING btree (\"tenant_id\", \"occurred_at\", \"id\")",
+            "ALTER INDEX \"public\".\"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f\" ATTACH PARTITION \"public\".\"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f_p45\"",
+            "CREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f_p46\" ON \"public\".\"usage_events_2027_11\" USING btree (\"tenant_id\", \"occurred_at\", \"id\")",
+            "ALTER INDEX \"public\".\"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f\" ATTACH PARTITION \"public\".\"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f_p46\"",
+            "CREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f_p47\" ON \"public\".\"usage_events_2027_12\" USING btree (\"tenant_id\", \"occurred_at\", \"id\")",
+            "ALTER INDEX \"public\".\"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f\" ATTACH PARTITION \"public\".\"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f_p47\""
+          ],
+          "downStatements": [
+            "DROP INDEX IF EXISTS \"public\".\"ll_usage_events_tenant_id_occurred_at_id_0e76ec6f\""
+          ],
+          "noTransaction": true,
+          "index": {
+            "schema": "public",
+            "table": "usage_events",
+            "indexName": "ll_usage_events_tenant_id_occurred_at_id_0e76ec6f",
+            "method": "btree",
+            "key": [
+              {
+                "name": "tenant_id",
+                "desc": false
+              },
+              {
+                "name": "occurred_at",
+                "desc": false
+              },
+              {
+                "name": "id",
+                "desc": false
+              }
+            ],
+            "include": [],
+            "partial": null,
+            "partitions": [
+              "usage_events_2024_01",
+              "usage_events_2024_02",
+              "usage_events_2024_03",
+              "usage_events_2024_04",
+              "usage_events_2024_05",
+              "usage_events_2024_06",
+              "usage_events_2024_07",
+              "usage_events_2024_08",
+              "usage_events_2024_09",
+              "usage_events_2024_10",
+              "usage_events_2024_11",
+              "usage_events_2024_12",
+              "usage_events_2025_01",
+              "usage_events_2025_02",
+              "usage_events_2025_03",
+              "usage_events_2025_04",
+              "usage_events_2025_05",
+              "usage_events_2025_06",
+              "usage_events_2025_07",
+              "usage_events_2025_08",
+              "usage_events_2025_09",
+              "usage_events_2025_10",
+              "usage_events_2025_11",
+              "usage_events_2025_12",
+              "usage_events_2026_01",
+              "usage_events_2026_02",
+              "usage_events_2026_03",
+              "usage_events_2026_04",
+              "usage_events_2026_05",
+              "usage_events_2026_06",
+              "usage_events_2026_07",
+              "usage_events_2026_08",
+              "usage_events_2026_09",
+              "usage_events_2026_10",
+              "usage_events_2026_11",
+              "usage_events_2026_12",
+              "usage_events_2027_01",
+              "usage_events_2027_02",
+              "usage_events_2027_03",
+              "usage_events_2027_04",
+              "usage_events_2027_05",
+              "usage_events_2027_06",
+              "usage_events_2027_07",
+              "usage_events_2027_08",
+              "usage_events_2027_09",
+              "usage_events_2027_10",
+              "usage_events_2027_11",
+              "usage_events_2027_12"
+            ]
+          }
+        }
+      ],
+      "skipped": []
+    },
+    {
+      "label": "balance lookup",
+      "hash": "ae114371a696b936",
+      "candidates": [],
+      "skipped": [
+        {
+          "reason": "tiny_table",
+          "subject": {
+            "$untrusted": "public.credit_balances"
+          },
+          "detail": "the table has about 250 rows, fewer than 10000: a sequential scan is cheap",
+          "targetedStatements": [
+            "ae114371a696b936"
+          ]
+        }
+      ]
+    },
+    {
+      "label": "a count of one tenant (no condition on the partition key)",
+      "hash": "501db8a25eefe1e9",
+      "findings": [
+        {
+          "kind": "no_partition_pruning",
+          "severity": "high",
+          "path": "0.0.0.0"
+        }
+      ],
+      "candidates": [],
+      "skipped": [
+        {
+          "reason": "covered_by_existing_index",
+          "subject": {
+            "$untrusted": "public.usage_events: usage_events_tenant_time_idx"
+          },
+          "detail": "an existing index already starts with these columns (2 key columns)",
+          "targetedStatements": [
+            "501db8a25eefe1e9"
+          ]
+        }
+      ]
+    },
+    {
+      "label": "usage events of one event type (unindexed column)",
+      "hash": "8e64f79639ee131f",
+      "findings": [
+        {
+          "kind": "seq_scan_selective_filter",
+          "severity": "high",
+          "path": "0.0"
+        },
+        {
+          "kind": "no_partition_pruning",
+          "severity": "high",
+          "path": "0.0"
+        }
+      ],
+      "candidates": [
+        {
+          "id": "cand_cb7f2c079ecb",
+          "kind": "create_index",
+          "table": {
+            "schema": "public",
+            "name": "usage_events"
+          },
+          "rationale": "The same index with the other columns the statement reads added as INCLUDE columns, so the statement can be answered from the index without visiting the table.",
+          "subjects": [
+            {
+              "$untrusted": "public.usage_events"
+            }
+          ],
+          "targetedStatements": [
+            "8e64f79639ee131f"
+          ],
+          "riskNotes": [
+            "partitioned table: one concurrent index per partition (48), attached to an index on the parent; assumes the partitions are in the same schema as the parent and are not partitioned themselves",
+            "an index adds work to every INSERT, UPDATE and DELETE of the table and takes space; the verifier measures both",
+            "an index-only scan needs recently vacuumed pages (the visibility map); wide INCLUDE columns make the index larger"
+          ],
+          "triggeredBy": [
+            {
+              "findingKind": null,
+              "nodePath": null,
+              "queryHash": "8e64f79639ee131f"
+            },
+            {
+              "findingKind": "seq_scan_selective_filter",
+              "nodePath": "0.0",
+              "queryHash": "8e64f79639ee131f"
+            }
+          ],
+          "variantOf": "cand_f8a61aa68ce8",
+          "upSql": "CREATE INDEX IF NOT EXISTS \"ll_usage_events_event_type_7a0525d1\" ON ONLY \"public\".\"usage_events\" USING btree (\"event_type\") INCLUDE (\"id\", \"occurred_at\", \"tenant_id\");\nCREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_event_type_7a0525d1_p0\" ON \"public\".\"usage_events_2024_01\" USING btree (\"event_type\") INCLUDE (\"id\", \"occurred_at\", \"tenant_id\");\nALTER INDEX \"public\".\"ll_usage_events_event_type_7a0525d1\" ATTACH PARTITION \"public\".\"ll_usage_events_event_type_7a0525d1_p0\";\nCREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_event_type_7a0525d1_p1\" ON \"public\".\"usage_events_2024_02\" USING btree (\"event_type\") INCLUDE (\"id\", \"occurred_at\", \"tenant_id\");\nALTER INDEX \"public\".\"ll_usage_events_event_type_7a0525d1\" ATTACH PARTITION \"public\".\"ll_usage_events_event_type_7a0525d1_p1\";\nCREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_event_type_7a0525d1_p2\" ON \"public\".\"usage_events_2024_03\" USING btree (\"event_type\") INCLUDE (\"id\", \"occurred_at\", \"tenant_id\");\nALTER INDEX \"public\".\"ll_usage_events_event_type_7a0525d1\" ATTACH PARTITION \"public\".\"ll_usage_events_event_type_7a0525d1_p2\";\nCREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_event_type_7a0525d1_p3\" ON \"public\".\"usage_events_2024_04\" USING btree (\"event_type\") INCLUDE (\"id\", \"occurred_at\", \"tenant_id\");\nALTER INDEX \"public\".\"ll_usage_events_event_type_7a0525d1\" ATTACH PARTITION \"public\".\"ll_usage_events_event_type_7a0525d1_p3\";\nCREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_event_type_7a0525d1_p4\" ON \"public\".\"usage_events_2024_05\" USING btree (\"event_type\") INCLUDE (\"id\", \"occurred_at\", \"tenant_id\");\nALTER INDEX \"public\".\"ll_usage_events_event_type_7a0525d1\" ATTACH PARTITION \"public\".\"ll_usage_events_event_type_7a0525d1_p4\";\nCREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_event_type_7a0525d1_p5\" ON \"public\".\"usage_events_2024_06\" USING btree (\"event_type\") INCLUDE (\"id\", \"occurred_at\", \"tenant_id\");\nALTER INDEX \"public\".\"ll_usage_events_event_type_7a0525d1\" ATTACH PARTITION \"public\".\"ll_usage_events_event_type_7a0525d1_p5\";\nCREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_event_type_7a0525d1_p6\" ON \"public\".\"usage_events_2024_07\" USING btree (\"event_type\") INCLUDE (\"id\", \"occurred_at\", \"tenant_id\");\nALTER INDEX \"public\".\"ll_usage_events_event_type_7a0525d1\" ATTACH PARTITION \"public\".\"ll_usage_events_event_type_7a0525d1_p6\";\nCREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_event_type_7a0525d1_p7\" ON \"public\".\"usage_events_2024_08\" USING btree (\"event_type\") INCLUDE (\"id\", \"occurred_at\", \"tenant_id\");\nALTER INDEX \"public\".\"ll_usage_events_event_type_7a0525d1\" ATTACH PARTITION \"public\".\"ll_usage_events_event_type_7a0525d1_p7\";\nCREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_event_type_7a0525d1_p8\" ON \"public\".\"usage_events_2024_09\" USING btree (\"event_type\") INCLUDE (\"id\", \"occurred_at\", \"tenant_id\");\nALTER INDEX \"public\".\"ll_usage_events_event_type_7a0525d1\" ATTACH PARTITION \"public\".\"ll_usage_events_event_type_7a0525d1_p8\";\nCREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_event_type_7a0525d1_p9\" ON \"public\".\"usage_events_2024_10\" USING btree (\"event_type\") INCLUDE (\"id\", \"occurred_at\", \"tenant_id\");\nALTER INDEX \"public\".\"ll_usage_events_event_type_7a0525d1\" ATTACH PARTITION \"public\".\"ll_usage_events_event_type_7a0525d1_p9\";\nCREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_event_type_7a0525d1_p10\" ON \"public\".\"usage_events_2024_11\" USING btree (\"event_type\") INCLUDE (\"id\", \"occurred_at\", \"tenant_id\");\nALTER INDEX \"public\".\"ll_usage_events_event_type_7a0525d1\" ATTACH PARTITION \"public\".\"ll_usage_events_event_type_7a0525d1_p10\";\nCREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_event_type_7a0525d1_p11\" ON \"public\".\"usage_events_2024_12\" USING btree (\"event_type\") INCLUDE (\"id\", \"occurred_at\", \"tenant_id\");\nALTER INDEX \"public\".\"ll_usage_events_event_type_7a0525d1\" ATTACH PARTITION \"public\".\"ll_usage_events_event_type_7a0525d1_p11\";\nCREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_event_type_7a0525d1_p12\" ON \"public\".\"usage_events_2025_01\" USING btree (\"event_type\") INCLUDE (\"id\", \"occurred_at\", \"tenant_id\");\nALTER INDEX \"public\".\"ll_usage_events_event_type_7a0525d1\" ATTACH PARTITION \"public\".\"ll_usage_events_event_type_7a0525d1_p12\";\nCREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_event_type_7a0525d1_p13\" ON \"public\".\"usage_events_2025_02\" USING btree (\"event_type\") INCLUDE (\"id\", \"occurred_at\", \"tenant_id\");\nALTER INDEX \"public\".\"ll_usage_events_event_type_7a0525d1\" ATTACH PARTITION \"public\".\"ll_usage_events_event_type_7a0525d1_p13\";\nCREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_event_type_7a0525d1_p14\" ON \"public\".\"usage_events_2025_03\" USING btree (\"event_type\") INCLUDE (\"id\", \"occurred_at\", \"tenant_id\");\nALTER INDEX \"public\".\"ll_usage_events_event_type_7a0525d1\" ATTACH PARTITION \"public\".\"ll_usage_events_event_type_7a0525d1_p14\";\nCREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_event_type_7a0525d1_p15\" ON \"public\".\"usage_events_2025_04\" USING btree (\"event_type\") INCLUDE (\"id\", \"occurred_at\", \"tenant_id\");\nALTER INDEX \"public\".\"ll_usage_events_event_type_7a0525d1\" ATTACH PARTITION \"public\".\"ll_usage_events_event_type_7a0525d1_p15\";\nCREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_event_type_7a0525d1_p16\" ON \"public\".\"usage_events_2025_05\" USING btree (\"event_type\") INCLUDE (\"id\", \"occurred_at\", \"tenant_id\");\nALTER INDEX \"public\".\"ll_usage_events_event_type_7a0525d1\" ATTACH PARTITION \"public\".\"ll_usage_events_event_type_7a0525d1_p16\";\nCREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_event_type_7a0525d1_p17\" ON \"public\".\"usage_events_2025_06\" USING btree (\"event_type\") INCLUDE (\"id\", \"occurred_at\", \"tenant_id\");\nALTER INDEX \"public\".\"ll_usage_events_event_type_7a0525d1\" ATTACH PARTITION \"public\".\"ll_usage_events_event_type_7a0525d1_p17\";\nCREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_event_type_7a0525d1_p18\" ON \"public\".\"usage_events_2025_07\" USING btree (\"event_type\") INCLUDE (\"id\", \"occurred_at\", \"tenant_id\");\nALTER INDEX \"public\".\"ll_usage_events_event_type_7a0525d1\" ATTACH PARTITION \"public\".\"ll_usage_events_event_type_7a0525d1_p18\";\nCREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_event_type_7a0525d1_p19\" ON \"public\".\"usage_events_2025_08\" USING btree (\"event_type\") INCLUDE (\"id\", \"occurred_at\", \"tenant_id\");\nALTER INDEX \"public\".\"ll_usage_events_event_type_7a0525d1\" ATTACH PARTITION \"public\".\"ll_usage_events_event_type_7a0525d1_p19\";\nCREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_event_type_7a0525d1_p20\" ON \"public\".\"usage_events_2025_09\" USING btree (\"event_type\") INCLUDE (\"id\", \"occurred_at\", \"tenant_id\");\nALTER INDEX \"public\".\"ll_usage_events_event_type_7a0525d1\" ATTACH PARTITION \"public\".\"ll_usage_events_event_type_7a0525d1_p20\";\nCREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_event_type_7a0525d1_p21\" ON \"public\".\"usage_events_2025_10\" USING btree (\"event_type\") INCLUDE (\"id\", \"occurred_at\", \"tenant_id\");\nALTER INDEX \"public\".\"ll_usage_events_event_type_7a0525d1\" ATTACH PARTITION \"public\".\"ll_usage_events_event_type_7a0525d1_p21\";\nCREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_event_type_7a0525d1_p22\" ON \"public\".\"usage_events_2025_11\" USING btree (\"event_type\") INCLUDE (\"id\", \"occurred_at\", \"tenant_id\");\nALTER INDEX \"public\".\"ll_usage_events_event_type_7a0525d1\" ATTACH PARTITION \"public\".\"ll_usage_events_event_type_7a0525d1_p22\";\nCREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_event_type_7a0525d1_p23\" ON \"public\".\"usage_events_2025_12\" USING btree (\"event_type\") INCLUDE (\"id\", \"occurred_at\", \"tenant_id\");\nALTER INDEX \"public\".\"ll_usage_events_event_type_7a0525d1\" ATTACH PARTITION \"public\".\"ll_usage_events_event_type_7a0525d1_p23\";\nCREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_event_type_7a0525d1_p24\" ON \"public\".\"usage_events_2026_01\" USING btree (\"event_type\") INCLUDE (\"id\", \"occurred_at\", \"tenant_id\");\nALTER INDEX \"public\".\"ll_usage_events_event_type_7a0525d1\" ATTACH PARTITION \"public\".\"ll_usage_events_event_type_7a0525d1_p24\";\nCREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_event_type_7a0525d1_p25\" ON \"public\".\"usage_events_2026_02\" USING btree (\"event_type\") INCLUDE (\"id\", \"occurred_at\", \"tenant_id\");\nALTER INDEX \"public\".\"ll_usage_events_event_type_7a0525d1\" ATTACH PARTITION \"public\".\"ll_usage_events_event_type_7a0525d1_p25\";\nCREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_event_type_7a0525d1_p26\" ON \"public\".\"usage_events_2026_03\" USING btree (\"event_type\") INCLUDE (\"id\", \"occurred_at\", \"tenant_id\");\nALTER INDEX \"public\".\"ll_usage_events_event_type_7a0525d1\" ATTACH PARTITION \"public\".\"ll_usage_events_event_type_7a0525d1_p26\";\nCREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_event_type_7a0525d1_p27\" ON \"public\".\"usage_events_2026_04\" USING btree (\"event_type\") INCLUDE (\"id\", \"occurred_at\", \"tenant_id\");\nALTER INDEX \"public\".\"ll_usage_events_event_type_7a0525d1\" ATTACH PARTITION \"public\".\"ll_usage_events_event_type_7a0525d1_p27\";\nCREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_event_type_7a0525d1_p28\" ON \"public\".\"usage_events_2026_05\" USING btree (\"event_type\") INCLUDE (\"id\", \"occurred_at\", \"tenant_id\");\nALTER INDEX \"public\".\"ll_usage_events_event_type_7a0525d1\" ATTACH PARTITION \"public\".\"ll_usage_events_event_type_7a0525d1_p28\";\nCREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_event_type_7a0525d1_p29\" ON \"public\".\"usage_events_2026_06\" USING btree (\"event_type\") INCLUDE (\"id\", \"occurred_at\", \"tenant_id\");\nALTER INDEX \"public\".\"ll_usage_events_event_type_7a0525d1\" ATTACH PARTITION \"public\".\"ll_usage_events_event_type_7a0525d1_p29\";\nCREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_event_type_7a0525d1_p30\" ON \"public\".\"usage_events_2026_07\" USING btree (\"event_type\") INCLUDE (\"id\", \"occurred_at\", \"tenant_id\");\nALTER INDEX \"public\".\"ll_usage_events_event_type_7a0525d1\" ATTACH PARTITION \"public\".\"ll_usage_events_event_type_7a0525d1_p30\";\nCREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_event_type_7a0525d1_p31\" ON \"public\".\"usage_events_2026_08\" USING btree (\"event_type\") INCLUDE (\"id\", \"occurred_at\", \"tenant_id\");\nALTER INDEX \"public\".\"ll_usage_events_event_type_7a0525d1\" ATTACH PARTITION \"public\".\"ll_usage_events_event_type_7a0525d1_p31\";\nCREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_event_type_7a0525d1_p32\" ON \"public\".\"usage_events_2026_09\" USING btree (\"event_type\") INCLUDE (\"id\", \"occurred_at\", \"tenant_id\");\nALTER INDEX \"public\".\"ll_usage_events_event_type_7a0525d1\" ATTACH PARTITION \"public\".\"ll_usage_events_event_type_7a0525d1_p32\";\nCREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_event_type_7a0525d1_p33\" ON \"public\".\"usage_events_2026_10\" USING btree (\"event_type\") INCLUDE (\"id\", \"occurred_at\", \"tenant_id\");\nALTER INDEX \"public\".\"ll_usage_events_event_type_7a0525d1\" ATTACH PARTITION \"public\".\"ll_usage_events_event_type_7a0525d1_p33\";\nCREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_event_type_7a0525d1_p34\" ON \"public\".\"usage_events_2026_11\" USING btree (\"event_type\") INCLUDE (\"id\", \"occurred_at\", \"tenant_id\");\nALTER INDEX \"public\".\"ll_usage_events_event_type_7a0525d1\" ATTACH PARTITION \"public\".\"ll_usage_events_event_type_7a0525d1_p34\";\nCREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_event_type_7a0525d1_p35\" ON \"public\".\"usage_events_2026_12\" USING btree (\"event_type\") INCLUDE (\"id\", \"occurred_at\", \"tenant_id\");\nALTER INDEX \"public\".\"ll_usage_events_event_type_7a0525d1\" ATTACH PARTITION \"public\".\"ll_usage_events_event_type_7a0525d1_p35\";\nCREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_event_type_7a0525d1_p36\" ON \"public\".\"usage_events_2027_01\" USING btree (\"event_type\") INCLUDE (\"id\", \"occurred_at\", \"tenant_id\");\nALTER INDEX \"public\".\"ll_usage_events_event_type_7a0525d1\" ATTACH PARTITION \"public\".\"ll_usage_events_event_type_7a0525d1_p36\";\nCREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_event_type_7a0525d1_p37\" ON \"public\".\"usage_events_2027_02\" USING btree (\"event_type\") INCLUDE (\"id\", \"occurred_at\", \"tenant_id\");\nALTER INDEX \"public\".\"ll_usage_events_event_type_7a0525d1\" ATTACH PARTITION \"public\".\"ll_usage_events_event_type_7a0525d1_p37\";\nCREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_event_type_7a0525d1_p38\" ON \"public\".\"usage_events_2027_03\" USING btree (\"event_type\") INCLUDE (\"id\", \"occurred_at\", \"tenant_id\");\nALTER INDEX \"public\".\"ll_usage_events_event_type_7a0525d1\" ATTACH PARTITION \"public\".\"ll_usage_events_event_type_7a0525d1_p38\";\nCREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_event_type_7a0525d1_p39\" ON \"public\".\"usage_events_2027_04\" USING btree (\"event_type\") INCLUDE (\"id\", \"occurred_at\", \"tenant_id\");\nALTER INDEX \"public\".\"ll_usage_events_event_type_7a0525d1\" ATTACH PARTITION \"public\".\"ll_usage_events_event_type_7a0525d1_p39\";\nCREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_event_type_7a0525d1_p40\" ON \"public\".\"usage_events_2027_05\" USING btree (\"event_type\") INCLUDE (\"id\", \"occurred_at\", \"tenant_id\");\nALTER INDEX \"public\".\"ll_usage_events_event_type_7a0525d1\" ATTACH PARTITION \"public\".\"ll_usage_events_event_type_7a0525d1_p40\";\nCREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_event_type_7a0525d1_p41\" ON \"public\".\"usage_events_2027_06\" USING btree (\"event_type\") INCLUDE (\"id\", \"occurred_at\", \"tenant_id\");\nALTER INDEX \"public\".\"ll_usage_events_event_type_7a0525d1\" ATTACH PARTITION \"public\".\"ll_usage_events_event_type_7a0525d1_p41\";\nCREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_event_type_7a0525d1_p42\" ON \"public\".\"usage_events_2027_07\" USING btree (\"event_type\") INCLUDE (\"id\", \"occurred_at\", \"tenant_id\");\nALTER INDEX \"public\".\"ll_usage_events_event_type_7a0525d1\" ATTACH PARTITION \"public\".\"ll_usage_events_event_type_7a0525d1_p42\";\nCREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_event_type_7a0525d1_p43\" ON \"public\".\"usage_events_2027_08\" USING btree (\"event_type\") INCLUDE (\"id\", \"occurred_at\", \"tenant_id\");\nALTER INDEX \"public\".\"ll_usage_events_event_type_7a0525d1\" ATTACH PARTITION \"public\".\"ll_usage_events_event_type_7a0525d1_p43\";\nCREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_event_type_7a0525d1_p44\" ON \"public\".\"usage_events_2027_09\" USING btree (\"event_type\") INCLUDE (\"id\", \"occurred_at\", \"tenant_id\");\nALTER INDEX \"public\".\"ll_usage_events_event_type_7a0525d1\" ATTACH PARTITION \"public\".\"ll_usage_events_event_type_7a0525d1_p44\";\nCREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_event_type_7a0525d1_p45\" ON \"public\".\"usage_events_2027_10\" USING btree (\"event_type\") INCLUDE (\"id\", \"occurred_at\", \"tenant_id\");\nALTER INDEX \"public\".\"ll_usage_events_event_type_7a0525d1\" ATTACH PARTITION \"public\".\"ll_usage_events_event_type_7a0525d1_p45\";\nCREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_event_type_7a0525d1_p46\" ON \"public\".\"usage_events_2027_11\" USING btree (\"event_type\") INCLUDE (\"id\", \"occurred_at\", \"tenant_id\");\nALTER INDEX \"public\".\"ll_usage_events_event_type_7a0525d1\" ATTACH PARTITION \"public\".\"ll_usage_events_event_type_7a0525d1_p46\";\nCREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_event_type_7a0525d1_p47\" ON \"public\".\"usage_events_2027_12\" USING btree (\"event_type\") INCLUDE (\"id\", \"occurred_at\", \"tenant_id\");\nALTER INDEX \"public\".\"ll_usage_events_event_type_7a0525d1\" ATTACH PARTITION \"public\".\"ll_usage_events_event_type_7a0525d1_p47\"",
+          "downSql": "DROP INDEX IF EXISTS \"public\".\"ll_usage_events_event_type_7a0525d1\"",
+          "upStatements": [
+            "CREATE INDEX IF NOT EXISTS \"ll_usage_events_event_type_7a0525d1\" ON ONLY \"public\".\"usage_events\" USING btree (\"event_type\") INCLUDE (\"id\", \"occurred_at\", \"tenant_id\")",
+            "CREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_event_type_7a0525d1_p0\" ON \"public\".\"usage_events_2024_01\" USING btree (\"event_type\") INCLUDE (\"id\", \"occurred_at\", \"tenant_id\")",
+            "ALTER INDEX \"public\".\"ll_usage_events_event_type_7a0525d1\" ATTACH PARTITION \"public\".\"ll_usage_events_event_type_7a0525d1_p0\"",
+            "CREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_event_type_7a0525d1_p1\" ON \"public\".\"usage_events_2024_02\" USING btree (\"event_type\") INCLUDE (\"id\", \"occurred_at\", \"tenant_id\")",
+            "ALTER INDEX \"public\".\"ll_usage_events_event_type_7a0525d1\" ATTACH PARTITION \"public\".\"ll_usage_events_event_type_7a0525d1_p1\"",
+            "CREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_event_type_7a0525d1_p2\" ON \"public\".\"usage_events_2024_03\" USING btree (\"event_type\") INCLUDE (\"id\", \"occurred_at\", \"tenant_id\")",
+            "ALTER INDEX \"public\".\"ll_usage_events_event_type_7a0525d1\" ATTACH PARTITION \"public\".\"ll_usage_events_event_type_7a0525d1_p2\"",
+            "CREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_event_type_7a0525d1_p3\" ON \"public\".\"usage_events_2024_04\" USING btree (\"event_type\") INCLUDE (\"id\", \"occurred_at\", \"tenant_id\")",
+            "ALTER INDEX \"public\".\"ll_usage_events_event_type_7a0525d1\" ATTACH PARTITION \"public\".\"ll_usage_events_event_type_7a0525d1_p3\"",
+            "CREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_event_type_7a0525d1_p4\" ON \"public\".\"usage_events_2024_05\" USING btree (\"event_type\") INCLUDE (\"id\", \"occurred_at\", \"tenant_id\")",
+            "ALTER INDEX \"public\".\"ll_usage_events_event_type_7a0525d1\" ATTACH PARTITION \"public\".\"ll_usage_events_event_type_7a0525d1_p4\"",
+            "CREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_event_type_7a0525d1_p5\" ON \"public\".\"usage_events_2024_06\" USING btree (\"event_type\") INCLUDE (\"id\", \"occurred_at\", \"tenant_id\")",
+            "ALTER INDEX \"public\".\"ll_usage_events_event_type_7a0525d1\" ATTACH PARTITION \"public\".\"ll_usage_events_event_type_7a0525d1_p5\"",
+            "CREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_event_type_7a0525d1_p6\" ON \"public\".\"usage_events_2024_07\" USING btree (\"event_type\") INCLUDE (\"id\", \"occurred_at\", \"tenant_id\")",
+            "ALTER INDEX \"public\".\"ll_usage_events_event_type_7a0525d1\" ATTACH PARTITION \"public\".\"ll_usage_events_event_type_7a0525d1_p6\"",
+            "CREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_event_type_7a0525d1_p7\" ON \"public\".\"usage_events_2024_08\" USING btree (\"event_type\") INCLUDE (\"id\", \"occurred_at\", \"tenant_id\")",
+            "ALTER INDEX \"public\".\"ll_usage_events_event_type_7a0525d1\" ATTACH PARTITION \"public\".\"ll_usage_events_event_type_7a0525d1_p7\"",
+            "CREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_event_type_7a0525d1_p8\" ON \"public\".\"usage_events_2024_09\" USING btree (\"event_type\") INCLUDE (\"id\", \"occurred_at\", \"tenant_id\")",
+            "ALTER INDEX \"public\".\"ll_usage_events_event_type_7a0525d1\" ATTACH PARTITION \"public\".\"ll_usage_events_event_type_7a0525d1_p8\"",
+            "CREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_event_type_7a0525d1_p9\" ON \"public\".\"usage_events_2024_10\" USING btree (\"event_type\") INCLUDE (\"id\", \"occurred_at\", \"tenant_id\")",
+            "ALTER INDEX \"public\".\"ll_usage_events_event_type_7a0525d1\" ATTACH PARTITION \"public\".\"ll_usage_events_event_type_7a0525d1_p9\"",
+            "CREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_event_type_7a0525d1_p10\" ON \"public\".\"usage_events_2024_11\" USING btree (\"event_type\") INCLUDE (\"id\", \"occurred_at\", \"tenant_id\")",
+            "ALTER INDEX \"public\".\"ll_usage_events_event_type_7a0525d1\" ATTACH PARTITION \"public\".\"ll_usage_events_event_type_7a0525d1_p10\"",
+            "CREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_event_type_7a0525d1_p11\" ON \"public\".\"usage_events_2024_12\" USING btree (\"event_type\") INCLUDE (\"id\", \"occurred_at\", \"tenant_id\")",
+            "ALTER INDEX \"public\".\"ll_usage_events_event_type_7a0525d1\" ATTACH PARTITION \"public\".\"ll_usage_events_event_type_7a0525d1_p11\"",
+            "CREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_event_type_7a0525d1_p12\" ON \"public\".\"usage_events_2025_01\" USING btree (\"event_type\") INCLUDE (\"id\", \"occurred_at\", \"tenant_id\")",
+            "ALTER INDEX \"public\".\"ll_usage_events_event_type_7a0525d1\" ATTACH PARTITION \"public\".\"ll_usage_events_event_type_7a0525d1_p12\"",
+            "CREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_event_type_7a0525d1_p13\" ON \"public\".\"usage_events_2025_02\" USING btree (\"event_type\") INCLUDE (\"id\", \"occurred_at\", \"tenant_id\")",
+            "ALTER INDEX \"public\".\"ll_usage_events_event_type_7a0525d1\" ATTACH PARTITION \"public\".\"ll_usage_events_event_type_7a0525d1_p13\"",
+            "CREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_event_type_7a0525d1_p14\" ON \"public\".\"usage_events_2025_03\" USING btree (\"event_type\") INCLUDE (\"id\", \"occurred_at\", \"tenant_id\")",
+            "ALTER INDEX \"public\".\"ll_usage_events_event_type_7a0525d1\" ATTACH PARTITION \"public\".\"ll_usage_events_event_type_7a0525d1_p14\"",
+            "CREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_event_type_7a0525d1_p15\" ON \"public\".\"usage_events_2025_04\" USING btree (\"event_type\") INCLUDE (\"id\", \"occurred_at\", \"tenant_id\")",
+            "ALTER INDEX \"public\".\"ll_usage_events_event_type_7a0525d1\" ATTACH PARTITION \"public\".\"ll_usage_events_event_type_7a0525d1_p15\"",
+            "CREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_event_type_7a0525d1_p16\" ON \"public\".\"usage_events_2025_05\" USING btree (\"event_type\") INCLUDE (\"id\", \"occurred_at\", \"tenant_id\")",
+            "ALTER INDEX \"public\".\"ll_usage_events_event_type_7a0525d1\" ATTACH PARTITION \"public\".\"ll_usage_events_event_type_7a0525d1_p16\"",
+            "CREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_event_type_7a0525d1_p17\" ON \"public\".\"usage_events_2025_06\" USING btree (\"event_type\") INCLUDE (\"id\", \"occurred_at\", \"tenant_id\")",
+            "ALTER INDEX \"public\".\"ll_usage_events_event_type_7a0525d1\" ATTACH PARTITION \"public\".\"ll_usage_events_event_type_7a0525d1_p17\"",
+            "CREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_event_type_7a0525d1_p18\" ON \"public\".\"usage_events_2025_07\" USING btree (\"event_type\") INCLUDE (\"id\", \"occurred_at\", \"tenant_id\")",
+            "ALTER INDEX \"public\".\"ll_usage_events_event_type_7a0525d1\" ATTACH PARTITION \"public\".\"ll_usage_events_event_type_7a0525d1_p18\"",
+            "CREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_event_type_7a0525d1_p19\" ON \"public\".\"usage_events_2025_08\" USING btree (\"event_type\") INCLUDE (\"id\", \"occurred_at\", \"tenant_id\")",
+            "ALTER INDEX \"public\".\"ll_usage_events_event_type_7a0525d1\" ATTACH PARTITION \"public\".\"ll_usage_events_event_type_7a0525d1_p19\"",
+            "CREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_event_type_7a0525d1_p20\" ON \"public\".\"usage_events_2025_09\" USING btree (\"event_type\") INCLUDE (\"id\", \"occurred_at\", \"tenant_id\")",
+            "ALTER INDEX \"public\".\"ll_usage_events_event_type_7a0525d1\" ATTACH PARTITION \"public\".\"ll_usage_events_event_type_7a0525d1_p20\"",
+            "CREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_event_type_7a0525d1_p21\" ON \"public\".\"usage_events_2025_10\" USING btree (\"event_type\") INCLUDE (\"id\", \"occurred_at\", \"tenant_id\")",
+            "ALTER INDEX \"public\".\"ll_usage_events_event_type_7a0525d1\" ATTACH PARTITION \"public\".\"ll_usage_events_event_type_7a0525d1_p21\"",
+            "CREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_event_type_7a0525d1_p22\" ON \"public\".\"usage_events_2025_11\" USING btree (\"event_type\") INCLUDE (\"id\", \"occurred_at\", \"tenant_id\")",
+            "ALTER INDEX \"public\".\"ll_usage_events_event_type_7a0525d1\" ATTACH PARTITION \"public\".\"ll_usage_events_event_type_7a0525d1_p22\"",
+            "CREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_event_type_7a0525d1_p23\" ON \"public\".\"usage_events_2025_12\" USING btree (\"event_type\") INCLUDE (\"id\", \"occurred_at\", \"tenant_id\")",
+            "ALTER INDEX \"public\".\"ll_usage_events_event_type_7a0525d1\" ATTACH PARTITION \"public\".\"ll_usage_events_event_type_7a0525d1_p23\"",
+            "CREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_event_type_7a0525d1_p24\" ON \"public\".\"usage_events_2026_01\" USING btree (\"event_type\") INCLUDE (\"id\", \"occurred_at\", \"tenant_id\")",
+            "ALTER INDEX \"public\".\"ll_usage_events_event_type_7a0525d1\" ATTACH PARTITION \"public\".\"ll_usage_events_event_type_7a0525d1_p24\"",
+            "CREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_event_type_7a0525d1_p25\" ON \"public\".\"usage_events_2026_02\" USING btree (\"event_type\") INCLUDE (\"id\", \"occurred_at\", \"tenant_id\")",
+            "ALTER INDEX \"public\".\"ll_usage_events_event_type_7a0525d1\" ATTACH PARTITION \"public\".\"ll_usage_events_event_type_7a0525d1_p25\"",
+            "CREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_event_type_7a0525d1_p26\" ON \"public\".\"usage_events_2026_03\" USING btree (\"event_type\") INCLUDE (\"id\", \"occurred_at\", \"tenant_id\")",
+            "ALTER INDEX \"public\".\"ll_usage_events_event_type_7a0525d1\" ATTACH PARTITION \"public\".\"ll_usage_events_event_type_7a0525d1_p26\"",
+            "CREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_event_type_7a0525d1_p27\" ON \"public\".\"usage_events_2026_04\" USING btree (\"event_type\") INCLUDE (\"id\", \"occurred_at\", \"tenant_id\")",
+            "ALTER INDEX \"public\".\"ll_usage_events_event_type_7a0525d1\" ATTACH PARTITION \"public\".\"ll_usage_events_event_type_7a0525d1_p27\"",
+            "CREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_event_type_7a0525d1_p28\" ON \"public\".\"usage_events_2026_05\" USING btree (\"event_type\") INCLUDE (\"id\", \"occurred_at\", \"tenant_id\")",
+            "ALTER INDEX \"public\".\"ll_usage_events_event_type_7a0525d1\" ATTACH PARTITION \"public\".\"ll_usage_events_event_type_7a0525d1_p28\"",
+            "CREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_event_type_7a0525d1_p29\" ON \"public\".\"usage_events_2026_06\" USING btree (\"event_type\") INCLUDE (\"id\", \"occurred_at\", \"tenant_id\")",
+            "ALTER INDEX \"public\".\"ll_usage_events_event_type_7a0525d1\" ATTACH PARTITION \"public\".\"ll_usage_events_event_type_7a0525d1_p29\"",
+            "CREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_event_type_7a0525d1_p30\" ON \"public\".\"usage_events_2026_07\" USING btree (\"event_type\") INCLUDE (\"id\", \"occurred_at\", \"tenant_id\")",
+            "ALTER INDEX \"public\".\"ll_usage_events_event_type_7a0525d1\" ATTACH PARTITION \"public\".\"ll_usage_events_event_type_7a0525d1_p30\"",
+            "CREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_event_type_7a0525d1_p31\" ON \"public\".\"usage_events_2026_08\" USING btree (\"event_type\") INCLUDE (\"id\", \"occurred_at\", \"tenant_id\")",
+            "ALTER INDEX \"public\".\"ll_usage_events_event_type_7a0525d1\" ATTACH PARTITION \"public\".\"ll_usage_events_event_type_7a0525d1_p31\"",
+            "CREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_event_type_7a0525d1_p32\" ON \"public\".\"usage_events_2026_09\" USING btree (\"event_type\") INCLUDE (\"id\", \"occurred_at\", \"tenant_id\")",
+            "ALTER INDEX \"public\".\"ll_usage_events_event_type_7a0525d1\" ATTACH PARTITION \"public\".\"ll_usage_events_event_type_7a0525d1_p32\"",
+            "CREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_event_type_7a0525d1_p33\" ON \"public\".\"usage_events_2026_10\" USING btree (\"event_type\") INCLUDE (\"id\", \"occurred_at\", \"tenant_id\")",
+            "ALTER INDEX \"public\".\"ll_usage_events_event_type_7a0525d1\" ATTACH PARTITION \"public\".\"ll_usage_events_event_type_7a0525d1_p33\"",
+            "CREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_event_type_7a0525d1_p34\" ON \"public\".\"usage_events_2026_11\" USING btree (\"event_type\") INCLUDE (\"id\", \"occurred_at\", \"tenant_id\")",
+            "ALTER INDEX \"public\".\"ll_usage_events_event_type_7a0525d1\" ATTACH PARTITION \"public\".\"ll_usage_events_event_type_7a0525d1_p34\"",
+            "CREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_event_type_7a0525d1_p35\" ON \"public\".\"usage_events_2026_12\" USING btree (\"event_type\") INCLUDE (\"id\", \"occurred_at\", \"tenant_id\")",
+            "ALTER INDEX \"public\".\"ll_usage_events_event_type_7a0525d1\" ATTACH PARTITION \"public\".\"ll_usage_events_event_type_7a0525d1_p35\"",
+            "CREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_event_type_7a0525d1_p36\" ON \"public\".\"usage_events_2027_01\" USING btree (\"event_type\") INCLUDE (\"id\", \"occurred_at\", \"tenant_id\")",
+            "ALTER INDEX \"public\".\"ll_usage_events_event_type_7a0525d1\" ATTACH PARTITION \"public\".\"ll_usage_events_event_type_7a0525d1_p36\"",
+            "CREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_event_type_7a0525d1_p37\" ON \"public\".\"usage_events_2027_02\" USING btree (\"event_type\") INCLUDE (\"id\", \"occurred_at\", \"tenant_id\")",
+            "ALTER INDEX \"public\".\"ll_usage_events_event_type_7a0525d1\" ATTACH PARTITION \"public\".\"ll_usage_events_event_type_7a0525d1_p37\"",
+            "CREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_event_type_7a0525d1_p38\" ON \"public\".\"usage_events_2027_03\" USING btree (\"event_type\") INCLUDE (\"id\", \"occurred_at\", \"tenant_id\")",
+            "ALTER INDEX \"public\".\"ll_usage_events_event_type_7a0525d1\" ATTACH PARTITION \"public\".\"ll_usage_events_event_type_7a0525d1_p38\"",
+            "CREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_event_type_7a0525d1_p39\" ON \"public\".\"usage_events_2027_04\" USING btree (\"event_type\") INCLUDE (\"id\", \"occurred_at\", \"tenant_id\")",
+            "ALTER INDEX \"public\".\"ll_usage_events_event_type_7a0525d1\" ATTACH PARTITION \"public\".\"ll_usage_events_event_type_7a0525d1_p39\"",
+            "CREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_event_type_7a0525d1_p40\" ON \"public\".\"usage_events_2027_05\" USING btree (\"event_type\") INCLUDE (\"id\", \"occurred_at\", \"tenant_id\")",
+            "ALTER INDEX \"public\".\"ll_usage_events_event_type_7a0525d1\" ATTACH PARTITION \"public\".\"ll_usage_events_event_type_7a0525d1_p40\"",
+            "CREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_event_type_7a0525d1_p41\" ON \"public\".\"usage_events_2027_06\" USING btree (\"event_type\") INCLUDE (\"id\", \"occurred_at\", \"tenant_id\")",
+            "ALTER INDEX \"public\".\"ll_usage_events_event_type_7a0525d1\" ATTACH PARTITION \"public\".\"ll_usage_events_event_type_7a0525d1_p41\"",
+            "CREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_event_type_7a0525d1_p42\" ON \"public\".\"usage_events_2027_07\" USING btree (\"event_type\") INCLUDE (\"id\", \"occurred_at\", \"tenant_id\")",
+            "ALTER INDEX \"public\".\"ll_usage_events_event_type_7a0525d1\" ATTACH PARTITION \"public\".\"ll_usage_events_event_type_7a0525d1_p42\"",
+            "CREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_event_type_7a0525d1_p43\" ON \"public\".\"usage_events_2027_08\" USING btree (\"event_type\") INCLUDE (\"id\", \"occurred_at\", \"tenant_id\")",
+            "ALTER INDEX \"public\".\"ll_usage_events_event_type_7a0525d1\" ATTACH PARTITION \"public\".\"ll_usage_events_event_type_7a0525d1_p43\"",
+            "CREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_event_type_7a0525d1_p44\" ON \"public\".\"usage_events_2027_09\" USING btree (\"event_type\") INCLUDE (\"id\", \"occurred_at\", \"tenant_id\")",
+            "ALTER INDEX \"public\".\"ll_usage_events_event_type_7a0525d1\" ATTACH PARTITION \"public\".\"ll_usage_events_event_type_7a0525d1_p44\"",
+            "CREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_event_type_7a0525d1_p45\" ON \"public\".\"usage_events_2027_10\" USING btree (\"event_type\") INCLUDE (\"id\", \"occurred_at\", \"tenant_id\")",
+            "ALTER INDEX \"public\".\"ll_usage_events_event_type_7a0525d1\" ATTACH PARTITION \"public\".\"ll_usage_events_event_type_7a0525d1_p45\"",
+            "CREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_event_type_7a0525d1_p46\" ON \"public\".\"usage_events_2027_11\" USING btree (\"event_type\") INCLUDE (\"id\", \"occurred_at\", \"tenant_id\")",
+            "ALTER INDEX \"public\".\"ll_usage_events_event_type_7a0525d1\" ATTACH PARTITION \"public\".\"ll_usage_events_event_type_7a0525d1_p46\"",
+            "CREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_event_type_7a0525d1_p47\" ON \"public\".\"usage_events_2027_12\" USING btree (\"event_type\") INCLUDE (\"id\", \"occurred_at\", \"tenant_id\")",
+            "ALTER INDEX \"public\".\"ll_usage_events_event_type_7a0525d1\" ATTACH PARTITION \"public\".\"ll_usage_events_event_type_7a0525d1_p47\""
+          ],
+          "downStatements": [
+            "DROP INDEX IF EXISTS \"public\".\"ll_usage_events_event_type_7a0525d1\""
+          ],
+          "noTransaction": true,
+          "index": {
+            "schema": "public",
+            "table": "usage_events",
+            "indexName": "ll_usage_events_event_type_7a0525d1",
+            "method": "btree",
+            "key": [
+              {
+                "name": "event_type",
+                "desc": false
+              }
+            ],
+            "include": [
+              "id",
+              "occurred_at",
+              "tenant_id"
+            ],
+            "partial": null,
+            "partitions": [
+              "usage_events_2024_01",
+              "usage_events_2024_02",
+              "usage_events_2024_03",
+              "usage_events_2024_04",
+              "usage_events_2024_05",
+              "usage_events_2024_06",
+              "usage_events_2024_07",
+              "usage_events_2024_08",
+              "usage_events_2024_09",
+              "usage_events_2024_10",
+              "usage_events_2024_11",
+              "usage_events_2024_12",
+              "usage_events_2025_01",
+              "usage_events_2025_02",
+              "usage_events_2025_03",
+              "usage_events_2025_04",
+              "usage_events_2025_05",
+              "usage_events_2025_06",
+              "usage_events_2025_07",
+              "usage_events_2025_08",
+              "usage_events_2025_09",
+              "usage_events_2025_10",
+              "usage_events_2025_11",
+              "usage_events_2025_12",
+              "usage_events_2026_01",
+              "usage_events_2026_02",
+              "usage_events_2026_03",
+              "usage_events_2026_04",
+              "usage_events_2026_05",
+              "usage_events_2026_06",
+              "usage_events_2026_07",
+              "usage_events_2026_08",
+              "usage_events_2026_09",
+              "usage_events_2026_10",
+              "usage_events_2026_11",
+              "usage_events_2026_12",
+              "usage_events_2027_01",
+              "usage_events_2027_02",
+              "usage_events_2027_03",
+              "usage_events_2027_04",
+              "usage_events_2027_05",
+              "usage_events_2027_06",
+              "usage_events_2027_07",
+              "usage_events_2027_08",
+              "usage_events_2027_09",
+              "usage_events_2027_10",
+              "usage_events_2027_11",
+              "usage_events_2027_12"
+            ]
+          }
+        },
+        {
+          "id": "cand_f8a61aa68ce8",
+          "kind": "create_index",
+          "table": {
+            "schema": "public",
+            "name": "usage_events"
+          },
+          "rationale": "Index on the columns the statement filters by (equality): equality columns first, then the range column, then the sort columns.",
+          "subjects": [
+            {
+              "$untrusted": "public.usage_events"
+            }
+          ],
+          "targetedStatements": [
+            "8e64f79639ee131f"
+          ],
+          "riskNotes": [
+            "partitioned table: one concurrent index per partition (48), attached to an index on the parent; assumes the partitions are in the same schema as the parent and are not partitioned themselves",
+            "an index adds work to every INSERT, UPDATE and DELETE of the table and takes space; the verifier measures both"
+          ],
+          "triggeredBy": [
+            {
+              "findingKind": null,
+              "nodePath": null,
+              "queryHash": "8e64f79639ee131f"
+            },
+            {
+              "findingKind": "seq_scan_selective_filter",
+              "nodePath": "0.0",
+              "queryHash": "8e64f79639ee131f"
+            }
+          ],
+          "variantOf": null,
+          "upSql": "CREATE INDEX IF NOT EXISTS \"ll_usage_events_event_type_38bbc925\" ON ONLY \"public\".\"usage_events\" USING btree (\"event_type\");\nCREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_event_type_38bbc925_p0\" ON \"public\".\"usage_events_2024_01\" USING btree (\"event_type\");\nALTER INDEX \"public\".\"ll_usage_events_event_type_38bbc925\" ATTACH PARTITION \"public\".\"ll_usage_events_event_type_38bbc925_p0\";\nCREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_event_type_38bbc925_p1\" ON \"public\".\"usage_events_2024_02\" USING btree (\"event_type\");\nALTER INDEX \"public\".\"ll_usage_events_event_type_38bbc925\" ATTACH PARTITION \"public\".\"ll_usage_events_event_type_38bbc925_p1\";\nCREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_event_type_38bbc925_p2\" ON \"public\".\"usage_events_2024_03\" USING btree (\"event_type\");\nALTER INDEX \"public\".\"ll_usage_events_event_type_38bbc925\" ATTACH PARTITION \"public\".\"ll_usage_events_event_type_38bbc925_p2\";\nCREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_event_type_38bbc925_p3\" ON \"public\".\"usage_events_2024_04\" USING btree (\"event_type\");\nALTER INDEX \"public\".\"ll_usage_events_event_type_38bbc925\" ATTACH PARTITION \"public\".\"ll_usage_events_event_type_38bbc925_p3\";\nCREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_event_type_38bbc925_p4\" ON \"public\".\"usage_events_2024_05\" USING btree (\"event_type\");\nALTER INDEX \"public\".\"ll_usage_events_event_type_38bbc925\" ATTACH PARTITION \"public\".\"ll_usage_events_event_type_38bbc925_p4\";\nCREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_event_type_38bbc925_p5\" ON \"public\".\"usage_events_2024_06\" USING btree (\"event_type\");\nALTER INDEX \"public\".\"ll_usage_events_event_type_38bbc925\" ATTACH PARTITION \"public\".\"ll_usage_events_event_type_38bbc925_p5\";\nCREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_event_type_38bbc925_p6\" ON \"public\".\"usage_events_2024_07\" USING btree (\"event_type\");\nALTER INDEX \"public\".\"ll_usage_events_event_type_38bbc925\" ATTACH PARTITION \"public\".\"ll_usage_events_event_type_38bbc925_p6\";\nCREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_event_type_38bbc925_p7\" ON \"public\".\"usage_events_2024_08\" USING btree (\"event_type\");\nALTER INDEX \"public\".\"ll_usage_events_event_type_38bbc925\" ATTACH PARTITION \"public\".\"ll_usage_events_event_type_38bbc925_p7\";\nCREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_event_type_38bbc925_p8\" ON \"public\".\"usage_events_2024_09\" USING btree (\"event_type\");\nALTER INDEX \"public\".\"ll_usage_events_event_type_38bbc925\" ATTACH PARTITION \"public\".\"ll_usage_events_event_type_38bbc925_p8\";\nCREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_event_type_38bbc925_p9\" ON \"public\".\"usage_events_2024_10\" USING btree (\"event_type\");\nALTER INDEX \"public\".\"ll_usage_events_event_type_38bbc925\" ATTACH PARTITION \"public\".\"ll_usage_events_event_type_38bbc925_p9\";\nCREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_event_type_38bbc925_p10\" ON \"public\".\"usage_events_2024_11\" USING btree (\"event_type\");\nALTER INDEX \"public\".\"ll_usage_events_event_type_38bbc925\" ATTACH PARTITION \"public\".\"ll_usage_events_event_type_38bbc925_p10\";\nCREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_event_type_38bbc925_p11\" ON \"public\".\"usage_events_2024_12\" USING btree (\"event_type\");\nALTER INDEX \"public\".\"ll_usage_events_event_type_38bbc925\" ATTACH PARTITION \"public\".\"ll_usage_events_event_type_38bbc925_p11\";\nCREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_event_type_38bbc925_p12\" ON \"public\".\"usage_events_2025_01\" USING btree (\"event_type\");\nALTER INDEX \"public\".\"ll_usage_events_event_type_38bbc925\" ATTACH PARTITION \"public\".\"ll_usage_events_event_type_38bbc925_p12\";\nCREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_event_type_38bbc925_p13\" ON \"public\".\"usage_events_2025_02\" USING btree (\"event_type\");\nALTER INDEX \"public\".\"ll_usage_events_event_type_38bbc925\" ATTACH PARTITION \"public\".\"ll_usage_events_event_type_38bbc925_p13\";\nCREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_event_type_38bbc925_p14\" ON \"public\".\"usage_events_2025_03\" USING btree (\"event_type\");\nALTER INDEX \"public\".\"ll_usage_events_event_type_38bbc925\" ATTACH PARTITION \"public\".\"ll_usage_events_event_type_38bbc925_p14\";\nCREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_event_type_38bbc925_p15\" ON \"public\".\"usage_events_2025_04\" USING btree (\"event_type\");\nALTER INDEX \"public\".\"ll_usage_events_event_type_38bbc925\" ATTACH PARTITION \"public\".\"ll_usage_events_event_type_38bbc925_p15\";\nCREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_event_type_38bbc925_p16\" ON \"public\".\"usage_events_2025_05\" USING btree (\"event_type\");\nALTER INDEX \"public\".\"ll_usage_events_event_type_38bbc925\" ATTACH PARTITION \"public\".\"ll_usage_events_event_type_38bbc925_p16\";\nCREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_event_type_38bbc925_p17\" ON \"public\".\"usage_events_2025_06\" USING btree (\"event_type\");\nALTER INDEX \"public\".\"ll_usage_events_event_type_38bbc925\" ATTACH PARTITION \"public\".\"ll_usage_events_event_type_38bbc925_p17\";\nCREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_event_type_38bbc925_p18\" ON \"public\".\"usage_events_2025_07\" USING btree (\"event_type\");\nALTER INDEX \"public\".\"ll_usage_events_event_type_38bbc925\" ATTACH PARTITION \"public\".\"ll_usage_events_event_type_38bbc925_p18\";\nCREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_event_type_38bbc925_p19\" ON \"public\".\"usage_events_2025_08\" USING btree (\"event_type\");\nALTER INDEX \"public\".\"ll_usage_events_event_type_38bbc925\" ATTACH PARTITION \"public\".\"ll_usage_events_event_type_38bbc925_p19\";\nCREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_event_type_38bbc925_p20\" ON \"public\".\"usage_events_2025_09\" USING btree (\"event_type\");\nALTER INDEX \"public\".\"ll_usage_events_event_type_38bbc925\" ATTACH PARTITION \"public\".\"ll_usage_events_event_type_38bbc925_p20\";\nCREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_event_type_38bbc925_p21\" ON \"public\".\"usage_events_2025_10\" USING btree (\"event_type\");\nALTER INDEX \"public\".\"ll_usage_events_event_type_38bbc925\" ATTACH PARTITION \"public\".\"ll_usage_events_event_type_38bbc925_p21\";\nCREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_event_type_38bbc925_p22\" ON \"public\".\"usage_events_2025_11\" USING btree (\"event_type\");\nALTER INDEX \"public\".\"ll_usage_events_event_type_38bbc925\" ATTACH PARTITION \"public\".\"ll_usage_events_event_type_38bbc925_p22\";\nCREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_event_type_38bbc925_p23\" ON \"public\".\"usage_events_2025_12\" USING btree (\"event_type\");\nALTER INDEX \"public\".\"ll_usage_events_event_type_38bbc925\" ATTACH PARTITION \"public\".\"ll_usage_events_event_type_38bbc925_p23\";\nCREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_event_type_38bbc925_p24\" ON \"public\".\"usage_events_2026_01\" USING btree (\"event_type\");\nALTER INDEX \"public\".\"ll_usage_events_event_type_38bbc925\" ATTACH PARTITION \"public\".\"ll_usage_events_event_type_38bbc925_p24\";\nCREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_event_type_38bbc925_p25\" ON \"public\".\"usage_events_2026_02\" USING btree (\"event_type\");\nALTER INDEX \"public\".\"ll_usage_events_event_type_38bbc925\" ATTACH PARTITION \"public\".\"ll_usage_events_event_type_38bbc925_p25\";\nCREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_event_type_38bbc925_p26\" ON \"public\".\"usage_events_2026_03\" USING btree (\"event_type\");\nALTER INDEX \"public\".\"ll_usage_events_event_type_38bbc925\" ATTACH PARTITION \"public\".\"ll_usage_events_event_type_38bbc925_p26\";\nCREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_event_type_38bbc925_p27\" ON \"public\".\"usage_events_2026_04\" USING btree (\"event_type\");\nALTER INDEX \"public\".\"ll_usage_events_event_type_38bbc925\" ATTACH PARTITION \"public\".\"ll_usage_events_event_type_38bbc925_p27\";\nCREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_event_type_38bbc925_p28\" ON \"public\".\"usage_events_2026_05\" USING btree (\"event_type\");\nALTER INDEX \"public\".\"ll_usage_events_event_type_38bbc925\" ATTACH PARTITION \"public\".\"ll_usage_events_event_type_38bbc925_p28\";\nCREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_event_type_38bbc925_p29\" ON \"public\".\"usage_events_2026_06\" USING btree (\"event_type\");\nALTER INDEX \"public\".\"ll_usage_events_event_type_38bbc925\" ATTACH PARTITION \"public\".\"ll_usage_events_event_type_38bbc925_p29\";\nCREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_event_type_38bbc925_p30\" ON \"public\".\"usage_events_2026_07\" USING btree (\"event_type\");\nALTER INDEX \"public\".\"ll_usage_events_event_type_38bbc925\" ATTACH PARTITION \"public\".\"ll_usage_events_event_type_38bbc925_p30\";\nCREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_event_type_38bbc925_p31\" ON \"public\".\"usage_events_2026_08\" USING btree (\"event_type\");\nALTER INDEX \"public\".\"ll_usage_events_event_type_38bbc925\" ATTACH PARTITION \"public\".\"ll_usage_events_event_type_38bbc925_p31\";\nCREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_event_type_38bbc925_p32\" ON \"public\".\"usage_events_2026_09\" USING btree (\"event_type\");\nALTER INDEX \"public\".\"ll_usage_events_event_type_38bbc925\" ATTACH PARTITION \"public\".\"ll_usage_events_event_type_38bbc925_p32\";\nCREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_event_type_38bbc925_p33\" ON \"public\".\"usage_events_2026_10\" USING btree (\"event_type\");\nALTER INDEX \"public\".\"ll_usage_events_event_type_38bbc925\" ATTACH PARTITION \"public\".\"ll_usage_events_event_type_38bbc925_p33\";\nCREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_event_type_38bbc925_p34\" ON \"public\".\"usage_events_2026_11\" USING btree (\"event_type\");\nALTER INDEX \"public\".\"ll_usage_events_event_type_38bbc925\" ATTACH PARTITION \"public\".\"ll_usage_events_event_type_38bbc925_p34\";\nCREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_event_type_38bbc925_p35\" ON \"public\".\"usage_events_2026_12\" USING btree (\"event_type\");\nALTER INDEX \"public\".\"ll_usage_events_event_type_38bbc925\" ATTACH PARTITION \"public\".\"ll_usage_events_event_type_38bbc925_p35\";\nCREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_event_type_38bbc925_p36\" ON \"public\".\"usage_events_2027_01\" USING btree (\"event_type\");\nALTER INDEX \"public\".\"ll_usage_events_event_type_38bbc925\" ATTACH PARTITION \"public\".\"ll_usage_events_event_type_38bbc925_p36\";\nCREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_event_type_38bbc925_p37\" ON \"public\".\"usage_events_2027_02\" USING btree (\"event_type\");\nALTER INDEX \"public\".\"ll_usage_events_event_type_38bbc925\" ATTACH PARTITION \"public\".\"ll_usage_events_event_type_38bbc925_p37\";\nCREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_event_type_38bbc925_p38\" ON \"public\".\"usage_events_2027_03\" USING btree (\"event_type\");\nALTER INDEX \"public\".\"ll_usage_events_event_type_38bbc925\" ATTACH PARTITION \"public\".\"ll_usage_events_event_type_38bbc925_p38\";\nCREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_event_type_38bbc925_p39\" ON \"public\".\"usage_events_2027_04\" USING btree (\"event_type\");\nALTER INDEX \"public\".\"ll_usage_events_event_type_38bbc925\" ATTACH PARTITION \"public\".\"ll_usage_events_event_type_38bbc925_p39\";\nCREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_event_type_38bbc925_p40\" ON \"public\".\"usage_events_2027_05\" USING btree (\"event_type\");\nALTER INDEX \"public\".\"ll_usage_events_event_type_38bbc925\" ATTACH PARTITION \"public\".\"ll_usage_events_event_type_38bbc925_p40\";\nCREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_event_type_38bbc925_p41\" ON \"public\".\"usage_events_2027_06\" USING btree (\"event_type\");\nALTER INDEX \"public\".\"ll_usage_events_event_type_38bbc925\" ATTACH PARTITION \"public\".\"ll_usage_events_event_type_38bbc925_p41\";\nCREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_event_type_38bbc925_p42\" ON \"public\".\"usage_events_2027_07\" USING btree (\"event_type\");\nALTER INDEX \"public\".\"ll_usage_events_event_type_38bbc925\" ATTACH PARTITION \"public\".\"ll_usage_events_event_type_38bbc925_p42\";\nCREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_event_type_38bbc925_p43\" ON \"public\".\"usage_events_2027_08\" USING btree (\"event_type\");\nALTER INDEX \"public\".\"ll_usage_events_event_type_38bbc925\" ATTACH PARTITION \"public\".\"ll_usage_events_event_type_38bbc925_p43\";\nCREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_event_type_38bbc925_p44\" ON \"public\".\"usage_events_2027_09\" USING btree (\"event_type\");\nALTER INDEX \"public\".\"ll_usage_events_event_type_38bbc925\" ATTACH PARTITION \"public\".\"ll_usage_events_event_type_38bbc925_p44\";\nCREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_event_type_38bbc925_p45\" ON \"public\".\"usage_events_2027_10\" USING btree (\"event_type\");\nALTER INDEX \"public\".\"ll_usage_events_event_type_38bbc925\" ATTACH PARTITION \"public\".\"ll_usage_events_event_type_38bbc925_p45\";\nCREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_event_type_38bbc925_p46\" ON \"public\".\"usage_events_2027_11\" USING btree (\"event_type\");\nALTER INDEX \"public\".\"ll_usage_events_event_type_38bbc925\" ATTACH PARTITION \"public\".\"ll_usage_events_event_type_38bbc925_p46\";\nCREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_event_type_38bbc925_p47\" ON \"public\".\"usage_events_2027_12\" USING btree (\"event_type\");\nALTER INDEX \"public\".\"ll_usage_events_event_type_38bbc925\" ATTACH PARTITION \"public\".\"ll_usage_events_event_type_38bbc925_p47\"",
+          "downSql": "DROP INDEX IF EXISTS \"public\".\"ll_usage_events_event_type_38bbc925\"",
+          "upStatements": [
+            "CREATE INDEX IF NOT EXISTS \"ll_usage_events_event_type_38bbc925\" ON ONLY \"public\".\"usage_events\" USING btree (\"event_type\")",
+            "CREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_event_type_38bbc925_p0\" ON \"public\".\"usage_events_2024_01\" USING btree (\"event_type\")",
+            "ALTER INDEX \"public\".\"ll_usage_events_event_type_38bbc925\" ATTACH PARTITION \"public\".\"ll_usage_events_event_type_38bbc925_p0\"",
+            "CREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_event_type_38bbc925_p1\" ON \"public\".\"usage_events_2024_02\" USING btree (\"event_type\")",
+            "ALTER INDEX \"public\".\"ll_usage_events_event_type_38bbc925\" ATTACH PARTITION \"public\".\"ll_usage_events_event_type_38bbc925_p1\"",
+            "CREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_event_type_38bbc925_p2\" ON \"public\".\"usage_events_2024_03\" USING btree (\"event_type\")",
+            "ALTER INDEX \"public\".\"ll_usage_events_event_type_38bbc925\" ATTACH PARTITION \"public\".\"ll_usage_events_event_type_38bbc925_p2\"",
+            "CREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_event_type_38bbc925_p3\" ON \"public\".\"usage_events_2024_04\" USING btree (\"event_type\")",
+            "ALTER INDEX \"public\".\"ll_usage_events_event_type_38bbc925\" ATTACH PARTITION \"public\".\"ll_usage_events_event_type_38bbc925_p3\"",
+            "CREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_event_type_38bbc925_p4\" ON \"public\".\"usage_events_2024_05\" USING btree (\"event_type\")",
+            "ALTER INDEX \"public\".\"ll_usage_events_event_type_38bbc925\" ATTACH PARTITION \"public\".\"ll_usage_events_event_type_38bbc925_p4\"",
+            "CREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_event_type_38bbc925_p5\" ON \"public\".\"usage_events_2024_06\" USING btree (\"event_type\")",
+            "ALTER INDEX \"public\".\"ll_usage_events_event_type_38bbc925\" ATTACH PARTITION \"public\".\"ll_usage_events_event_type_38bbc925_p5\"",
+            "CREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_event_type_38bbc925_p6\" ON \"public\".\"usage_events_2024_07\" USING btree (\"event_type\")",
+            "ALTER INDEX \"public\".\"ll_usage_events_event_type_38bbc925\" ATTACH PARTITION \"public\".\"ll_usage_events_event_type_38bbc925_p6\"",
+            "CREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_event_type_38bbc925_p7\" ON \"public\".\"usage_events_2024_08\" USING btree (\"event_type\")",
+            "ALTER INDEX \"public\".\"ll_usage_events_event_type_38bbc925\" ATTACH PARTITION \"public\".\"ll_usage_events_event_type_38bbc925_p7\"",
+            "CREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_event_type_38bbc925_p8\" ON \"public\".\"usage_events_2024_09\" USING btree (\"event_type\")",
+            "ALTER INDEX \"public\".\"ll_usage_events_event_type_38bbc925\" ATTACH PARTITION \"public\".\"ll_usage_events_event_type_38bbc925_p8\"",
+            "CREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_event_type_38bbc925_p9\" ON \"public\".\"usage_events_2024_10\" USING btree (\"event_type\")",
+            "ALTER INDEX \"public\".\"ll_usage_events_event_type_38bbc925\" ATTACH PARTITION \"public\".\"ll_usage_events_event_type_38bbc925_p9\"",
+            "CREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_event_type_38bbc925_p10\" ON \"public\".\"usage_events_2024_11\" USING btree (\"event_type\")",
+            "ALTER INDEX \"public\".\"ll_usage_events_event_type_38bbc925\" ATTACH PARTITION \"public\".\"ll_usage_events_event_type_38bbc925_p10\"",
+            "CREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_event_type_38bbc925_p11\" ON \"public\".\"usage_events_2024_12\" USING btree (\"event_type\")",
+            "ALTER INDEX \"public\".\"ll_usage_events_event_type_38bbc925\" ATTACH PARTITION \"public\".\"ll_usage_events_event_type_38bbc925_p11\"",
+            "CREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_event_type_38bbc925_p12\" ON \"public\".\"usage_events_2025_01\" USING btree (\"event_type\")",
+            "ALTER INDEX \"public\".\"ll_usage_events_event_type_38bbc925\" ATTACH PARTITION \"public\".\"ll_usage_events_event_type_38bbc925_p12\"",
+            "CREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_event_type_38bbc925_p13\" ON \"public\".\"usage_events_2025_02\" USING btree (\"event_type\")",
+            "ALTER INDEX \"public\".\"ll_usage_events_event_type_38bbc925\" ATTACH PARTITION \"public\".\"ll_usage_events_event_type_38bbc925_p13\"",
+            "CREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_event_type_38bbc925_p14\" ON \"public\".\"usage_events_2025_03\" USING btree (\"event_type\")",
+            "ALTER INDEX \"public\".\"ll_usage_events_event_type_38bbc925\" ATTACH PARTITION \"public\".\"ll_usage_events_event_type_38bbc925_p14\"",
+            "CREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_event_type_38bbc925_p15\" ON \"public\".\"usage_events_2025_04\" USING btree (\"event_type\")",
+            "ALTER INDEX \"public\".\"ll_usage_events_event_type_38bbc925\" ATTACH PARTITION \"public\".\"ll_usage_events_event_type_38bbc925_p15\"",
+            "CREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_event_type_38bbc925_p16\" ON \"public\".\"usage_events_2025_05\" USING btree (\"event_type\")",
+            "ALTER INDEX \"public\".\"ll_usage_events_event_type_38bbc925\" ATTACH PARTITION \"public\".\"ll_usage_events_event_type_38bbc925_p16\"",
+            "CREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_event_type_38bbc925_p17\" ON \"public\".\"usage_events_2025_06\" USING btree (\"event_type\")",
+            "ALTER INDEX \"public\".\"ll_usage_events_event_type_38bbc925\" ATTACH PARTITION \"public\".\"ll_usage_events_event_type_38bbc925_p17\"",
+            "CREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_event_type_38bbc925_p18\" ON \"public\".\"usage_events_2025_07\" USING btree (\"event_type\")",
+            "ALTER INDEX \"public\".\"ll_usage_events_event_type_38bbc925\" ATTACH PARTITION \"public\".\"ll_usage_events_event_type_38bbc925_p18\"",
+            "CREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_event_type_38bbc925_p19\" ON \"public\".\"usage_events_2025_08\" USING btree (\"event_type\")",
+            "ALTER INDEX \"public\".\"ll_usage_events_event_type_38bbc925\" ATTACH PARTITION \"public\".\"ll_usage_events_event_type_38bbc925_p19\"",
+            "CREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_event_type_38bbc925_p20\" ON \"public\".\"usage_events_2025_09\" USING btree (\"event_type\")",
+            "ALTER INDEX \"public\".\"ll_usage_events_event_type_38bbc925\" ATTACH PARTITION \"public\".\"ll_usage_events_event_type_38bbc925_p20\"",
+            "CREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_event_type_38bbc925_p21\" ON \"public\".\"usage_events_2025_10\" USING btree (\"event_type\")",
+            "ALTER INDEX \"public\".\"ll_usage_events_event_type_38bbc925\" ATTACH PARTITION \"public\".\"ll_usage_events_event_type_38bbc925_p21\"",
+            "CREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_event_type_38bbc925_p22\" ON \"public\".\"usage_events_2025_11\" USING btree (\"event_type\")",
+            "ALTER INDEX \"public\".\"ll_usage_events_event_type_38bbc925\" ATTACH PARTITION \"public\".\"ll_usage_events_event_type_38bbc925_p22\"",
+            "CREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_event_type_38bbc925_p23\" ON \"public\".\"usage_events_2025_12\" USING btree (\"event_type\")",
+            "ALTER INDEX \"public\".\"ll_usage_events_event_type_38bbc925\" ATTACH PARTITION \"public\".\"ll_usage_events_event_type_38bbc925_p23\"",
+            "CREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_event_type_38bbc925_p24\" ON \"public\".\"usage_events_2026_01\" USING btree (\"event_type\")",
+            "ALTER INDEX \"public\".\"ll_usage_events_event_type_38bbc925\" ATTACH PARTITION \"public\".\"ll_usage_events_event_type_38bbc925_p24\"",
+            "CREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_event_type_38bbc925_p25\" ON \"public\".\"usage_events_2026_02\" USING btree (\"event_type\")",
+            "ALTER INDEX \"public\".\"ll_usage_events_event_type_38bbc925\" ATTACH PARTITION \"public\".\"ll_usage_events_event_type_38bbc925_p25\"",
+            "CREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_event_type_38bbc925_p26\" ON \"public\".\"usage_events_2026_03\" USING btree (\"event_type\")",
+            "ALTER INDEX \"public\".\"ll_usage_events_event_type_38bbc925\" ATTACH PARTITION \"public\".\"ll_usage_events_event_type_38bbc925_p26\"",
+            "CREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_event_type_38bbc925_p27\" ON \"public\".\"usage_events_2026_04\" USING btree (\"event_type\")",
+            "ALTER INDEX \"public\".\"ll_usage_events_event_type_38bbc925\" ATTACH PARTITION \"public\".\"ll_usage_events_event_type_38bbc925_p27\"",
+            "CREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_event_type_38bbc925_p28\" ON \"public\".\"usage_events_2026_05\" USING btree (\"event_type\")",
+            "ALTER INDEX \"public\".\"ll_usage_events_event_type_38bbc925\" ATTACH PARTITION \"public\".\"ll_usage_events_event_type_38bbc925_p28\"",
+            "CREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_event_type_38bbc925_p29\" ON \"public\".\"usage_events_2026_06\" USING btree (\"event_type\")",
+            "ALTER INDEX \"public\".\"ll_usage_events_event_type_38bbc925\" ATTACH PARTITION \"public\".\"ll_usage_events_event_type_38bbc925_p29\"",
+            "CREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_event_type_38bbc925_p30\" ON \"public\".\"usage_events_2026_07\" USING btree (\"event_type\")",
+            "ALTER INDEX \"public\".\"ll_usage_events_event_type_38bbc925\" ATTACH PARTITION \"public\".\"ll_usage_events_event_type_38bbc925_p30\"",
+            "CREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_event_type_38bbc925_p31\" ON \"public\".\"usage_events_2026_08\" USING btree (\"event_type\")",
+            "ALTER INDEX \"public\".\"ll_usage_events_event_type_38bbc925\" ATTACH PARTITION \"public\".\"ll_usage_events_event_type_38bbc925_p31\"",
+            "CREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_event_type_38bbc925_p32\" ON \"public\".\"usage_events_2026_09\" USING btree (\"event_type\")",
+            "ALTER INDEX \"public\".\"ll_usage_events_event_type_38bbc925\" ATTACH PARTITION \"public\".\"ll_usage_events_event_type_38bbc925_p32\"",
+            "CREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_event_type_38bbc925_p33\" ON \"public\".\"usage_events_2026_10\" USING btree (\"event_type\")",
+            "ALTER INDEX \"public\".\"ll_usage_events_event_type_38bbc925\" ATTACH PARTITION \"public\".\"ll_usage_events_event_type_38bbc925_p33\"",
+            "CREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_event_type_38bbc925_p34\" ON \"public\".\"usage_events_2026_11\" USING btree (\"event_type\")",
+            "ALTER INDEX \"public\".\"ll_usage_events_event_type_38bbc925\" ATTACH PARTITION \"public\".\"ll_usage_events_event_type_38bbc925_p34\"",
+            "CREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_event_type_38bbc925_p35\" ON \"public\".\"usage_events_2026_12\" USING btree (\"event_type\")",
+            "ALTER INDEX \"public\".\"ll_usage_events_event_type_38bbc925\" ATTACH PARTITION \"public\".\"ll_usage_events_event_type_38bbc925_p35\"",
+            "CREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_event_type_38bbc925_p36\" ON \"public\".\"usage_events_2027_01\" USING btree (\"event_type\")",
+            "ALTER INDEX \"public\".\"ll_usage_events_event_type_38bbc925\" ATTACH PARTITION \"public\".\"ll_usage_events_event_type_38bbc925_p36\"",
+            "CREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_event_type_38bbc925_p37\" ON \"public\".\"usage_events_2027_02\" USING btree (\"event_type\")",
+            "ALTER INDEX \"public\".\"ll_usage_events_event_type_38bbc925\" ATTACH PARTITION \"public\".\"ll_usage_events_event_type_38bbc925_p37\"",
+            "CREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_event_type_38bbc925_p38\" ON \"public\".\"usage_events_2027_03\" USING btree (\"event_type\")",
+            "ALTER INDEX \"public\".\"ll_usage_events_event_type_38bbc925\" ATTACH PARTITION \"public\".\"ll_usage_events_event_type_38bbc925_p38\"",
+            "CREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_event_type_38bbc925_p39\" ON \"public\".\"usage_events_2027_04\" USING btree (\"event_type\")",
+            "ALTER INDEX \"public\".\"ll_usage_events_event_type_38bbc925\" ATTACH PARTITION \"public\".\"ll_usage_events_event_type_38bbc925_p39\"",
+            "CREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_event_type_38bbc925_p40\" ON \"public\".\"usage_events_2027_05\" USING btree (\"event_type\")",
+            "ALTER INDEX \"public\".\"ll_usage_events_event_type_38bbc925\" ATTACH PARTITION \"public\".\"ll_usage_events_event_type_38bbc925_p40\"",
+            "CREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_event_type_38bbc925_p41\" ON \"public\".\"usage_events_2027_06\" USING btree (\"event_type\")",
+            "ALTER INDEX \"public\".\"ll_usage_events_event_type_38bbc925\" ATTACH PARTITION \"public\".\"ll_usage_events_event_type_38bbc925_p41\"",
+            "CREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_event_type_38bbc925_p42\" ON \"public\".\"usage_events_2027_07\" USING btree (\"event_type\")",
+            "ALTER INDEX \"public\".\"ll_usage_events_event_type_38bbc925\" ATTACH PARTITION \"public\".\"ll_usage_events_event_type_38bbc925_p42\"",
+            "CREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_event_type_38bbc925_p43\" ON \"public\".\"usage_events_2027_08\" USING btree (\"event_type\")",
+            "ALTER INDEX \"public\".\"ll_usage_events_event_type_38bbc925\" ATTACH PARTITION \"public\".\"ll_usage_events_event_type_38bbc925_p43\"",
+            "CREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_event_type_38bbc925_p44\" ON \"public\".\"usage_events_2027_09\" USING btree (\"event_type\")",
+            "ALTER INDEX \"public\".\"ll_usage_events_event_type_38bbc925\" ATTACH PARTITION \"public\".\"ll_usage_events_event_type_38bbc925_p44\"",
+            "CREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_event_type_38bbc925_p45\" ON \"public\".\"usage_events_2027_10\" USING btree (\"event_type\")",
+            "ALTER INDEX \"public\".\"ll_usage_events_event_type_38bbc925\" ATTACH PARTITION \"public\".\"ll_usage_events_event_type_38bbc925_p45\"",
+            "CREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_event_type_38bbc925_p46\" ON \"public\".\"usage_events_2027_11\" USING btree (\"event_type\")",
+            "ALTER INDEX \"public\".\"ll_usage_events_event_type_38bbc925\" ATTACH PARTITION \"public\".\"ll_usage_events_event_type_38bbc925_p46\"",
+            "CREATE INDEX CONCURRENTLY IF NOT EXISTS \"ll_usage_events_event_type_38bbc925_p47\" ON \"public\".\"usage_events_2027_12\" USING btree (\"event_type\")",
+            "ALTER INDEX \"public\".\"ll_usage_events_event_type_38bbc925\" ATTACH PARTITION \"public\".\"ll_usage_events_event_type_38bbc925_p47\""
+          ],
+          "downStatements": [
+            "DROP INDEX IF EXISTS \"public\".\"ll_usage_events_event_type_38bbc925\""
+          ],
+          "noTransaction": true,
+          "index": {
+            "schema": "public",
+            "table": "usage_events",
+            "indexName": "ll_usage_events_event_type_38bbc925",
+            "method": "btree",
+            "key": [
+              {
+                "name": "event_type",
+                "desc": false
+              }
+            ],
+            "include": [],
+            "partial": null,
+            "partitions": [
+              "usage_events_2024_01",
+              "usage_events_2024_02",
+              "usage_events_2024_03",
+              "usage_events_2024_04",
+              "usage_events_2024_05",
+              "usage_events_2024_06",
+              "usage_events_2024_07",
+              "usage_events_2024_08",
+              "usage_events_2024_09",
+              "usage_events_2024_10",
+              "usage_events_2024_11",
+              "usage_events_2024_12",
+              "usage_events_2025_01",
+              "usage_events_2025_02",
+              "usage_events_2025_03",
+              "usage_events_2025_04",
+              "usage_events_2025_05",
+              "usage_events_2025_06",
+              "usage_events_2025_07",
+              "usage_events_2025_08",
+              "usage_events_2025_09",
+              "usage_events_2025_10",
+              "usage_events_2025_11",
+              "usage_events_2025_12",
+              "usage_events_2026_01",
+              "usage_events_2026_02",
+              "usage_events_2026_03",
+              "usage_events_2026_04",
+              "usage_events_2026_05",
+              "usage_events_2026_06",
+              "usage_events_2026_07",
+              "usage_events_2026_08",
+              "usage_events_2026_09",
+              "usage_events_2026_10",
+              "usage_events_2026_11",
+              "usage_events_2026_12",
+              "usage_events_2027_01",
+              "usage_events_2027_02",
+              "usage_events_2027_03",
+              "usage_events_2027_04",
+              "usage_events_2027_05",
+              "usage_events_2027_06",
+              "usage_events_2027_07",
+              "usage_events_2027_08",
+              "usage_events_2027_09",
+              "usage_events_2027_10",
+              "usage_events_2027_11",
+              "usage_events_2027_12"
+            ]
+          }
+        }
+      ],
+      "skipped": []
+    }
+  ]
+}

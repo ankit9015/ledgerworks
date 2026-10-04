@@ -143,3 +143,14 @@ export async function parsePartitionKey(
     hasExpression: cols.length !== params.length,
   };
 }
+
+/**
+ * The kind of each top-level statement in a piece of SQL, as the parser names them
+ * (`IndexStmt`, `AlterTableStmt`, `DropStmt`, `VacuumStmt` for ANALYZE, ...). Used to check that
+ * generated SQL contains only the statements it is meant to, however its text was assembled.
+ */
+export async function statementKinds(sql: string): Promise<string[]> {
+  await ready();
+  const tree: any = await parse(sql);
+  return (tree.stmts ?? []).map((s: any) => Object.keys(s.stmt ?? {})[0] ?? 'unknown');
+}
