@@ -92,6 +92,14 @@ function indexBody(spec: IndexSpec): string {
   return `USING btree (${key})${include}${where}`;
 }
 
+/** The statement HypoPG is given for a hypothetical index: no name, no CONCURRENTLY, no ONLY (HypoPG chooses the name and works on the parent). */
+export async function buildHypotheticalIndexSql(spec: IndexSpec): Promise<string> {
+  assertSpecIdentifiers(spec);
+  const sql = `CREATE INDEX ON ${quoteQualified(spec.schema, spec.table)} ${indexBody(spec)}`;
+  await validateSql([sql], ['IndexStmt'], { ...spec, partitions: null });
+  return sql;
+}
+
 export interface BuiltSql {
   up: string[];
   down: string[];

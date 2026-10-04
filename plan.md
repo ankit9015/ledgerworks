@@ -169,8 +169,8 @@ Problem: `pg_stat_statements` stores normalized text with `$1, $2`, so a query c
 - **Done when:** tests show correct column order for 6 query shapes, duplicate and prefix-redundant detection, and an identifier-injection test (table and column names containing quotes, semicolons and newlines) where the generated SQL is valid and inert.
 
 ### L3.4 HypoPG pre-screen
-- [ ] On the settled shadow, create each index candidate as a hypothetical index, run plain `EXPLAIN` for the targeted statements with their bindings, and record whether the planner uses the index and the estimated cost change. Drop the hypothetical index afterwards.
-- [ ] Candidates the planner does not use are rejected early with the reason. HypoPG results are cost estimates only and are never reported as measured speedups.
+- [x] On the settled shadow, create each index candidate as a hypothetical index, run plain `EXPLAIN` for the targeted statements with their bindings, and record whether the planner uses the index and the estimated cost change. Drop the hypothetical index afterwards.
+- [x] Candidates the planner does not use are rejected early with the reason. HypoPG results are cost estimates only and are never reported as measured speedups.
 - **Done when:** a planted missing-index case passes the pre-screen, a useless index is rejected, and the report text never calls a HypoPG number a speedup (tested by a string check on the report schema, which has separate `estimatedCostRatio` and `measuredSpeedup` fields).
 
 ### L3.5 Verifier
