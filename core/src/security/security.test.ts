@@ -797,7 +797,17 @@ describe('encryption of stored provider configs', () => {
     for (const attempt of [
       () => decryptSecret(wrong, token, 'config-1'),
       () => decryptSecret(r, token, 'config-2'), // moved to another row
-      () => decryptSecret(r, token.slice(0, -2) + 'AA', 'config-1'), // tag changed
+      () =>
+        decryptSecret(
+          r,
+          // tag changed: the FIRST character of the tag (all 6 bits count; the last character of a base64 tag carries unused bits,
+          // so replacing it with "A" was no change at all in about one run in 64)
+          token.replace(
+            /.([^.]+)$/,
+            (_m, tag: string) => `.${tag[0] === 'A' ? 'B' : 'A'}${tag.slice(1)}`,
+          ),
+          'config-1',
+        ),
       () =>
         decryptSecret(
           r,
